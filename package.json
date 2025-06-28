@@ -1,0 +1,21 @@
+{
+	"type": "module",
+	"name": "temporal-polyfill-lite",
+	"version": "0.1.0",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"keywords": [
+		"Temporal"
+	],
+	"author": "fabon <syobon.hinata.public@gmail.com> (https://www.fabon.info/)",
+	"license": "MIT",
+	"devDependencies": {
+		"@biomejs/biome": "2.0.6",
+		"@js-temporal/temporal-test262-runner": "^0.10.1",
+		"@rollup/plugin-terser": "^0.4.4",
+		"@tsconfig/strictest": "^2.0.5",
+		"rolldown": "1.0.0-beta.21"
+	},
+	"packageManager": "pnpm@10.12.4"
+}

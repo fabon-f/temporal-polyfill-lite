@@ -1,0 +1,13 @@
+{
+	"extends": "@tsconfig/strictest",
+	"compilerOptions": {
+		"target": "ES2024",
+		"module": "NodeNext",
+		"rootDir": ".",
+		"noEmit": true,
+		"forceConsistentCasingInFileNames": true,
+		"verbatimModuleSyntax": true,
+		"checkJs": false
+	},
+	"exclude": ["dist", "test262"]
+}
