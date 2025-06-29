@@ -218,7 +218,17 @@ export class Duration {
 	get blank() {
 		return durationSign(getInternalSlotOrThrow(slots, this)) === 0;
 	}
-	with() {}
+	with(durationLike: unknown) {
+		const baseSlot = getInternalSlotOrThrow(slots, this);
+		const newRecord = toTemporalPartialDurationRecord(durationLike);
+		return createTemporalDuration(
+			createTemporalDurationSlot(
+				...(baseSlot.map((v, i) =>
+					newRecord[i] !== undefined ? newRecord[i] : v,
+				) as DurationRecord),
+			),
+		);
+	}
 	negated() {
 		return createTemporalDuration(
 			createNegatedTemporalDurationSlot(getInternalSlotOrThrow(slots, this)),
