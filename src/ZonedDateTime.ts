@@ -32,26 +32,26 @@ export class ZonedDateTime {
 	get inLeapYear() {}
 	get offsetNanoseconds() {}
 	get offset() {}
-	with;
-	withPlainTime;
-	withTimeZone;
-	withCalendar;
-	add;
-	subtract;
-	until;
-	since;
-	round;
-	equals;
-	toString;
-	toLocaleString;
-	toJSON;
-	valueOf;
-	startOfDay;
-	getTimeZoneTransition;
-	toInstant;
-	toPlainDate;
-	toPlainTime;
-	toPlainDateTime;
+	with() {}
+	withPlainTime() {}
+	withTimeZone() {}
+	withCalendar() {}
+	add() {}
+	subtract() {}
+	until() {}
+	since() {}
+	round() {}
+	equals() {}
+	toString() {}
+	toLocaleString() {}
+	toJSON() {}
+	valueOf() {}
+	startOfDay() {}
+	getTimeZoneTransition() {}
+	toInstant() {}
+	toPlainDate() {}
+	toPlainTime() {}
+	toPlainDateTime() {}
 }
 
 defineStringTag(ZonedDateTime.prototype, "Temporal.ZonedDateTime");
