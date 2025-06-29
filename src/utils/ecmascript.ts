@@ -8,6 +8,15 @@ export function toNumber(arg: unknown): number {
 	return Number(arg);
 }
 
+/** `ToIntegerIfIntegral` */
+export function toIntegerIfIntegral(arg: unknown): number {
+	const num = toNumber(arg);
+	if (!Number.isInteger(num)) {
+		throw new RangeError();
+	}
+	return num + 0;
+}
+
 /** `ToIntegerWithTruncation` */
 export function toIntegerWithTruncation(arg: unknown): number {
 	const num = toNumber(arg);
