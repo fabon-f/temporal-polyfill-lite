@@ -4,28 +4,72 @@ export class PlainDateTime {
 	constructor() {}
 	static from() {}
 	static compare() {}
-	get calendarId() {}
-	get era() {}
-	get eraYear() {}
-	get year() {}
-	get month() {}
-	get monthCode() {}
-	get day() {}
-	get hour() {}
-	get minute() {}
-	get second() {}
-	get millisecond() {}
-	get microsecond() {}
-	get nanosecond() {}
-	get dayOfWeek() {}
-	get dayOfYear() {}
-	get weekOfYear() {}
-	get yearOfWeek() {}
-	get daysInWeek() {}
-	get daysInMonth() {}
-	get daysInYear() {}
-	get monthsInYear() {}
-	get inLeapYear() {}
+	get calendarId() {
+		return undefined;
+	}
+	get era() {
+		return undefined;
+	}
+	get eraYear() {
+		return undefined;
+	}
+	get year() {
+		return undefined;
+	}
+	get month() {
+		return undefined;
+	}
+	get monthCode() {
+		return undefined;
+	}
+	get day() {
+		return undefined;
+	}
+	get hour() {
+		return undefined;
+	}
+	get minute() {
+		return undefined;
+	}
+	get second() {
+		return undefined;
+	}
+	get millisecond() {
+		return undefined;
+	}
+	get microsecond() {
+		return undefined;
+	}
+	get nanosecond() {
+		return undefined;
+	}
+	get dayOfWeek() {
+		return undefined;
+	}
+	get dayOfYear() {
+		return undefined;
+	}
+	get weekOfYear() {
+		return undefined;
+	}
+	get yearOfWeek() {
+		return undefined;
+	}
+	get daysInWeek() {
+		return undefined;
+	}
+	get daysInMonth() {
+		return undefined;
+	}
+	get daysInYear() {
+		return undefined;
+	}
+	get monthsInYear() {
+		return undefined;
+	}
+	get inLeapYear() {
+		return undefined;
+	}
 	with() {}
 	withPlainTime() {}
 	withCalendar() {}

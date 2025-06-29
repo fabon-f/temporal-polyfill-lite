@@ -4,34 +4,90 @@ export class ZonedDateTime {
 	constructor() {}
 	static from() {}
 	static compare() {}
-	get calendarId() {}
-	get timeZoneId() {}
-	get era() {}
-	get eraYear() {}
-	get year() {}
-	get month() {}
-	get monthCode() {}
-	get day() {}
-	get hour() {}
-	get minute() {}
-	get second() {}
-	get millisecond() {}
-	get microsecond() {}
-	get nanosecond() {}
-	get epochMilliseconds() {}
-	get epochNanoseconds() {}
-	get dayOfWeek() {}
-	get dayOfYear() {}
-	get weekOfYear() {}
-	get yearOfWeek() {}
-	get hoursInDay() {}
-	get daysInWeek() {}
-	get daysInMonth() {}
-	get daysInYear() {}
-	get monthsInYear() {}
-	get inLeapYear() {}
-	get offsetNanoseconds() {}
-	get offset() {}
+	get calendarId() {
+		return undefined;
+	}
+	get timeZoneId() {
+		return undefined;
+	}
+	get era() {
+		return undefined;
+	}
+	get eraYear() {
+		return undefined;
+	}
+	get year() {
+		return undefined;
+	}
+	get month() {
+		return undefined;
+	}
+	get monthCode() {
+		return undefined;
+	}
+	get day() {
+		return undefined;
+	}
+	get hour() {
+		return undefined;
+	}
+	get minute() {
+		return undefined;
+	}
+	get second() {
+		return undefined;
+	}
+	get millisecond() {
+		return undefined;
+	}
+	get microsecond() {
+		return undefined;
+	}
+	get nanosecond() {
+		return undefined;
+	}
+	get epochMilliseconds() {
+		return undefined;
+	}
+	get epochNanoseconds() {
+		return undefined;
+	}
+	get dayOfWeek() {
+		return undefined;
+	}
+	get dayOfYear() {
+		return undefined;
+	}
+	get weekOfYear() {
+		return undefined;
+	}
+	get yearOfWeek() {
+		return undefined;
+	}
+	get hoursInDay() {
+		return undefined;
+	}
+	get daysInWeek() {
+		return undefined;
+	}
+	get daysInMonth() {
+		return undefined;
+	}
+	get daysInYear() {
+		return undefined;
+	}
+	get monthsInYear() {
+		return undefined;
+	}
+	get inLeapYear() {
+		return undefined;
+	}
+	get offsetNanoseconds() {
+		return undefined;
+	}
+	get offset() {
+		return undefined;
+	}
 	with() {}
 	withPlainTime() {}
 	withTimeZone() {}

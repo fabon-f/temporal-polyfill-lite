@@ -4,12 +4,24 @@ export class PlainTime {
 	constructor() {}
 	static from() {}
 	static compare() {}
-	get hour() {}
-	get minute() {}
-	get second() {}
-	get millisecond() {}
-	get microsecond() {}
-	get nanosecond() {}
+	get hour() {
+		return undefined;
+	}
+	get minute() {
+		return undefined;
+	}
+	get second() {
+		return undefined;
+	}
+	get millisecond() {
+		return undefined;
+	}
+	get microsecond() {
+		return undefined;
+	}
+	get nanosecond() {
+		return undefined;
+	}
 	add() {}
 	subtract() {}
 	with() {}

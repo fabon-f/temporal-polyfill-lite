@@ -23,6 +23,9 @@ importers:
       rolldown:
         specifier: 1.0.0-beta.21
         version: 1.0.0-beta.21
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(terser@5.43.1)
@@ -696,6 +699,11 @@ packages:
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
+  typescript@5.8.3:
+    resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
   vite-node@3.2.4:
     resolution: {integrity: sha512-EbKSKh+bh1E1IFxeO0pg1n4dvoOTt0UDiXMd/qn++r98+jPO1xtJilvXldeuQ8giIB5IkpjCgMleHMNEsGH6pg==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
@@ -1324,6 +1332,8 @@ snapshots:
 
   tslib@2.8.1:
     optional: true
+
+  typescript@5.8.3: {}
 
   vite-node@3.2.4(terser@5.43.1):
     dependencies:

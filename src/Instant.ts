@@ -6,8 +6,12 @@ export class Instant {
 	static fromEpochMilliseconds() {}
 	static fromEpochNanoseconds() {}
 	static compare() {}
-	get epochMilliseconds() {}
-	get epochNanoseconds() {}
+	get epochMilliseconds() {
+		return undefined;
+	}
+	get epochNanoseconds() {
+		return undefined;
+	}
 	add() {}
 	subtract() {}
 	until() {}

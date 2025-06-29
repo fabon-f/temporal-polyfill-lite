@@ -7,7 +7,9 @@
 		"noEmit": true,
 		"forceConsistentCasingInFileNames": true,
 		"verbatimModuleSyntax": true,
-		"checkJs": false
+		"checkJs": false,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false
 	},
 	"exclude": ["dist", "test262"]
 }
