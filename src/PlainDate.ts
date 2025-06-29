@@ -56,7 +56,7 @@ export class PlainDate {
 		isoDay: unknown,
 		calendar: unknown = "iso8601",
 	) {
-		if (new.target === undefined) {
+		if (!new.target) {
 			throw new TypeError();
 		}
 		const y = toIntegerWithTruncation(isoYear);
