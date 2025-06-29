@@ -15,26 +15,24 @@ import { defineStringTag } from "./utils/property.js";
 
 export type ISODateRecord = [isoYear: number, isoMonth: number, isoDay: number];
 
-type InternalPlainDateSlot = [
-	isoYear: number,
-	isoMonth: number,
-	isoDay: number,
-] & { __internalPlainDateSlot__: unknown };
+type PlainDateSlot = [isoYear: number, isoMonth: number, isoDay: number] & {
+	__plainDateSlot__: unknown;
+};
 
 /** `IsValidISODate` */
 const isValidISODate = (year: number, month: number, day: number): boolean =>
 	month >= 1 && month <= 12 && day >= 1 && day <= isoDaysInMonth(year, month);
 
-function createTemporalDateSlot(isoDate: ISODateRecord): InternalPlainDateSlot {
+function createTemporalDateSlot(isoDate: ISODateRecord): PlainDateSlot {
 	if (!isoDateWithinLimits(isoDate)) {
 		throw new RangeError();
 	}
-	return isoDate as InternalPlainDateSlot;
+	return isoDate as PlainDateSlot;
 }
 
 /** `CreateTemporalDate` */
 function createTemporalDate(
-	slot: InternalPlainDateSlot,
+	slot: PlainDateSlot,
 	instance?: PlainDate,
 ): PlainDate {
 	const plainDate =
@@ -49,7 +47,7 @@ export function isoDateWithinLimits(isoDate: ISODateRecord): boolean {
 	return true;
 }
 
-const slots = new WeakMap<PlainDate, InternalPlainDateSlot>();
+const slots = new WeakMap<PlainDate, PlainDateSlot>();
 
 export class PlainDate {
 	constructor(
