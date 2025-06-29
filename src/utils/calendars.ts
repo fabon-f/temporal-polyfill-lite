@@ -1,5 +1,5 @@
-import type { ISODateRecord } from "../PlainDate.js";
-import { toZeroPaddedDecimalString } from "./ecmascript.js";
+import type { ISODateRecord } from "../PlainDate.ts";
+import { toZeroPaddedDecimalString } from "./ecmascript.ts";
 
 type YearWeekRecord = [year: number, week: number];
 

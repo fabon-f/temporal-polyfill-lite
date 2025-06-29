@@ -1,4 +1,4 @@
-import { defineStringTag } from "./utils/property.js";
+import { defineStringTag } from "./utils/property.ts";
 
 export class PlainTime {
 	constructor() {}

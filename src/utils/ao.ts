@@ -1,6 +1,6 @@
-import { createTemporalDurationSlot } from "../Duration.js";
-import { toIntegerWithTruncation } from "./ecmascript.js";
-import { balanceNanoseconds } from "./time.js";
+import { createTemporalDurationSlot } from "../Duration.ts";
+import { toIntegerWithTruncation } from "./ecmascript.ts";
+import { balanceNanoseconds } from "./time.ts";
 
 /** `MathematicalInLeapYear` */
 export const mathematicalInLeapYear = (year: number) =>

@@ -1,7 +1,7 @@
 import {
 	defineStringTag,
 	rewritePropertyDescriptorsForProperties,
-} from "./utils/property.js";
+} from "./utils/property.ts";
 
 export const Now = {
 	timeZoneId() {},

@@ -1,4 +1,4 @@
-import { mathematicalInLeapYear } from "./utils/ao.js";
+import { mathematicalInLeapYear } from "./utils/ao.ts";
 import {
 	assertCalendar,
 	isoDayOfWeek,
@@ -6,12 +6,12 @@ import {
 	isoDaysInMonth,
 	isoWeekOfYear,
 	monthToMonthCode,
-} from "./utils/calendars.js";
+} from "./utils/calendars.ts";
 import {
 	getInternalSlotOrThrow,
 	toIntegerWithTruncation,
-} from "./utils/ecmascript.js";
-import { defineStringTag } from "./utils/property.js";
+} from "./utils/ecmascript.ts";
+import { defineStringTag } from "./utils/property.ts";
 
 export type ISODateRecord = [isoYear: number, isoMonth: number, isoDay: number];
 

@@ -5,6 +5,7 @@
 		"module": "NodeNext",
 		"rootDir": ".",
 		"noEmit": true,
+		"allowImportingTsExtensions": true,
 		"forceConsistentCasingInFileNames": true,
 		"verbatimModuleSyntax": true,
 		"checkJs": false,

@@ -1,4 +1,4 @@
-import { Temporal } from "./Temporal.js";
+import { Temporal } from "./Temporal.ts";
 
 Object.defineProperty(globalThis, "Temporal", {
 	value: Temporal,

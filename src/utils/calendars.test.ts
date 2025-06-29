@@ -4,7 +4,7 @@ import {
 	isoDayOfYear,
 	isoDaysInMonth,
 	isoWeekOfYear,
-} from "./calendars.js";
+} from "./calendars.ts";
 
 test("isoDaysInMonth", () => {
 	expect(isoDaysInMonth(2025, 12)).toEqual(31);

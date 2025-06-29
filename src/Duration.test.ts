@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { isDurationSignValid } from "./Duration.js";
+import { isDurationSignValid } from "./Duration.ts";
 
 test("isDurationSignValid", () => {
 	expect(isDurationSignValid([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])).toEqual(true);

@@ -1,16 +1,16 @@
-import { Duration } from "./Duration.js";
-import { Instant } from "./Instant.js";
-import { Now } from "./Now.js";
-import { PlainDate } from "./PlainDate.js";
-import { PlainDateTime } from "./PlainDateTime.js";
-import { PlainMonthDay } from "./PlainMonthDay.js";
-import { PlainTime } from "./PlainTime.js";
-import { PlainYearMonth } from "./PlainYearMonth.js";
+import { Duration } from "./Duration.ts";
+import { Instant } from "./Instant.ts";
+import { Now } from "./Now.ts";
+import { PlainDate } from "./PlainDate.ts";
+import { PlainDateTime } from "./PlainDateTime.ts";
+import { PlainMonthDay } from "./PlainMonthDay.ts";
+import { PlainTime } from "./PlainTime.ts";
+import { PlainYearMonth } from "./PlainYearMonth.ts";
 import {
 	defineStringTag,
 	rewritePropertyDescriptorsForProperties,
-} from "./utils/property.js";
-import { ZonedDateTime } from "./ZonedDateTime.js";
+} from "./utils/property.ts";
+import { ZonedDateTime } from "./ZonedDateTime.ts";
 
 export const Temporal = {
 	Instant,

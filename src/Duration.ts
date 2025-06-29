@@ -1,10 +1,10 @@
-import { parseTemporalDurationString } from "./utils/ao.js";
-import { isObject } from "./utils/check.js";
+import { parseTemporalDurationString } from "./utils/ao.ts";
+import { isObject } from "./utils/check.ts";
 import {
 	getInternalSlotOrThrow,
 	toIntegerIfIntegral,
-} from "./utils/ecmascript.js";
-import { defineStringTag } from "./utils/property.js";
+} from "./utils/ecmascript.ts";
+import { defineStringTag } from "./utils/property.ts";
 
 type DurationRecord = [
 	years: number,
