@@ -4,6 +4,7 @@ import terser from "@rollup/plugin-terser";
 import { rolldown } from "rolldown";
 
 const gzip = promisify(zlib.gzip);
+const brotli = promisify(zlib.brotliCompress);
 
 const terserPlugin = terser();
 
@@ -16,7 +17,11 @@ const result = await bundle.generate({
 	plugins: [terserPlugin],
 });
 
+const rawText = new TextEncoder().encode(result.output[0].code);
 const gzipped = await gzip(result.output[0].code);
-console.log(`bytes in gzip: ${gzipped.byteLength}`);
+const brotliCompressed = await brotli(result.output[0].code);
+console.log(`raw: ${rawText.byteLength} bytes`);
+console.log(`gzip: ${gzipped.byteLength} bytes`);
+console.log(`brotli: ${brotliCompressed.byteLength} bytes`);
 
 await bundle.close();
