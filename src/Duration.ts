@@ -1,3 +1,5 @@
+import { parseTemporalDurationString } from "./utils/ao.js";
+import { isObject } from "./utils/check.js";
 import {
 	getInternalSlotOrThrow,
 	toIntegerIfIntegral,
@@ -17,7 +19,39 @@ type DurationRecord = [
 	nanoseconds: number,
 ];
 
+type PartialDurationRecord = [
+	years: number | undefined,
+	months: number | undefined,
+	weeks: number | undefined,
+	days: number | undefined,
+	hours: number | undefined,
+	minutes: number | undefined,
+	seconds: number | undefined,
+	milliseconds: number | undefined,
+	microseconds: number | undefined,
+	nanoseconds: number | undefined,
+];
+
 type DurationSlot = DurationRecord & { __durationSlot__: unknown };
+
+/** `ToTemporalDuration` */
+function toTemporalDurationSlot(item: unknown): DurationSlot {
+	if (typeof item === "string") {
+		return parseTemporalDurationString(item);
+	}
+	if (!isObject(item)) {
+		throw new TypeError();
+	}
+	const durationSlotForItem = slots.get(item as any);
+	if (durationSlotForItem) {
+		// item is `Temporal.Duration`
+		return durationSlotForItem;
+	}
+	const record = toTemporalPartialDurationRecord(item).map(
+		(v) => v || 0,
+	) as DurationRecord;
+	return createTemporalDurationSlot(...record);
+}
 
 /** `DurationSign` */
 const durationSign = (record: number[]): 1 | 0 | -1 => {
@@ -56,8 +90,38 @@ function isValidDuration(...record: DurationRecord): boolean {
 	return Number.isSafeInteger(totalSec);
 }
 
+/** `ToTemporalPartialDurationRecord` */
+function toTemporalPartialDurationRecord(item: unknown): PartialDurationRecord {
+	if (!isObject(item)) {
+		throw new TypeError();
+	}
+	const fields = [
+		"days",
+		"hours",
+		"microseconds",
+		"milliseconds",
+		"minutes",
+		"months",
+		"nanoseconds",
+		"seconds",
+		"weeks",
+		"years",
+	].map((f) => {
+		const value = (item as any)[f];
+		return value !== undefined ? toIntegerIfIntegral(value) : undefined;
+	});
+	if (fields.every((v) => v === undefined)) {
+		throw new TypeError();
+	}
+	return [9, 5, 8, 0, 1, 4, 7, 3, 2, 6].map(
+		(i) => fields[i],
+	) as PartialDurationRecord;
+}
+
 /** part of `CreateTemporalDuration` */
-function createTemporalDurationSlot(...record: DurationRecord): DurationSlot {
+export function createTemporalDurationSlot(
+	...record: DurationRecord
+): DurationSlot {
 	if (!isValidDuration(...record)) {
 		throw new RangeError();
 	}
@@ -114,7 +178,9 @@ export class Duration {
 		);
 		createTemporalDuration(slot, this);
 	}
-	static from() {}
+	static from(item: unknown) {
+		return createTemporalDuration(toTemporalDurationSlot(item));
+	}
 	static compare() {}
 	get years() {
 		return getInternalSlotOrThrow(slots, this)[0];
