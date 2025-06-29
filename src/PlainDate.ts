@@ -36,7 +36,7 @@ function createTemporalDate(
 	instance?: PlainDate,
 ): PlainDate {
 	const plainDate =
-		instance ?? (Object.create(PlainDate.prototype) as PlainDate);
+		instance || (Object.create(PlainDate.prototype) as PlainDate);
 	slots.set(plainDate, slot);
 	return plainDate;
 }

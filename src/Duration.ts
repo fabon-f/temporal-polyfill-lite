@@ -21,7 +21,7 @@ type DurationSlot = DurationRecord & { __durationSlot__: unknown };
 
 /** `DurationSign` */
 const durationSign = (record: number[]): 1 | 0 | -1 => {
-	return Math.sign(record.find((v) => v !== 0) ?? 0) as 1 | 0 | -1;
+	return Math.sign(record.find((v) => v !== 0) || 0) as 1 | 0 | -1;
 };
 
 export function isDurationSignValid(record: DurationRecord): boolean {
@@ -69,7 +69,7 @@ function createTemporalDuration(
 	slot: DurationSlot,
 	instance?: Duration,
 ): Duration {
-	const duration = instance ?? (Object.create(Duration.prototype) as Duration);
+	const duration = instance || (Object.create(Duration.prototype) as Duration);
 	slots.set(duration, slot);
 	return duration;
 }
