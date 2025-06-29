@@ -77,7 +77,6 @@ built-ins/Temporal/Duration/months-undefined.js
 built-ins/Temporal/Duration/nanoseconds-undefined.js
 built-ins/Temporal/Duration/negative-infinity-throws-rangeerror.js
 built-ins/Temporal/Duration/out-of-range.js
-built-ins/Temporal/Duration/prop-desc.js
 built-ins/Temporal/Duration/prototype/abs/basic.js
 built-ins/Temporal/Duration/prototype/abs/branding.js
 built-ins/Temporal/Duration/prototype/abs/subclassing-ignored.js
@@ -442,7 +441,6 @@ built-ins/Temporal/Instant/fromEpochNanoseconds/subclassing-ignored.js
 built-ins/Temporal/Instant/large-bigint.js
 built-ins/Temporal/Instant/length.js
 built-ins/Temporal/Instant/limits.js
-built-ins/Temporal/Instant/prop-desc.js
 built-ins/Temporal/Instant/prototype/add/argument-duration-max.js
 built-ins/Temporal/Instant/prototype/add/argument-duration-out-of-range.js
 built-ins/Temporal/Instant/prototype/add/argument-invalid-property.js
@@ -730,20 +728,16 @@ built-ins/Temporal/Instant/prototype/until/year-zero.js
 built-ins/Temporal/Instant/prototype/valueOf/basic.js
 built-ins/Temporal/Instant/prototype/valueOf/branding.js
 built-ins/Temporal/Instant/subclass.js
-built-ins/Temporal/keys.js
-built-ins/Temporal/Now/instant/prop-desc.js
 built-ins/Temporal/Now/instant/return-value-distinct.js
 built-ins/Temporal/Now/instant/return-value-instance.js
 built-ins/Temporal/Now/instant/return-value-prototype.js
 built-ins/Temporal/Now/instant/return-value-value.js
-built-ins/Temporal/Now/plainDateISO/prop-desc.js
 built-ins/Temporal/Now/plainDateISO/return-value.js
 built-ins/Temporal/Now/plainDateISO/timezone-string-datetime.js
 built-ins/Temporal/Now/plainDateISO/timezone-string-leap-second.js
 built-ins/Temporal/Now/plainDateISO/timezone-string-sub-minute-offset.js
 built-ins/Temporal/Now/plainDateISO/timezone-string-year-zero.js
 built-ins/Temporal/Now/plainDateISO/timezone-wrong-type.js
-built-ins/Temporal/Now/plainDateTimeISO/prop-desc.js
 built-ins/Temporal/Now/plainDateTimeISO/return-value-calendar.js
 built-ins/Temporal/Now/plainDateTimeISO/time-zone-undefined.js
 built-ins/Temporal/Now/plainDateTimeISO/timezone-string-datetime.js
@@ -751,7 +745,6 @@ built-ins/Temporal/Now/plainDateTimeISO/timezone-string-leap-second.js
 built-ins/Temporal/Now/plainDateTimeISO/timezone-string-sub-minute-offset.js
 built-ins/Temporal/Now/plainDateTimeISO/timezone-string-year-zero.js
 built-ins/Temporal/Now/plainDateTimeISO/timezone-wrong-type.js
-built-ins/Temporal/Now/plainTimeISO/prop-desc.js
 built-ins/Temporal/Now/plainTimeISO/return-value.js
 built-ins/Temporal/Now/plainTimeISO/timezone-string-datetime.js
 built-ins/Temporal/Now/plainTimeISO/timezone-string-leap-second.js
@@ -759,10 +752,7 @@ built-ins/Temporal/Now/plainTimeISO/timezone-string-sub-minute-offset.js
 built-ins/Temporal/Now/plainTimeISO/timezone-string-year-zero.js
 built-ins/Temporal/Now/plainTimeISO/timezone-wrong-type.js
 built-ins/Temporal/Now/plainTimeISO/toPlainTime-override.js
-built-ins/Temporal/Now/prop-desc.js
-built-ins/Temporal/Now/timeZoneId/prop-desc.js
 built-ins/Temporal/Now/timeZoneId/return-value.js
-built-ins/Temporal/Now/zonedDateTimeISO/prop-desc.js
 built-ins/Temporal/Now/zonedDateTimeISO/return-value.js
 built-ins/Temporal/Now/zonedDateTimeISO/time-zone-undefined.js
 built-ins/Temporal/Now/zonedDateTimeISO/timezone-case-insensitive.js
@@ -859,7 +849,6 @@ built-ins/Temporal/PlainDate/from/with-year-monthCode-day-need-constrain.js
 built-ins/Temporal/PlainDate/from/with-year-monthCode-day.js
 built-ins/Temporal/PlainDate/from/year-zero.js
 built-ins/Temporal/PlainDate/limits.js
-built-ins/Temporal/PlainDate/prop-desc.js
 built-ins/Temporal/PlainDate/prototype/add/add-days.js
 built-ins/Temporal/PlainDate/prototype/add/add-months-weeks.js
 built-ins/Temporal/PlainDate/prototype/add/add-months.js
@@ -1321,7 +1310,6 @@ built-ins/Temporal/PlainDateTime/missing-arguments.js
 built-ins/Temporal/PlainDateTime/nanosecond-undefined.js
 built-ins/Temporal/PlainDateTime/negative-infinity-throws-rangeerror.js
 built-ins/Temporal/PlainDateTime/order-of-operations.js
-built-ins/Temporal/PlainDateTime/prop-desc.js
 built-ins/Temporal/PlainDateTime/prototype/add/ambiguous-date.js
 built-ins/Temporal/PlainDateTime/prototype/add/argument-duration-max.js
 built-ins/Temporal/PlainDateTime/prototype/add/argument-duration-out-of-range.js
@@ -1841,7 +1829,6 @@ built-ins/Temporal/PlainMonthDay/infinity-throws-rangeerror.js
 built-ins/Temporal/PlainMonthDay/length.js
 built-ins/Temporal/PlainMonthDay/missing-arguments.js
 built-ins/Temporal/PlainMonthDay/negative-infinity-throws-rangeerror.js
-built-ins/Temporal/PlainMonthDay/prop-desc.js
 built-ins/Temporal/PlainMonthDay/prototype/calendarId/branding.js
 built-ins/Temporal/PlainMonthDay/prototype/day/basic.js
 built-ins/Temporal/PlainMonthDay/prototype/day/branding.js
@@ -1993,7 +1980,6 @@ built-ins/Temporal/PlainTime/minute-undefined.js
 built-ins/Temporal/PlainTime/nanosecond-undefined.js
 built-ins/Temporal/PlainTime/negative-infinity-throws-rangeerror.js
 built-ins/Temporal/PlainTime/negative-zero.js
-built-ins/Temporal/PlainTime/prop-desc.js
 built-ins/Temporal/PlainTime/prototype/add/argument-duration-max.js
 built-ins/Temporal/PlainTime/prototype/add/argument-duration-out-of-range.js
 built-ins/Temporal/PlainTime/prototype/add/argument-duration.js
@@ -2392,7 +2378,6 @@ built-ins/Temporal/PlainYearMonth/length.js
 built-ins/Temporal/PlainYearMonth/limits.js
 built-ins/Temporal/PlainYearMonth/missing-arguments.js
 built-ins/Temporal/PlainYearMonth/negative-infinity-throws-rangeerror.js
-built-ins/Temporal/PlainYearMonth/prop-desc.js
 built-ins/Temporal/PlainYearMonth/prototype/add/argument-duration-max.js
 built-ins/Temporal/PlainYearMonth/prototype/add/argument-duration-object.js
 built-ins/Temporal/PlainYearMonth/prototype/add/argument-duration-out-of-range.js
@@ -2793,7 +2778,6 @@ built-ins/Temporal/ZonedDateTime/from/zoneddatetime-string.js
 built-ins/Temporal/ZonedDateTime/length.js
 built-ins/Temporal/ZonedDateTime/limits.js
 built-ins/Temporal/ZonedDateTime/missing-arguments.js
-built-ins/Temporal/ZonedDateTime/prop-desc.js
 built-ins/Temporal/ZonedDateTime/prototype/add/add-duration.js
 built-ins/Temporal/ZonedDateTime/prototype/add/argument-duration-max.js
 built-ins/Temporal/ZonedDateTime/prototype/add/argument-duration-out-of-range.js
