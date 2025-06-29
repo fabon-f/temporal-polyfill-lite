@@ -15,7 +15,8 @@
 		"@js-temporal/temporal-test262-runner": "^0.10.1",
 		"@rollup/plugin-terser": "^0.4.4",
 		"@tsconfig/strictest": "^2.0.5",
-		"rolldown": "1.0.0-beta.21"
+		"rolldown": "1.0.0-beta.21",
+		"vitest": "^3.2.4"
 	},
 	"packageManager": "pnpm@10.12.4"
 }
