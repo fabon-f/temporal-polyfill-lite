@@ -1,4 +1,41 @@
+import { mod } from "./utils/math.ts";
 import { defineStringTag } from "./utils/property.ts";
+
+type TimeRecord = [
+	/** overflow days, usually 0 */
+	day: number,
+	hour: number,
+	minute: number,
+	second: number,
+	millisecond: number,
+	microsecond: number,
+	nanosecond: number,
+];
+
+/** `BalanceTime` */
+export function balanceTime(
+	hour: number,
+	minute: number,
+	second: number,
+	millisecond: number,
+	microsecond: number,
+	nanosecond: number,
+): TimeRecord {
+	microsecond += Math.floor(nanosecond / 1000);
+	millisecond += Math.floor(microsecond / 1000);
+	second += Math.floor(millisecond / 1000);
+	minute += Math.floor(second / 60);
+	hour += Math.floor(minute / 60);
+	return [
+		Math.floor(hour / 24),
+		mod(hour, 24),
+		mod(minute, 60),
+		mod(second, 60),
+		mod(millisecond, 1000),
+		mod(microsecond, 1000),
+		mod(nanosecond, 1000),
+	];
+}
 
 export class PlainTime {
 	constructor() {}

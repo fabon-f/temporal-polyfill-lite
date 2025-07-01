@@ -1,6 +1,6 @@
 import { createTemporalDurationSlot } from "../Duration.ts";
+import { balanceTime } from "../PlainTime.ts";
 import { toIntegerWithTruncation } from "./ecmascript.ts";
-import { balanceNanoseconds } from "./time.ts";
 
 /** `MathematicalInLeapYear` */
 export const mathematicalInLeapYear = (year: number) =>
@@ -36,7 +36,12 @@ export function parseTemporalDurationString(isoString: string) {
 		fSeconds = "",
 	] = result;
 	const factor = sign === "-" ? -1 : 1;
-	const fractionalPart = balanceNanoseconds(
+	const fractionalPart = balanceTime(
+		0,
+		0,
+		0,
+		0,
+		0,
 		toIntegerWithTruncation(fHours.padEnd(9, "0")) * 3600 +
 			toIntegerWithTruncation(fMinutes.padEnd(9, "0")) * 60 +
 			toIntegerWithTruncation(fSeconds.padEnd(9, "0")),
@@ -47,10 +52,10 @@ export function parseTemporalDurationString(isoString: string) {
 		toIntegerWithTruncation(weeks) * factor + 0,
 		toIntegerWithTruncation(days) * factor + 0,
 		toIntegerWithTruncation(hours) * factor + 0,
-		(toIntegerWithTruncation(minutes) + fractionalPart[1]) * factor + 0,
-		(toIntegerWithTruncation(seconds) + fractionalPart[2]) * factor + 0,
-		fractionalPart[3] * factor + 0,
+		(toIntegerWithTruncation(minutes) + fractionalPart[2]) * factor + 0,
+		(toIntegerWithTruncation(seconds) + fractionalPart[3]) * factor + 0,
 		fractionalPart[4] * factor + 0,
 		fractionalPart[5] * factor + 0,
+		fractionalPart[6] * factor + 0,
 	);
 }
