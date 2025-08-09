@@ -1,4 +1,9 @@
-import { mathematicalInLeapYear } from "./utils/ao.ts";
+import { isoDateTimeWithinLimits } from "./PlainDateTime.ts";
+import {
+	isoDateToEpochDays,
+	mathematicalInLeapYear,
+	utcEpochMillisecondsToIsoDateTime,
+} from "./utils/ao.ts";
 import {
 	assertCalendar,
 	isoDayOfWeek,
@@ -7,6 +12,7 @@ import {
 	isoWeekOfYear,
 	monthToMonthCode,
 } from "./utils/calendars.ts";
+import { millisecondsPerDay } from "./utils/constants.ts";
 import {
 	getInternalSlotOrThrow,
 	toIntegerWithTruncation,
@@ -20,8 +26,23 @@ type PlainDateSlot = [isoYear: number, isoMonth: number, isoDay: number] & {
 };
 
 /** `IsValidISODate` */
-const isValidISODate = (year: number, month: number, day: number): boolean =>
+export const isValidISODate = (
+	year: number,
+	month: number,
+	day: number,
+): boolean =>
 	month >= 1 && month <= 12 && day >= 1 && day <= isoDaysInMonth(year, month);
+
+/** `BalanceISODate` */
+function balanceISODate(
+	year: number,
+	month: number,
+	day: number,
+): ISODateRecord {
+	return utcEpochMillisecondsToIsoDateTime(
+		isoDateToEpochDays(year, month, day) * millisecondsPerDay,
+	)[0];
+}
 
 function createTemporalDateSlot(isoDate: ISODateRecord): PlainDateSlot {
 	if (!isoDateWithinLimits(isoDate)) {
@@ -42,10 +63,9 @@ function createTemporalDate(
 }
 
 /** `ISODateWithinLimits` */
-export function isoDateWithinLimits(isoDate: ISODateRecord): boolean {
-	// TODO: implement it
-	return true;
-}
+export const isoDateWithinLimits = (isoDate: ISODateRecord): boolean => {
+	return isoDateTimeWithinLimits([isoDate, [0, 12, 0, 0, 0, 0, 0]]);
+};
 
 const slots = new WeakMap<PlainDate, PlainDateSlot>();
 

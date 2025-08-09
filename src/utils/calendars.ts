@@ -1,32 +1,21 @@
 import type { ISODateRecord } from "../PlainDate.ts";
+import { isoDateToEpochDays } from "./ao.ts";
 import { toZeroPaddedDecimalString } from "./ecmascript.ts";
+import { mod } from "./math.ts";
 
 type YearWeekRecord = [year: number, week: number];
 
 /** alternative to `CanonicalizeCalendar` */
 export function assertCalendar(id: string) {
-	if (id.toLowerCase() !== "iso8601") {
+	if (!/^[iI][sS][oO]8601$/.test(id)) {
 		throw new RangeError();
 	}
 }
 
-const utcTimeStampOnCorrespondingCalendarCycle = (
-	year: number,
-	month: number,
-	day: number,
-) => {
-	// gregorian has a cycle of 400 years including day of week
-	// avoid one and two-digit years to deal with `Date.UTC`
-	return Date.UTC((year % 400) + 800, month - 1, day);
-};
-
 /** `ISODaysInMonth` */
 export const isoDaysInMonth = (year: number, month: number): number => {
 	return (
-		// "13th month"
-		(utcTimeStampOnCorrespondingCalendarCycle(year, month + 1, 1) -
-			utcTimeStampOnCorrespondingCalendarCycle(year, month, 1)) /
-		86400000
+		isoDateToEpochDays(year, month + 1, 1) - isoDateToEpochDays(year, month, 1)
 	);
 };
 
@@ -58,24 +47,12 @@ export function isoWeekOfYear(isoDate: ISODateRecord): YearWeekRecord {
 
 /** `ISODayOfYear` */
 export const isoDayOfYear = ([year, month, day]: ISODateRecord) => {
-	return (
-		(utcTimeStampOnCorrespondingCalendarCycle(year, month, day) -
-			utcTimeStampOnCorrespondingCalendarCycle(year, 1, 1)) /
-			86400000 +
-		1
-	);
+	return isoDateToEpochDays(year, month, day) - isoDateToEpochDays(year, 1, 0);
 };
 
 /** `ISODayOfWeek` */
-export const isoDayOfWeek = ([year, month, day]: ISODateRecord) => {
-	return (
-		((new Date(
-			utcTimeStampOnCorrespondingCalendarCycle(year, month, day),
-		).getUTCDay() +
-			6) %
-			7) +
-		1
-	);
+export const isoDayOfWeek = (record: ISODateRecord) => {
+	return mod(isoDateToEpochDays(...record) + 3, 7) + 1;
 };
 
 /** part of `CalendarISOToDate` */

@@ -1,6 +1,46 @@
 import { createTemporalDurationSlot } from "../Duration.ts";
+import type { ISODateRecord } from "../PlainDate.ts";
 import { balanceTime } from "../PlainTime.ts";
+import { daysPer400Years, millisecondsPerDay } from "./constants.ts";
 import { toIntegerWithTruncation } from "./ecmascript.ts";
+
+/** `ISODateToEpochDays` but `month` is 1-indexed */
+export const isoDateToEpochDays = (
+	year: number,
+	month: number,
+	day: number,
+) => {
+	// gregorian calendar has 400 years cycle
+	// avoid passing 1 or 2 digit years to `Date.UTC` function
+	return (
+		Date.UTC((year % 400) + 800, month - 1, day) / millisecondsPerDay +
+		Math.trunc(year / 400 - 2) * daysPer400Years
+	);
+};
+
+export function utcEpochMillisecondsToIsoDateTime(epochMilliseconds: number) {
+	const date = new Date(
+		epochMilliseconds % (millisecondsPerDay * daysPer400Years),
+	);
+	return [
+		[
+			date.getUTCFullYear() +
+				Math.trunc(epochMilliseconds / (millisecondsPerDay * daysPer400Years)) *
+					400,
+			date.getUTCMonth() + 1,
+			date.getUTCDate(),
+		],
+		[
+			date.getUTCHours(),
+			date.getUTCMinutes(),
+			date.getUTCSeconds(),
+			date.getUTCMilliseconds(),
+		],
+	] as [
+		ISODateRecord,
+		[hour: number, minute: number, second: number, millisecond: number],
+	];
+}
 
 /** `MathematicalInLeapYear` */
 export const mathematicalInLeapYear = (year: number) =>

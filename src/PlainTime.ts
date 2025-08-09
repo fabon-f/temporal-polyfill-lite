@@ -1,7 +1,7 @@
 import { mod } from "./utils/math.ts";
 import { defineStringTag } from "./utils/property.ts";
 
-type TimeRecord = [
+export type TimeRecord = [
 	/** overflow days, usually 0 */
 	day: number,
 	hour: number,
@@ -11,6 +11,31 @@ type TimeRecord = [
 	microsecond: number,
 	nanosecond: number,
 ];
+
+export const isValidTime = (
+	_: unknown,
+	hour: number,
+	minute: number,
+	second: number,
+	millisecond: number,
+	microsecond: number,
+	nanosecond: number,
+) => {
+	return (
+		hour >= 0 &&
+		hour < 24 &&
+		minute >= 0 &&
+		minute < 60 &&
+		second >= 0 &&
+		second < 60 &&
+		millisecond >= 0 &&
+		millisecond < 1000 &&
+		microsecond >= 0 &&
+		microsecond < 1000 &&
+		nanosecond >= 0 &&
+		nanosecond < 1000
+	);
+};
 
 /** `BalanceTime` */
 export function balanceTime(
