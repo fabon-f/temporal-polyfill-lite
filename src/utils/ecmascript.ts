@@ -56,5 +56,6 @@ export function getInternalSlotOrThrow<C extends WeakKey, S>(
 }
 
 /** `ToZeroPaddedDecimalString` */
-export const toZeroPaddedDecimalString = (n: number, minLength: number) =>
-	n.toString().padStart(minLength, "0");
+export function toZeroPaddedDecimalString(n: number, minLength: number) {
+	return n.toString().padStart(minLength, "0");
+}

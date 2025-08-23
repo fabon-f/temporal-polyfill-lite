@@ -1,2 +1,4 @@
 /** `y` should positive integer */
-export const mod = (x: number, y: number) => ((x % y) + y) % y;
+export function mod(x: number, y: number) {
+	return ((x % y) + y) % y;
+}

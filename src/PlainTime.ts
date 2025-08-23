@@ -12,7 +12,7 @@ export type TimeRecord = [
 	nanosecond: number,
 ];
 
-export const isValidTime = (
+export function isValidTime(
 	_: unknown,
 	hour: number,
 	minute: number,
@@ -20,7 +20,7 @@ export const isValidTime = (
 	millisecond: number,
 	microsecond: number,
 	nanosecond: number,
-) => {
+) {
 	return (
 		hour >= 0 &&
 		hour < 24 &&
@@ -35,7 +35,7 @@ export const isValidTime = (
 		nanosecond >= 0 &&
 		nanosecond < 1000
 	);
-};
+}
 
 /** `BalanceTime` */
 export function balanceTime(

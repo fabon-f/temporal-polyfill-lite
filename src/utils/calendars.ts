@@ -13,11 +13,11 @@ export function assertCalendar(id: string) {
 }
 
 /** `ISODaysInMonth` */
-export const isoDaysInMonth = (year: number, month: number): number => {
+export function isoDaysInMonth(year: number, month: number): number {
 	return (
 		isoDateToEpochDays(year, month + 1, 1) - isoDateToEpochDays(year, month, 1)
 	);
-};
+}
 
 const isoWeeksInYear = (year: number) => {
 	// patterns when the year has 53 ISO weeks:
@@ -46,15 +46,16 @@ export function isoWeekOfYear(isoDate: ISODateRecord): YearWeekRecord {
 }
 
 /** `ISODayOfYear` */
-export const isoDayOfYear = ([year, month, day]: ISODateRecord) => {
+export function isoDayOfYear([year, month, day]: ISODateRecord) {
 	return isoDateToEpochDays(year, month, day) - isoDateToEpochDays(year, 1, 0);
-};
+}
 
 /** `ISODayOfWeek` */
-export const isoDayOfWeek = (record: ISODateRecord) => {
+export function isoDayOfWeek(record: ISODateRecord) {
 	return mod(isoDateToEpochDays(...record) + 3, 7) + 1;
-};
+}
 
 /** part of `CalendarISOToDate` */
-export const monthToMonthCode = (n: number) =>
-	`M${toZeroPaddedDecimalString(n, 2)}`;
+export function monthToMonthCode(n: number) {
+	return `M${toZeroPaddedDecimalString(n, 2)}`;
+}

@@ -26,12 +26,15 @@ type PlainDateSlot = [isoYear: number, isoMonth: number, isoDay: number] & {
 };
 
 /** `IsValidISODate` */
-export const isValidISODate = (
+export function isValidISODate(
 	year: number,
 	month: number,
 	day: number,
-): boolean =>
-	month >= 1 && month <= 12 && day >= 1 && day <= isoDaysInMonth(year, month);
+): boolean {
+	return (
+		month >= 1 && month <= 12 && day >= 1 && day <= isoDaysInMonth(year, month)
+	);
+}
 
 /** `BalanceISODate` */
 function balanceISODate(
@@ -63,9 +66,9 @@ function createTemporalDate(
 }
 
 /** `ISODateWithinLimits` */
-export const isoDateWithinLimits = (isoDate: ISODateRecord): boolean => {
+export function isoDateWithinLimits(isoDate: ISODateRecord): boolean {
 	return isoDateTimeWithinLimits([isoDate, [0, 12, 0, 0, 0, 0, 0]]);
-};
+}
 
 const slots = new WeakMap<PlainDate, PlainDateSlot>();
 

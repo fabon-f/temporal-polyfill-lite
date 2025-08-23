@@ -5,18 +5,14 @@ import { daysPer400Years, millisecondsPerDay } from "./constants.ts";
 import { toIntegerWithTruncation } from "./ecmascript.ts";
 
 /** `ISODateToEpochDays` but `month` is 1-indexed */
-export const isoDateToEpochDays = (
-	year: number,
-	month: number,
-	day: number,
-) => {
+export function isoDateToEpochDays(year: number, month: number, day: number) {
 	// gregorian calendar has 400 years cycle
 	// avoid passing 1 or 2 digit years to `Date.UTC` function
 	return (
 		Date.UTC((year % 400) + 800, month - 1, day) / millisecondsPerDay +
 		Math.trunc(year / 400 - 2) * daysPer400Years
 	);
-};
+}
 
 export function utcEpochMillisecondsToIsoDateTime(epochMilliseconds: number) {
 	const date = new Date(
@@ -43,9 +39,10 @@ export function utcEpochMillisecondsToIsoDateTime(epochMilliseconds: number) {
 }
 
 /** `MathematicalInLeapYear` */
-export const mathematicalInLeapYear = (year: number) =>
+export function mathematicalInLeapYear(year: number) {
 	// https://codegolf.stackexchange.com/questions/50798/is-it-a-leap-year
-	+!(year % (year % 25 ? 4 : 16));
+	return +!(year % (year % 25 ? 4 : 16));
+}
 
 /** `ParseTemporalDurationString` */
 export function parseTemporalDurationString(isoString: string) {
