@@ -11,13 +11,13 @@
 	"author": "fabon <syobon.hinata.public@gmail.com> (https://www.fabon.info/)",
 	"license": "MIT",
 	"devDependencies": {
-		"@biomejs/biome": "2.1.4",
+		"@biomejs/biome": "2.2.2",
 		"@js-temporal/temporal-test262-runner": "^0.10.1",
 		"@rollup/plugin-terser": "^0.4.4",
 		"@tsconfig/strictest": "^2.0.5",
-		"rolldown": "1.0.0-beta.31",
+		"rolldown": "1.0.0-beta.33",
 		"typescript": "^5.9.2",
 		"vitest": "^3.2.4"
 	},
-	"packageManager": "pnpm@10.12.4"
+	"packageManager": "pnpm@10.15.0"
 }
