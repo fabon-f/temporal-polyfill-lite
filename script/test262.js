@@ -5,6 +5,7 @@ await build({
 	input: "src/global.ts",
 	output: {
 		file: "dist/script.js",
+		format: "iife",
 	},
 });
 
