@@ -1,6 +1,29 @@
 // abstract operations from ECMA-262 spec
 
-import { isObject } from "./check.ts";
+import { assertString, isObject } from "./check.ts";
+
+/** `ToPrimitive` when `preferredType` is string, plus type assertion */
+export function toPrimitiveAndAssertString(arg: unknown) {
+	if (!isObject(arg)) {
+		return arg;
+	}
+	const exoticToPrim = (arg as { [Symbol.toPrimitive]: unknown })[
+		Symbol.toPrimitive
+	];
+	if (typeof exoticToPrim === "function") {
+		return assertString(
+			(Date.call as (a: unknown, ...rest: unknown[]) => unknown).call(
+				exoticToPrim,
+				arg,
+				"string",
+			),
+		);
+	}
+	if (isObject(exoticToPrim) || exoticToPrim != null) {
+		throw new TypeError();
+	}
+	return assertString(new Date()[Symbol.toPrimitive].call(arg, "string"));
+}
 
 /** `ToNumber` */
 export function toNumber(arg: unknown): number {

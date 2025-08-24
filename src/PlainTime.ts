@@ -1,5 +1,11 @@
+import {
+	getInternalSlotOrThrow,
+	toIntegerWithTruncation,
+} from "./utils/ecmascript.ts";
 import { mod } from "./utils/math.ts";
 import { defineStringTag } from "./utils/property.ts";
+
+const slots = new WeakMap<PlainTime, PlainTimeSlot>();
 
 export type TimeRecord = [
 	/** overflow days, usually 0 */
@@ -12,6 +18,26 @@ export type TimeRecord = [
 	nanosecond: number,
 ];
 
+export type PlainTimeSlot = TimeRecord & { __plainTimeSlot__: unknown };
+
+export function createTemporalTimeSlot(fields: TimeRecord) {
+	if (isValidTime(...fields)) {
+		throw new RangeError();
+	}
+	return fields as PlainTimeSlot;
+}
+
+function createTemporalTime(
+	slot: PlainTimeSlot,
+	instance?: PlainTime,
+): PlainTime {
+	const plainTime =
+		instance || (Object.create(PlainTime.prototype) as PlainTime);
+	slots.set(plainTime, slot);
+	return plainTime;
+}
+
+/** `IsValidTime` */
 export function isValidTime(
 	_: unknown,
 	hour: number,
@@ -63,26 +89,49 @@ export function balanceTime(
 }
 
 export class PlainTime {
-	constructor() {}
+	constructor(
+		hour: unknown = 0,
+		minute: unknown = 0,
+		second: unknown = 0,
+		millisecond: unknown = 0,
+		microsecond: unknown = 0,
+		nanosecond: unknown = 0,
+	) {
+		if (!new.target) {
+			throw new TypeError();
+		}
+		createTemporalTime(
+			createTemporalTimeSlot([
+				0,
+				toIntegerWithTruncation(hour),
+				toIntegerWithTruncation(minute),
+				toIntegerWithTruncation(second),
+				toIntegerWithTruncation(millisecond),
+				toIntegerWithTruncation(microsecond),
+				toIntegerWithTruncation(nanosecond),
+			]),
+			this,
+		);
+	}
 	static from() {}
 	static compare() {}
 	get hour() {
-		return undefined;
+		return getInternalSlotOrThrow(slots, this)[1];
 	}
 	get minute() {
-		return undefined;
+		return getInternalSlotOrThrow(slots, this)[2];
 	}
 	get second() {
-		return undefined;
+		return getInternalSlotOrThrow(slots, this)[3];
 	}
 	get millisecond() {
-		return undefined;
+		return getInternalSlotOrThrow(slots, this)[4];
 	}
 	get microsecond() {
-		return undefined;
+		return getInternalSlotOrThrow(slots, this)[5];
 	}
 	get nanosecond() {
-		return undefined;
+		return getInternalSlotOrThrow(slots, this)[6];
 	}
 	add() {}
 	subtract() {}

@@ -1,4 +1,12 @@
+import type { EpochNanoseconds } from "./utils/epochNano.ts";
 import { defineStringTag } from "./utils/property.ts";
+
+export function getEpochNanosecondsOfZonedDateTime(
+	item: unknown,
+): EpochNanoseconds | undefined {
+	// TODO: implement
+	return undefined;
+}
 
 export class ZonedDateTime {
 	constructor() {}
