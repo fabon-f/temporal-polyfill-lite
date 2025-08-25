@@ -26,6 +26,9 @@ importers:
       typescript:
         specifier: ^5.9.2
         version: 5.9.2
+      tzdata:
+        specifier: ^1.0.46
+        version: 1.0.46
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(terser@5.43.1)
@@ -716,6 +719,9 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  tzdata@1.0.46:
+    resolution: {integrity: sha512-zJ4Jv3KCgN3dFeSADpIfHKt9bdIY7TjK3ELaij6oFvyyQBuIZ9LwMlR51vJvMQvRWQ9cS2v92xeZ0sQW4hXCWA==}
+
   vite-node@3.2.4:
     resolution: {integrity: sha512-EbKSKh+bh1E1IFxeO0pg1n4dvoOTt0UDiXMd/qn++r98+jPO1xtJilvXldeuQ8giIB5IkpjCgMleHMNEsGH6pg==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
@@ -1355,6 +1361,8 @@ snapshots:
     optional: true
 
   typescript@5.9.2: {}
+
+  tzdata@1.0.46: {}
 
   vite-node@3.2.4(terser@5.43.1):
     dependencies:
