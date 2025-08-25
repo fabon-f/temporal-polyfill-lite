@@ -306,7 +306,6 @@ built-ins/Temporal/Instant/compare/argument-string-multiple-calendar.js
 built-ins/Temporal/Instant/compare/argument-string-multiple-time-zone.js
 built-ins/Temporal/Instant/compare/argument-string-with-offset-not-valid-epoch-nanoseconds.js
 built-ins/Temporal/Instant/compare/argument-wrong-type.js
-built-ins/Temporal/Instant/compare/argument-zoneddatetime.js
 built-ins/Temporal/Instant/compare/cross-epoch.js
 built-ins/Temporal/Instant/compare/instant-string.js
 built-ins/Temporal/Instant/compare/leap-second.js
@@ -322,7 +321,6 @@ built-ins/Temporal/Instant/from/argument-string-multiple-calendar.js
 built-ins/Temporal/Instant/from/argument-string-multiple-time-zone.js
 built-ins/Temporal/Instant/from/argument-string.js
 built-ins/Temporal/Instant/from/argument-wrong-type.js
-built-ins/Temporal/Instant/from/argument-zoneddatetime.js
 built-ins/Temporal/Instant/from/basic.js
 built-ins/Temporal/Instant/from/instant-string-sub-minute-offset.js
 built-ins/Temporal/Instant/from/instant-string.js
@@ -364,7 +362,6 @@ built-ins/Temporal/Instant/prototype/equals/argument-string-minus-sign.js
 built-ins/Temporal/Instant/prototype/equals/argument-string-multiple-calendar.js
 built-ins/Temporal/Instant/prototype/equals/argument-string-multiple-time-zone.js
 built-ins/Temporal/Instant/prototype/equals/argument-wrong-type.js
-built-ins/Temporal/Instant/prototype/equals/argument-zoneddatetime.js
 built-ins/Temporal/Instant/prototype/equals/cross-epoch.js
 built-ins/Temporal/Instant/prototype/equals/instant-string-sub-minute-offset.js
 built-ins/Temporal/Instant/prototype/equals/instant-string.js
@@ -2482,11 +2479,6 @@ built-ins/Temporal/PlainYearMonth/prototype/with/yearmonthlike-invalid.js
 built-ins/Temporal/PlainYearMonth/prototype/year/branding.js
 built-ins/Temporal/PlainYearMonth/refisoday-undefined.js
 built-ins/Temporal/PlainYearMonth/subclass.js
-built-ins/Temporal/ZonedDateTime/calendar-case-insensitive.js
-built-ins/Temporal/ZonedDateTime/calendar-invalid-iso-string.js
-built-ins/Temporal/ZonedDateTime/calendar-string.js
-built-ins/Temporal/ZonedDateTime/calendar-undefined.js
-built-ins/Temporal/ZonedDateTime/calendar-wrong-type.js
 built-ins/Temporal/ZonedDateTime/compare/argument-propertybag-calendar-case-insensitive.js
 built-ins/Temporal/ZonedDateTime/compare/argument-propertybag-calendar-invalid-iso-string.js
 built-ins/Temporal/ZonedDateTime/compare/argument-propertybag-calendar-iso-string.js
@@ -2600,9 +2592,6 @@ built-ins/Temporal/ZonedDateTime/from/timezone-case-insensitive.js
 built-ins/Temporal/ZonedDateTime/from/year-zero.js
 built-ins/Temporal/ZonedDateTime/from/zoneddatetime-string-multiple-offsets.js
 built-ins/Temporal/ZonedDateTime/from/zoneddatetime-string.js
-built-ins/Temporal/ZonedDateTime/length.js
-built-ins/Temporal/ZonedDateTime/limits.js
-built-ins/Temporal/ZonedDateTime/missing-arguments.js
 built-ins/Temporal/ZonedDateTime/prototype/add/add-duration.js
 built-ins/Temporal/ZonedDateTime/prototype/add/argument-duration-max.js
 built-ins/Temporal/ZonedDateTime/prototype/add/argument-duration-out-of-range.js
@@ -2882,7 +2871,6 @@ built-ins/Temporal/ZonedDateTime/prototype/subtract/subtract-duration-object.js
 built-ins/Temporal/ZonedDateTime/prototype/subtract/symmetrical-wrt-negative-durations.js
 built-ins/Temporal/ZonedDateTime/prototype/subtract/throw-when-ambiguous-result-with-reject.js
 built-ins/Temporal/ZonedDateTime/prototype/subtract/throw-when-intermediate-datetime-outside-valid-limits.js
-built-ins/Temporal/ZonedDateTime/prototype/timeZoneId/branding.js
 built-ins/Temporal/ZonedDateTime/prototype/toInstant/branding.js
 built-ins/Temporal/ZonedDateTime/prototype/toInstant/recent-date.js
 built-ins/Temporal/ZonedDateTime/prototype/toInstant/year-less-than-1.js
@@ -3134,7 +3122,3 @@ built-ins/Temporal/ZonedDateTime/prototype/year/branding.js
 built-ins/Temporal/ZonedDateTime/prototype/yearOfWeek/basic.js
 built-ins/Temporal/ZonedDateTime/prototype/yearOfWeek/branding.js
 built-ins/Temporal/ZonedDateTime/subclass.js
-built-ins/Temporal/ZonedDateTime/timezone-case-insensitive.js
-built-ins/Temporal/ZonedDateTime/timezone-iso-string.js
-built-ins/Temporal/ZonedDateTime/timezone-string.js
-built-ins/Temporal/ZonedDateTime/timezone-wrong-type.js

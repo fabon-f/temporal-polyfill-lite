@@ -19,7 +19,7 @@ import { getEpochNanosecondsOfZonedDateTime } from "./ZonedDateTime.ts";
 type InstantSlot = EpochNanoseconds & { __instantSlot__: unknown };
 
 /** `IsValidEpochNanoseconds` */
-function isValidEpochNanoseconds(epochNanoseconds: EpochNanoseconds) {
+export function isValidEpochNanoseconds(epochNanoseconds: EpochNanoseconds) {
 	return (
 		compareEpoch(absEpoch(epochNanoseconds), [
 			8.64e15, 0,

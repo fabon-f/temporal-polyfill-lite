@@ -2,7 +2,10 @@ import { createTemporalDurationSlot } from "../Duration.ts";
 import type { ISODateRecord } from "../PlainDate.ts";
 import { balanceTime } from "../PlainTime.ts";
 import { daysPer400Years, millisecondsPerDay } from "./constants.ts";
-import { toIntegerWithTruncation } from "./ecmascript.ts";
+import {
+	toIntegerWithTruncation,
+	toZeroPaddedDecimalString,
+} from "./ecmascript.ts";
 
 /** `ISODateToEpochDays` but `month` is 1-indexed */
 export function isoDateToEpochDays(year: number, month: number, day: number) {
@@ -42,6 +45,25 @@ export function utcEpochMillisecondsToIsoDateTime(epochMilliseconds: number) {
 export function mathematicalInLeapYear(year: number) {
 	// https://codegolf.stackexchange.com/questions/50798/is-it-a-leap-year
 	return +!(year % (year % 25 ? 4 : 16));
+}
+
+/**
+ * `FormatTimeString`
+ * @param precision `AUTO` if undefined
+ * @returns
+ */
+export function formatTimeString(
+	hour: number,
+	minute: number,
+	second: number,
+	nanoseconds: number,
+	precision?: number,
+) {
+	const full = `${toZeroPaddedDecimalString(hour, 2)}:${toZeroPaddedDecimalString(minute, 2)}:${toZeroPaddedDecimalString(second, 2)}.${toZeroPaddedDecimalString(nanoseconds, 9)}`;
+	if (precision === undefined) {
+		return full.replace(/((:00)?\.0)?0+$/, "");
+	}
+	return full.slice(0, 9 + precision - +!precision);
 }
 
 /** `ParseTemporalDurationString` */
