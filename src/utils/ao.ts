@@ -13,7 +13,7 @@ export function isoDateToEpochDays(year: number, month: number, day: number) {
 	// avoid passing 1 or 2 digit years to `Date.UTC` function
 	return (
 		Date.UTC((year % 400) + 800, month - 1, day) / millisecondsPerDay +
-		Math.trunc(year / 400 - 2) * daysPer400Years
+		(Math.trunc(year / 400) - 2) * daysPer400Years
 	);
 }
 
