@@ -1,6 +1,10 @@
 import { type ISODateRecord, isValidISODate } from "./PlainDate.ts";
 import { isValidTime, type TimeRecord } from "./PlainTime.ts";
-import { isoDateToEpochDays, mathematicalInLeapYear } from "./utils/ao.ts";
+import {
+	isoDateToEpochDays,
+	mathematicalDaysInYear,
+	mathematicalInLeapYear,
+} from "./utils/ao.ts";
 import {
 	assertCalendar,
 	isoDayOfWeek,
@@ -15,7 +19,7 @@ import {
 } from "./utils/ecmascript.ts";
 import { defineStringTag } from "./utils/property.ts";
 
-type ISODateTimeRecord = [ISODateRecord, TimeRecord];
+export type ISODateTimeRecord = [ISODateRecord, TimeRecord];
 type PlainDateTimeSlot = ISODateTimeRecord & { __plainDateTimeSlot__: unknown };
 
 /** `ISODateTimeWithinLimits` */
@@ -153,9 +157,7 @@ export class PlainDateTime {
 		return isoDaysInMonth(slot[0][0], slot[0][1]);
 	}
 	get daysInYear() {
-		return (
-			365 + mathematicalInLeapYear(getInternalSlotOrThrow(slots, this)[0][0])
-		);
+		return mathematicalDaysInYear(getInternalSlotOrThrow(slots, this)[0][0]);
 	}
 	get monthsInYear() {
 		return 12;

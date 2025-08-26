@@ -42,3 +42,15 @@ export function compareEpoch(x: EpochNanoseconds, y: EpochNanoseconds) {
 export function getEpochMilliseconds(ns: EpochNanoseconds) {
 	return ns[0] - (ns[1] < 0 ? 1 : 0);
 }
+
+export function getPositiveRemainderNanoseconds(ns: EpochNanoseconds) {
+	const nanosec = ns[1] < 0 ? 1e6 + ns[1] : ns[1];
+	return [Math.floor(nanosec / 1e3), nanosec % 1e3] as [number, number];
+}
+
+export function addNanosecondsToEpoch(
+	epoch: EpochNanoseconds,
+	nanoseconds: number,
+) {
+	return normalizeEpoch(epoch[0], epoch[1] + nanoseconds);
+}

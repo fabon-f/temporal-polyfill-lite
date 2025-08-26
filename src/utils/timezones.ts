@@ -1,5 +1,7 @@
 import { balanceTime } from "../PlainTime.ts";
-import { formatTimeString } from "./ao.ts";
+import { formatTimeString, utcTimeStamp } from "./ao.ts";
+import { toIntegerIfIntegral } from "./ecmascript.ts";
+import { type EpochNanoseconds, getEpochMilliseconds } from "./epochNano.ts";
 import {
 	isValidIanaTimeZoneId,
 	parseUtcOffsetFormat,
@@ -28,6 +30,23 @@ export function formatUTCOffsetNanoseconds(offsetNanoseconds: number) {
 		Math.abs(offsetNanoseconds),
 	);
 	return `${offsetNanoseconds < 0 ? "-" : "+"}${formatTimeString(h, m, s, milli * 1e6 + micro * 1e3 + nano)}`;
+}
+
+/** `GetOffsetNanosecondsFor` */
+export function getOffsetNanosecondsFor(
+	timeZone: string,
+	epoch: EpochNanoseconds,
+) {
+	// avoid CE / BCE confusion, clamp to 68 BC
+	const e = Math.max(
+		Math.floor(getEpochMilliseconds(epoch) / 1000) * 1000,
+		-6e13,
+	);
+	const parts = getFormatter(timeZone).formatToParts(e);
+	const units = ["year", "month", "day", "hour", "minute", "second"].map(
+		(unit) => toIntegerIfIntegral(parts.find((p) => p.type === unit)!.value),
+	) as [number, number, number, number, number, number];
+	return (utcTimeStamp(...units) - e) * 1e6;
 }
 
 /**

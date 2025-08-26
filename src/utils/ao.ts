@@ -7,14 +7,34 @@ import {
 	toZeroPaddedDecimalString,
 } from "./ecmascript.ts";
 
-/** `ISODateToEpochDays` but `month` is 1-indexed */
-export function isoDateToEpochDays(year: number, month: number, day: number) {
+export function utcTimeStamp(
+	year: number,
+	month: number,
+	day: number,
+	hour = 0,
+	minute = 0,
+	second = 0,
+	millisecond = 0,
+) {
 	// gregorian calendar has 400 years cycle
 	// avoid passing 1 or 2 digit years to `Date.UTC` function
 	return (
-		Date.UTC((year % 400) + 800, month - 1, day) / millisecondsPerDay +
-		(Math.trunc(year / 400) - 2) * daysPer400Years
+		Date.UTC(
+			(year % 400) + 800,
+			month - 1,
+			day,
+			hour,
+			minute,
+			second,
+			millisecond,
+		) +
+		(Math.trunc(year / 400) - 2) * daysPer400Years * millisecondsPerDay
 	);
+}
+
+/** `ISODateToEpochDays` but `month` is 1-indexed */
+export function isoDateToEpochDays(year: number, month: number, day: number) {
+	return utcTimeStamp(year, month, day) / millisecondsPerDay;
 }
 
 export function utcEpochMillisecondsToIsoDateTime(epochMilliseconds: number) {
@@ -45,6 +65,11 @@ export function utcEpochMillisecondsToIsoDateTime(epochMilliseconds: number) {
 export function mathematicalInLeapYear(year: number) {
 	// https://codegolf.stackexchange.com/questions/50798/is-it-a-leap-year
 	return +!(year % (year % 25 ? 4 : 16));
+}
+
+/** `MathematicalDaysInYear` */
+export function mathematicalDaysInYear(year: number) {
+	return 365 + mathematicalInLeapYear(year);
 }
 
 /**

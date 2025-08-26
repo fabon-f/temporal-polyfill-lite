@@ -1,6 +1,7 @@
 import { isoDateTimeWithinLimits } from "./PlainDateTime.ts";
 import {
 	isoDateToEpochDays,
+	mathematicalDaysInYear,
 	mathematicalInLeapYear,
 	utcEpochMillisecondsToIsoDateTime,
 } from "./utils/ao.ts";
@@ -139,7 +140,7 @@ export class PlainDate {
 		return isoDaysInMonth(slot[0], slot[1]);
 	}
 	get daysInYear() {
-		return 365 + mathematicalInLeapYear(getInternalSlotOrThrow(slots, this)[0]);
+		return mathematicalDaysInYear(getInternalSlotOrThrow(slots, this)[0]);
 	}
 	get monthsInYear() {
 		return 12;

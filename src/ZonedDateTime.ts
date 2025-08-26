@@ -1,11 +1,32 @@
 import { isValidEpochNanoseconds } from "./Instant.ts";
-import { assertCalendar } from "./utils/calendars.ts";
+import type { ISODateTimeRecord } from "./PlainDateTime.ts";
+import {
+	mathematicalDaysInYear,
+	mathematicalInLeapYear,
+	utcEpochMillisecondsToIsoDateTime,
+} from "./utils/ao.ts";
+import {
+	assertCalendar,
+	isoDayOfWeek,
+	isoDayOfYear,
+	isoDaysInMonth,
+	isoWeekOfYear,
+	monthToMonthCode,
+} from "./utils/calendars.ts";
 import { getInternalSlotOrThrow, toBigInt } from "./utils/ecmascript.ts";
-import { type EpochNanoseconds, fromNativeBigInt } from "./utils/epochNano.ts";
+import {
+	addNanosecondsToEpoch,
+	type EpochNanoseconds,
+	fromNativeBigInt,
+	getEpochMilliseconds,
+	getPositiveRemainderNanoseconds,
+	toNativeBigInt,
+} from "./utils/epochNano.ts";
 import { defineStringTag } from "./utils/property.ts";
 import {
 	formatUTCOffsetNanoseconds,
 	getAvailableNamedTimeZoneIdentifier,
+	getOffsetNanosecondsFor,
 	parseTimeZoneIdentifier,
 } from "./utils/timezones.ts";
 
@@ -14,6 +35,7 @@ const slots = new WeakMap<ZonedDateTime, ZonedDateTimeSlot>();
 type ZonedDateTimeSlot = [
 	epochNanoseconds: EpochNanoseconds,
 	timeZone: string,
+	/** lazy evaluation, `undefined` unless needed */
 	offsetNanoseconds: number | undefined,
 ] & { __zonedDateTimeSlot__: unknown };
 
@@ -41,6 +63,23 @@ function createTemporalZonedDateTime(
 		instance || (Object.create(ZonedDateTime.prototype) as ZonedDateTime);
 	slots.set(zonedDateTime, slot);
 	return zonedDateTime;
+}
+
+function getOffsetNanosecondsForSlot(slot: ZonedDateTimeSlot) {
+	// biome-ignore lint/suspicious/noAssignInExpressions: code golf
+	return (slot[2] ||= getOffsetNanosecondsFor(slot[1], slot[0]));
+}
+
+/** alternative to `GetISODateTimeFor` */
+function getISODateTimeForSlot(slot: ZonedDateTimeSlot): ISODateTimeRecord {
+	const localEpoch = addNanosecondsToEpoch(
+		slot[0],
+		getOffsetNanosecondsForSlot(slot),
+	);
+	const [date, time] = utcEpochMillisecondsToIsoDateTime(
+		getEpochMilliseconds(localEpoch),
+	);
+	return [date, [0, ...time, ...getPositiveRemainderNanoseconds(localEpoch)]];
 }
 
 export class ZonedDateTime {
@@ -96,76 +135,95 @@ export class ZonedDateTime {
 		return undefined;
 	}
 	get year() {
-		return undefined;
+		return getISODateTimeForSlot(getInternalSlotOrThrow(slots, this))[0][0];
 	}
 	get month() {
-		return undefined;
+		return getISODateTimeForSlot(getInternalSlotOrThrow(slots, this))[0][1];
 	}
 	get monthCode() {
-		return undefined;
+		return monthToMonthCode(
+			getISODateTimeForSlot(getInternalSlotOrThrow(slots, this))[0][1],
+		);
 	}
 	get day() {
-		return undefined;
+		return getISODateTimeForSlot(getInternalSlotOrThrow(slots, this))[0][2];
 	}
 	get hour() {
-		return undefined;
+		return getISODateTimeForSlot(getInternalSlotOrThrow(slots, this))[1][1];
 	}
 	get minute() {
-		return undefined;
+		return getISODateTimeForSlot(getInternalSlotOrThrow(slots, this))[1][2];
 	}
 	get second() {
-		return undefined;
+		return getISODateTimeForSlot(getInternalSlotOrThrow(slots, this))[1][3];
 	}
 	get millisecond() {
-		return undefined;
+		return getISODateTimeForSlot(getInternalSlotOrThrow(slots, this))[1][4];
 	}
 	get microsecond() {
-		return undefined;
+		return getISODateTimeForSlot(getInternalSlotOrThrow(slots, this))[1][5];
 	}
 	get nanosecond() {
-		return undefined;
+		return getISODateTimeForSlot(getInternalSlotOrThrow(slots, this))[1][6];
 	}
 	get epochMilliseconds() {
-		return undefined;
+		return getEpochMilliseconds(getInternalSlotOrThrow(slots, this)[0]);
 	}
 	get epochNanoseconds() {
-		return undefined;
+		return toNativeBigInt(getInternalSlotOrThrow(slots, this)[0]);
 	}
 	get dayOfWeek() {
-		return undefined;
+		return isoDayOfWeek(
+			getISODateTimeForSlot(getInternalSlotOrThrow(slots, this))[0],
+		);
 	}
 	get dayOfYear() {
-		return undefined;
+		return isoDayOfYear(
+			getISODateTimeForSlot(getInternalSlotOrThrow(slots, this))[0],
+		);
 	}
 	get weekOfYear() {
-		return undefined;
+		return isoWeekOfYear(
+			getISODateTimeForSlot(getInternalSlotOrThrow(slots, this))[0],
+		)[1];
 	}
 	get yearOfWeek() {
-		return undefined;
+		return isoWeekOfYear(
+			getISODateTimeForSlot(getInternalSlotOrThrow(slots, this))[0],
+		)[0];
 	}
 	get hoursInDay() {
 		return undefined;
 	}
 	get daysInWeek() {
-		return undefined;
+		return 7;
 	}
 	get daysInMonth() {
-		return undefined;
+		const [year, month] = getISODateTimeForSlot(
+			getInternalSlotOrThrow(slots, this),
+		)[0];
+		return isoDaysInMonth(year, month);
 	}
 	get daysInYear() {
-		return undefined;
+		return mathematicalDaysInYear(
+			getISODateTimeForSlot(getInternalSlotOrThrow(slots, this))[0][0],
+		);
 	}
 	get monthsInYear() {
-		return undefined;
+		return 12;
 	}
 	get inLeapYear() {
-		return undefined;
+		return !!mathematicalInLeapYear(
+			getISODateTimeForSlot(getInternalSlotOrThrow(slots, this))[0][0],
+		);
 	}
 	get offsetNanoseconds() {
-		return undefined;
+		return getOffsetNanosecondsForSlot(getInternalSlotOrThrow(slots, this));
 	}
 	get offset() {
-		return undefined;
+		return formatUTCOffsetNanoseconds(
+			getOffsetNanosecondsForSlot(getInternalSlotOrThrow(slots, this)),
+		);
 	}
 	with() {}
 	withPlainTime() {}
