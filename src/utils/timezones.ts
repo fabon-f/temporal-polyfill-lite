@@ -37,6 +37,9 @@ export function getOffsetNanosecondsFor(
 	timeZone: string,
 	epoch: EpochNanoseconds,
 ) {
+	if (timeZone === "UTC") {
+		return 0;
+	}
 	// avoid CE / BCE confusion, clamp to 68 BC
 	const e = Math.max(
 		Math.floor(getEpochMilliseconds(epoch) / 1000) * 1000,

@@ -6,6 +6,17 @@ import {
 	toIntegerWithTruncation,
 	toZeroPaddedDecimalString,
 } from "./ecmascript.ts";
+import {
+	isValidTimeZoneIdentifier,
+	parseISODateTime,
+	temporalDateTimeString,
+	temporalDateTimeStringWithZoned,
+	temporalInstantString,
+	temporalMonthDayString,
+	temporalTimeString,
+	temporalYearMonthString,
+} from "./iso_parser.ts";
+import { parseTimeZoneIdentifier } from "./timezones.ts";
 
 export function utcTimeStamp(
 	year: number,
@@ -141,5 +152,27 @@ export function parseTemporalDurationString(isoString: string) {
 		fractionalPart[4] * factor + 0,
 		fractionalPart[5] * factor + 0,
 		fractionalPart[6] * factor + 0,
+	);
+}
+
+/** `ParseTemporalTimeZoneString` */
+function parseTemporalTimeZoneString(timeZoneString: string) {
+	if (isValidTimeZoneIdentifier(timeZoneString)) {
+		return parseTimeZoneIdentifier(timeZoneString);
+	}
+	const result = parseISODateTime(timeZoneString, [
+		temporalDateTimeStringWithZoned,
+		temporalDateTimeString,
+		temporalInstantString,
+		temporalTimeString,
+		temporalMonthDayString,
+		temporalYearMonthString,
+	])[2];
+	console.log(result);
+	if (!result[0] && !result[1] && !result[2]) {
+		throw new RangeError();
+	}
+	return parseTimeZoneIdentifier(
+		(result[2] || (result[0] && "UTC") || result[1])!,
 	);
 }

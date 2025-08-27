@@ -39,6 +39,13 @@ type ZonedDateTimeSlot = [
 	offsetNanoseconds: number | undefined,
 ] & { __zonedDateTimeSlot__: unknown };
 
+export function getISODateTimeOfZonedDateTime(
+	item: unknown,
+): ISODateTimeRecord | undefined {
+	const slot = slots.get(item as any);
+	return slot ? getISODateTimeForSlot(slot) : undefined;
+}
+
 export function getEpochNanosecondsOfZonedDateTime(
 	item: unknown,
 ): EpochNanoseconds | undefined {

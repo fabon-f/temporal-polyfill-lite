@@ -13,11 +13,22 @@ import {
 	isoWeekOfYear,
 	monthToMonthCode,
 } from "./utils/calendars.ts";
+import { isObject } from "./utils/check.ts";
 import {
 	getInternalSlotOrThrow,
 	toIntegerWithTruncation,
 } from "./utils/ecmascript.ts";
+import {
+	parseISODateTime,
+	temporalDateTimeString,
+} from "./utils/iso_parser.ts";
 import { defineStringTag } from "./utils/property.ts";
+
+export function getISODateTimeOfPlainDateTime(
+	item: unknown,
+): ISODateTimeRecord | undefined {
+	return slots.get(item as any);
+}
 
 export type ISODateTimeRecord = [ISODateRecord, TimeRecord];
 type PlainDateTimeSlot = ISODateTimeRecord & { __plainDateTimeSlot__: unknown };
@@ -30,6 +41,23 @@ export function isoDateTimeWithinLimits(isoDateTime: ISODateTimeRecord) {
 		Math.abs(epochDays) <= 1e8 ||
 		(epochDays === -1e8 - 1 && isoDateTime[1].some((v) => v !== 0))
 	);
+}
+
+/** `ToTemporalDateTime` */
+function toTemporalDateTime(item: unknown, options?: unknown) {
+	if (isObject(item)) {
+		// TODO:
+	}
+	if (typeof item !== "string") {
+		throw new TypeError();
+	}
+	const [date, time = [0, 0, 0, 0, 0, 0, 0], _, calendar = "iso8601"] =
+		parseISODateTime(item, [temporalDateTimeString]);
+	assertCalendar(calendar);
+	// TODO:
+	// 9. Let resolvedOptions be ? GetOptionsObject(options).
+	// 10. Perform ? GetTemporalOverflowOption(resolvedOptions).
+	return createTemporalDateTimeSlot([date, time]);
 }
 
 /** part of `CreateTemporalDateTime` */
@@ -94,7 +122,9 @@ export class PlainDateTime {
 		}
 		createTemporalDateTime(createTemporalDateTimeSlot(record), this);
 	}
-	static from() {}
+	static from(item: unknown, options?: unknown) {
+		return createTemporalDateTime(toTemporalDateTime(item, options));
+	}
 	static compare() {}
 	get calendarId() {
 		return "iso8601";

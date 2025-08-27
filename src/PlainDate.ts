@@ -1,4 +1,7 @@
-import { isoDateTimeWithinLimits } from "./PlainDateTime.ts";
+import {
+	getISODateTimeOfPlainDateTime,
+	isoDateTimeWithinLimits,
+} from "./PlainDateTime.ts";
 import {
 	isoDateToEpochDays,
 	mathematicalDaysInYear,
@@ -13,12 +16,19 @@ import {
 	isoWeekOfYear,
 	monthToMonthCode,
 } from "./utils/calendars.ts";
+import { isObject } from "./utils/check.ts";
 import { millisecondsPerDay } from "./utils/constants.ts";
 import {
 	getInternalSlotOrThrow,
 	toIntegerWithTruncation,
 } from "./utils/ecmascript.ts";
+import {
+	parseISODateTime,
+	temporalDateTimeString,
+} from "./utils/iso_parser.ts";
+import { compareNumber } from "./utils/math.ts";
 import { defineStringTag } from "./utils/property.ts";
+import { getISODateTimeOfZonedDateTime } from "./ZonedDateTime.ts";
 
 export type ISODateRecord = [isoYear: number, isoMonth: number, isoDay: number];
 
@@ -48,6 +58,39 @@ function balanceISODate(
 	)[0];
 }
 
+function toTemporalDate(item: unknown, options?: unknown): PlainDateSlot {
+	if (isObject(item)) {
+		const plainDateSlotForItem = slots.get(item as any);
+		if (plainDateSlotForItem) {
+			// TODO:
+			// i. Let resolvedOptions be ? GetOptionsObject(options).
+			// ii. Perform ? GetTemporalOverflowOption(resolvedOptions).
+			return plainDateSlotForItem;
+		}
+		const dateTimeRecord =
+			getISODateTimeOfZonedDateTime(item) ||
+			getISODateTimeOfPlainDateTime(item);
+		if (dateTimeRecord) {
+			// TODO:
+			// i. Let resolvedOptions be ? GetOptionsObject(options).
+			// ii. Perform ? GetTemporalOverflowOption(resolvedOptions).
+			return createTemporalDateSlot(dateTimeRecord[0]);
+		}
+		// TODO:
+	}
+	if (typeof item !== "string") {
+		throw new TypeError();
+	}
+	const [date, _1, _2, calendar = "iso8601"] = parseISODateTime(item, [
+		temporalDateTimeString,
+	]);
+	assertCalendar(calendar);
+	// TODO:
+	// 8. Let resolvedOptions be ? GetOptionsObject(options).
+	// 9. Perform ? GetTemporalOverflowOption(resolvedOptions).
+	return createTemporalDateSlot(date);
+}
+
 function createTemporalDateSlot(isoDate: ISODateRecord): PlainDateSlot {
 	if (!isoDateWithinLimits(isoDate)) {
 		throw new RangeError();
@@ -69,6 +112,13 @@ function createTemporalDate(
 /** `ISODateWithinLimits` */
 export function isoDateWithinLimits(isoDate: ISODateRecord): boolean {
 	return isoDateTimeWithinLimits([isoDate, [0, 12, 0, 0, 0, 0, 0]]);
+}
+
+function compareISODate(date1: ISODateRecord, date2: ISODateRecord) {
+	return compareNumber(
+		isoDateToEpochDays(...date1),
+		isoDateToEpochDays(...date2),
+	);
 }
 
 const slots = new WeakMap<PlainDate, PlainDateSlot>();
@@ -95,7 +145,9 @@ export class PlainDate {
 		}
 		createTemporalDate(createTemporalDateSlot([y, m, d]), this);
 	}
-	static from() {}
+	static from(item: unknown, options?: unknown) {
+		return createTemporalDate(toTemporalDate(item, options));
+	}
 	static compare() {}
 	get calendarId() {
 		return "iso8601";
@@ -156,7 +208,11 @@ export class PlainDate {
 	withCalendar() {}
 	until() {}
 	since() {}
-	equals() {}
+	equals(other: unknown) {
+		const slot = getInternalSlotOrThrow(slots, this);
+		const otherSlot = toTemporalDate(other);
+		return compareISODate(slot, otherSlot) === 0;
+	}
 	toPlainDateTime() {}
 	toZonedDateTime() {}
 	toString() {}
