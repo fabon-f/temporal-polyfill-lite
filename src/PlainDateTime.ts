@@ -1,5 +1,14 @@
-import { type ISODateRecord, isValidISODate } from "./PlainDate.ts";
-import { isValidTime, type TimeRecord } from "./PlainTime.ts";
+import {
+	balanceISODate,
+	type ISODateRecord,
+	isValidISODate,
+} from "./PlainDate.ts";
+import {
+	balanceTime,
+	isValidTime,
+	sliceTimePart,
+	type TimeRecord,
+} from "./PlainTime.ts";
 import {
 	isoDateToEpochDays,
 	mathematicalDaysInYear,
@@ -58,6 +67,30 @@ function toTemporalDateTime(item: unknown, options?: unknown) {
 	// 9. Let resolvedOptions be ? GetOptionsObject(options).
 	// 10. Perform ? GetTemporalOverflowOption(resolvedOptions).
 	return createTemporalDateTimeSlot([date, time]);
+}
+
+/** `BalanceISODateTime` */
+export function balanceISODateTime(
+	year: number,
+	month: number,
+	day: number,
+	hour: number,
+	minute: number,
+	second: number,
+	millisecond: number,
+	microsecond: number,
+	nanosecond: number,
+): ISODateTimeRecord {
+	const time = balanceTime(
+		hour,
+		minute,
+		second,
+		millisecond,
+		microsecond,
+		nanosecond,
+	);
+	const date = balanceISODate(year, month, day + time[0]);
+	return [date, [0, ...sliceTimePart(time)]];
 }
 
 /** part of `CreateTemporalDateTime` */

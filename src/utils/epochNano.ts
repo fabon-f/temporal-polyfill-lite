@@ -19,6 +19,9 @@ export function toNativeBigInt(n: EpochNanoseconds) {
 }
 
 export function normalizeEpoch(milliseconds: number, nanoseconds: number) {
+	if (!Number.isInteger(milliseconds)) {
+		throw new RangeError();
+	}
 	milliseconds += Math.trunc(nanoseconds / 1e6);
 	nanoseconds = nanoseconds % 1e6;
 

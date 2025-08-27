@@ -88,6 +88,14 @@ export function balanceTime(
 	];
 }
 
+export function sliceTimePart(record: TimeRecord) {
+	return record.slice(1) as [number, number, number, number, number, number];
+}
+
+export function sliceTimeLargerThanMilliseconds(record: TimeRecord) {
+	return record.slice(1, 5) as [number, number, number, number];
+}
+
 export class PlainTime {
 	constructor(
 		hour: unknown = 0,

@@ -48,7 +48,7 @@ export function isValidISODate(
 }
 
 /** `BalanceISODate` */
-function balanceISODate(
+export function balanceISODate(
 	year: number,
 	month: number,
 	day: number,

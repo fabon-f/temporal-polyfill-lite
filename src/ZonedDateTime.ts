@@ -53,7 +53,7 @@ export function getEpochNanosecondsOfZonedDateTime(
 	return slot ? slot[0] : undefined;
 }
 
-function createTemporalZonedDateTimeSlot(
+export function createTemporalZonedDateTimeSlot(
 	epoch: EpochNanoseconds,
 	timeZone: string,
 	offsetNanoseconds?: number | undefined,
@@ -62,7 +62,7 @@ function createTemporalZonedDateTimeSlot(
 }
 
 /** `CreateTemporalZonedDateTime` */
-function createTemporalZonedDateTime(
+export function createTemporalZonedDateTime(
 	slot: ZonedDateTimeSlot,
 	instance?: ZonedDateTime,
 ) {

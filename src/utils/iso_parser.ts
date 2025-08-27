@@ -2,6 +2,7 @@ import { type ISODateRecord, isValidISODate } from "../PlainDate.ts";
 import { balanceTime, type TimeRecord } from "../PlainTime.ts";
 import { assertCalendar } from "./calendars.ts";
 import { toIntegerIfIntegral } from "./ecmascript.ts";
+import { clampNumber } from "./math.ts";
 
 /**
  * A, B, C -> A | A B | A B C
@@ -44,7 +45,7 @@ const timeZoneIdentifier = `${utcOffsetTimeZoneIdentifier}|${timeZoneIANAName}`;
 const timeZoneAnnotation = `\\[!?(?<j>${timeZoneIdentifier})\\]`;
 
 const annotationKey = "[a-z_][a-z\\d_-]*";
-const annotationValue = join("[a-z\\d]+", "-");
+const annotationValue = join("[a-zA-Z\\d]+", "-");
 const annotation = `\\[(!)?(${annotationKey})=(${annotationValue})\\]`;
 
 const dateTime = optionalChain([
@@ -196,7 +197,7 @@ export function parseISODateTime(
 					0,
 					hourMv,
 					minuteMv,
-					secondMv,
+					clampNumber(secondMv, 0, 59),
 					millisecondMv,
 					microsecondMv,
 					nanosecondMv,

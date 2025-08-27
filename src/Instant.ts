@@ -1,3 +1,6 @@
+import { balanceISODateTime } from "./PlainDateTime.ts";
+import { sliceTimeLargerThanMilliseconds } from "./PlainTime.ts";
+import { utcTimeStamp } from "./utils/ao.ts";
 import { isObject } from "./utils/check.ts";
 import {
 	getInternalSlotOrThrow,
@@ -11,8 +14,15 @@ import {
 	type EpochNanoseconds,
 	fromNativeBigInt,
 	getEpochMilliseconds,
+	normalizeEpoch,
 	toNativeBigInt,
 } from "./utils/epochNano.ts";
+import {
+	parseISODateTime,
+	parseUtcOffsetFormat,
+	temporalInstantString,
+	utcOffsetToOffsetNanoseconds,
+} from "./utils/iso_parser.ts";
 import { defineStringTag } from "./utils/property.ts";
 import { getEpochNanosecondsOfZonedDateTime } from "./ZonedDateTime.ts";
 
@@ -27,7 +37,7 @@ export function isValidEpochNanoseconds(epochNanoseconds: EpochNanoseconds) {
 	);
 }
 
-function createTemporalInstantSlot(ns: EpochNanoseconds) {
+export function createTemporalInstantSlot(ns: EpochNanoseconds) {
 	if (!isValidEpochNanoseconds(ns)) {
 		throw new RangeError();
 	}
@@ -35,7 +45,10 @@ function createTemporalInstantSlot(ns: EpochNanoseconds) {
 }
 
 /** `CreateTemporalInstant` */
-function createTemporalInstant(slot: InstantSlot, instance?: Instant): Instant {
+export function createTemporalInstant(
+	slot: InstantSlot,
+	instance?: Instant,
+): Instant {
 	const instant = instance || (Object.create(Instant.prototype) as Instant);
 	slots.set(instant, slot);
 	return instant;
@@ -55,8 +68,34 @@ function toTemporalInstantSlot(item: unknown): InstantSlot {
 	if (typeof item !== "string") {
 		throw new TypeError();
 	}
-	// TODO: parse string
-	return createTemporalInstantSlot([0, 0] as EpochNanoseconds);
+	const [date, time = [0, 0, 0, 0, 0, 0, 0], timeZoneResult] = parseISODateTime(
+		item,
+		[temporalInstantString],
+	);
+
+	const offsetNanoseconds = timeZoneResult[0]
+		? 0
+		: utcOffsetToOffsetNanoseconds(
+				parseUtcOffsetFormat(timeZoneResult[1]!, true)!,
+			);
+	const balanced = balanceISODateTime(
+		...date,
+		time[1],
+		time[2],
+		time[3],
+		time[4],
+		time[5],
+		time[6] - offsetNanoseconds,
+	);
+	const epoch = normalizeEpoch(
+		utcTimeStamp(
+			...balanced[0],
+			...sliceTimeLargerThanMilliseconds(balanced[1]),
+		),
+		balanced[1][5] * 1e3 + balanced[1][6],
+	);
+
+	return createTemporalInstantSlot(epoch);
 }
 
 function getEpochNanosecondsOfInstant(
@@ -82,10 +121,7 @@ export class Instant {
 	}
 	static fromEpochMilliseconds(epochMilliseconds: unknown) {
 		return createTemporalInstant(
-			createTemporalInstantSlot([
-				toNumber(epochMilliseconds),
-				0,
-			] as EpochNanoseconds),
+			createTemporalInstantSlot(normalizeEpoch(toNumber(epochMilliseconds), 0)),
 		);
 	}
 	static fromEpochNanoseconds(epochNanoseconds: unknown) {
