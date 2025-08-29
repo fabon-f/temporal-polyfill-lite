@@ -653,7 +653,6 @@ built-ins/Temporal/PlainDate/from/one-of-era-erayear-undefined.js
 built-ins/Temporal/PlainDate/from/options-object.js
 built-ins/Temporal/PlainDate/from/options-read-before-algorithmic-validation.js
 built-ins/Temporal/PlainDate/from/options-undefined.js
-built-ins/Temporal/PlainDate/from/options-wrong-type.js
 built-ins/Temporal/PlainDate/from/order-of-operations.js
 built-ins/Temporal/PlainDate/from/out-of-range.js
 built-ins/Temporal/PlainDate/from/overflow-invalid-string.js
@@ -1044,16 +1043,12 @@ built-ins/Temporal/PlainDateTime/compare/year-zero.js
 built-ins/Temporal/PlainDateTime/datetime-math.js
 built-ins/Temporal/PlainDateTime/from/argument-object-month.js
 built-ins/Temporal/PlainDateTime/from/argument-object.js
-built-ins/Temporal/PlainDateTime/from/argument-plaindate.js
-built-ins/Temporal/PlainDateTime/from/argument-plaindatetime.js
 built-ins/Temporal/PlainDateTime/from/argument-propertybag-calendar-case-insensitive.js
 built-ins/Temporal/PlainDateTime/from/argument-propertybag-calendar-invalid-iso-string.js
 built-ins/Temporal/PlainDateTime/from/argument-propertybag-calendar-iso-string.js
 built-ins/Temporal/PlainDateTime/from/argument-propertybag-calendar-leap-second.js
 built-ins/Temporal/PlainDateTime/from/argument-propertybag-calendar-string.js
 built-ins/Temporal/PlainDateTime/from/argument-propertybag-calendar-year-zero.js
-built-ins/Temporal/PlainDateTime/from/argument-zoneddatetime-balance-negative-time-units.js
-built-ins/Temporal/PlainDateTime/from/argument-zoneddatetime-negative-epochnanoseconds.js
 built-ins/Temporal/PlainDateTime/from/calendar-temporal-object.js
 built-ins/Temporal/PlainDateTime/from/infinity-throws-rangeerror.js
 built-ins/Temporal/PlainDateTime/from/leap-second.js

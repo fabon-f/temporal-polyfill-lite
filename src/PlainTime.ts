@@ -88,6 +88,10 @@ export function balanceTime(
 	];
 }
 
+export function midnightRecord(): TimeRecord {
+	return [0, 0, 0, 0, 0, 0, 0];
+}
+
 export function sliceTimePart(record: TimeRecord) {
 	return record.slice(1) as [number, number, number, number, number, number];
 }

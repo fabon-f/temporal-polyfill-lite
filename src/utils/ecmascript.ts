@@ -82,3 +82,35 @@ export function getInternalSlotOrThrow<C extends WeakKey, S>(
 export function toZeroPaddedDecimalString(n: number, minLength: number) {
 	return n.toString().padStart(minLength, "0");
 }
+
+/** `GetOptionsObject` */
+export function getOptionsObject(options: unknown) {
+	if (options === undefined) {
+		return Object.create(null);
+	}
+	if (isObject(options)) {
+		return options;
+	}
+	throw new TypeError();
+}
+
+/** `GetOption` */
+export function getOption<T>(
+	options: object,
+	property: string,
+	values: T[],
+	defaultValue?: T,
+) {
+	const v = (options as Record<string, unknown>)[property];
+	if (v === undefined) {
+		if (defaultValue === undefined) {
+			throw new RangeError();
+		}
+		return defaultValue;
+	}
+	const option = String(v);
+	if (!values.includes(option as any)) {
+		throw new RangeError();
+	}
+	return option as T;
+}

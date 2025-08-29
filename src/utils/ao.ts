@@ -3,6 +3,7 @@ import type { ISODateRecord } from "../PlainDate.ts";
 import { balanceTime } from "../PlainTime.ts";
 import { daysPer400Years, millisecondsPerDay } from "./constants.ts";
 import {
+	getOption,
 	toIntegerWithTruncation,
 	toZeroPaddedDecimalString,
 } from "./ecmascript.ts";
@@ -16,6 +17,11 @@ import {
 	temporalTimeString,
 	temporalYearMonthString,
 } from "./iso_parser.ts";
+import {
+	type OverflowOption,
+	overflowConstrain,
+	overflowReject,
+} from "./options.ts";
 import { parseTimeZoneIdentifier } from "./timezones.ts";
 
 export function utcTimeStamp(
@@ -174,5 +180,16 @@ function parseTemporalTimeZoneString(timeZoneString: string) {
 	}
 	return parseTimeZoneIdentifier(
 		(result[2] || (result[0] && "UTC") || result[1])!,
+	);
+}
+
+/** `GetTemporalOverflowOption` */
+export function getTemporalOverflowOption(options: object): OverflowOption {
+	// 1. Let stringValue be ? GetOption(options, "overflow", string, « "constrain", "reject" », "constrain").
+	return getOption(
+		options,
+		"overflow",
+		[overflowConstrain, overflowReject],
+		overflowConstrain,
 	);
 }

@@ -1,15 +1,18 @@
 import {
 	balanceISODate,
+	getISODateOfPlainDate,
 	type ISODateRecord,
 	isValidISODate,
 } from "./PlainDate.ts";
 import {
 	balanceTime,
 	isValidTime,
+	midnightRecord,
 	sliceTimePart,
 	type TimeRecord,
 } from "./PlainTime.ts";
 import {
+	getTemporalOverflowOption,
 	isoDateToEpochDays,
 	mathematicalDaysInYear,
 	mathematicalInLeapYear,
@@ -25,6 +28,7 @@ import {
 import { isObject } from "./utils/check.ts";
 import {
 	getInternalSlotOrThrow,
+	getOptionsObject,
 	toIntegerWithTruncation,
 } from "./utils/ecmascript.ts";
 import {
@@ -32,6 +36,7 @@ import {
 	temporalDateTimeString,
 } from "./utils/iso_parser.ts";
 import { defineStringTag } from "./utils/property.ts";
+import { getISODateTimeOfZonedDateTime } from "./ZonedDateTime.ts";
 
 export function getISODateTimeOfPlainDateTime(
 	item: unknown,
@@ -53,19 +58,35 @@ export function isoDateTimeWithinLimits(isoDateTime: ISODateTimeRecord) {
 }
 
 /** `ToTemporalDateTime` */
-function toTemporalDateTime(item: unknown, options?: unknown) {
+function toTemporalDateTime(
+	item: unknown,
+	options?: unknown,
+): PlainDateTimeSlot {
 	if (isObject(item)) {
-		// TODO:
+		const plainDateTimeSlot = slots.get(item as any);
+		if (plainDateTimeSlot) {
+			getTemporalOverflowOption(getOptionsObject(options));
+			return plainDateTimeSlot;
+		}
+		const dateTimeForZonedDateTime = getISODateTimeOfZonedDateTime(item);
+		if (dateTimeForZonedDateTime) {
+			getTemporalOverflowOption(getOptionsObject(options));
+			return createTemporalDateTimeSlot(dateTimeForZonedDateTime);
+		}
+		const dateForPlainDate = getISODateOfPlainDate(item);
+		if (dateForPlainDate) {
+			getTemporalOverflowOption(getOptionsObject(options));
+			return createTemporalDateTimeSlot([dateForPlainDate, midnightRecord()]);
+		}
+		// TODO
 	}
 	if (typeof item !== "string") {
 		throw new TypeError();
 	}
-	const [date, time = [0, 0, 0, 0, 0, 0, 0], _, calendar = "iso8601"] =
+	const [date, time = midnightRecord(), _, calendar = "iso8601"] =
 		parseISODateTime(item, [temporalDateTimeString]);
 	assertCalendar(calendar);
-	// TODO:
-	// 9. Let resolvedOptions be ? GetOptionsObject(options).
-	// 10. Perform ? GetTemporalOverflowOption(resolvedOptions).
+	getTemporalOverflowOption(getOptionsObject(options));
 	return createTemporalDateTimeSlot([date, time]);
 }
 

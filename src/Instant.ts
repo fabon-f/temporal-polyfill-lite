@@ -1,5 +1,8 @@
 import { balanceISODateTime } from "./PlainDateTime.ts";
-import { sliceTimeLargerThanMilliseconds } from "./PlainTime.ts";
+import {
+	midnightRecord,
+	sliceTimeLargerThanMilliseconds,
+} from "./PlainTime.ts";
 import { utcTimeStamp } from "./utils/ao.ts";
 import { isObject } from "./utils/check.ts";
 import {
@@ -68,7 +71,7 @@ function toTemporalInstantSlot(item: unknown): InstantSlot {
 	if (typeof item !== "string") {
 		throw new TypeError();
 	}
-	const [date, time = [0, 0, 0, 0, 0, 0, 0], timeZoneResult] = parseISODateTime(
+	const [date, time = midnightRecord(), timeZoneResult] = parseISODateTime(
 		item,
 		[temporalInstantString],
 	);

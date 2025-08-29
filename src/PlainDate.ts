@@ -3,6 +3,7 @@ import {
 	isoDateTimeWithinLimits,
 } from "./PlainDateTime.ts";
 import {
+	getTemporalOverflowOption,
 	isoDateToEpochDays,
 	mathematicalDaysInYear,
 	mathematicalInLeapYear,
@@ -20,6 +21,7 @@ import { isObject } from "./utils/check.ts";
 import { millisecondsPerDay } from "./utils/constants.ts";
 import {
 	getInternalSlotOrThrow,
+	getOptionsObject,
 	toIntegerWithTruncation,
 } from "./utils/ecmascript.ts";
 import {
@@ -35,6 +37,12 @@ export type ISODateRecord = [isoYear: number, isoMonth: number, isoDay: number];
 type PlainDateSlot = [isoYear: number, isoMonth: number, isoDay: number] & {
 	__plainDateSlot__: unknown;
 };
+
+export function getISODateOfPlainDate(
+	item: unknown,
+): ISODateRecord | undefined {
+	return slots.get(item as any);
+}
 
 /** `IsValidISODate` */
 export function isValidISODate(
@@ -62,18 +70,14 @@ function toTemporalDate(item: unknown, options?: unknown): PlainDateSlot {
 	if (isObject(item)) {
 		const plainDateSlotForItem = slots.get(item as any);
 		if (plainDateSlotForItem) {
-			// TODO:
-			// i. Let resolvedOptions be ? GetOptionsObject(options).
-			// ii. Perform ? GetTemporalOverflowOption(resolvedOptions).
+			getTemporalOverflowOption(getOptionsObject(options));
 			return plainDateSlotForItem;
 		}
 		const dateTimeRecord =
 			getISODateTimeOfZonedDateTime(item) ||
 			getISODateTimeOfPlainDateTime(item);
 		if (dateTimeRecord) {
-			// TODO:
-			// i. Let resolvedOptions be ? GetOptionsObject(options).
-			// ii. Perform ? GetTemporalOverflowOption(resolvedOptions).
+			getTemporalOverflowOption(getOptionsObject(options));
 			return createTemporalDateSlot(dateTimeRecord[0]);
 		}
 		// TODO:
@@ -85,9 +89,7 @@ function toTemporalDate(item: unknown, options?: unknown): PlainDateSlot {
 		temporalDateTimeString,
 	]);
 	assertCalendar(calendar);
-	// TODO:
-	// 8. Let resolvedOptions be ? GetOptionsObject(options).
-	// 9. Perform ? GetTemporalOverflowOption(resolvedOptions).
+	getTemporalOverflowOption(getOptionsObject(options));
 	return createTemporalDateSlot(date);
 }
 
