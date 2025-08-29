@@ -9,7 +9,6 @@ import {
 } from "./iso_parser.ts";
 import { capitalize, upperCase } from "./string.ts";
 
-const localeForIntlQuery = "en-GB";
 const intlCache = Object.create(null) as Record<string, Intl.DateTimeFormat>;
 
 /** `GetAvailableNamedTimeZoneIdentifier` */
@@ -45,6 +44,7 @@ export function getOffsetNanosecondsFor(
 		Math.floor(getEpochMilliseconds(epoch) / 1000) * 1000,
 		-6e13,
 	);
+	console.log(getFormatter(timeZone).format(e));
 	const parts = getFormatter(timeZone).formatToParts(e);
 	const units = ["year", "month", "day", "hour", "minute", "second"].map(
 		(unit) => toIntegerIfIntegral(parts.find((p) => p.type === unit)!.value),
@@ -93,7 +93,7 @@ export function normalizeTimeZoneIdCase(id: string) {
 
 function getFormatter(timeZone: string): Intl.DateTimeFormat {
 	// biome-ignore lint/suspicious/noAssignInExpressions: code golf
-	return (intlCache[timeZone] ||= new Intl.DateTimeFormat(localeForIntlQuery, {
+	return (intlCache[timeZone] ||= new Intl.DateTimeFormat("en-u-hc-h23", {
 		timeZone,
 		year: "numeric",
 		month: "numeric",
