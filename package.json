@@ -12,11 +12,18 @@
 		"@tsconfig/strictest": "^2.0.8",
 		"@typescript/native-preview": "7.0.0-dev.20251210.1",
 		"oxfmt": "0.17.0",
-		"oxlint": "^1.32.0"
+		"oxlint": "^1.32.0",
+		"vitest": "^4.0.15"
 	},
 	"scripts": {
+		"test": "vitest",
 		"typecheck": "tsgo",
 		"lint": "oxfmt --check . && oxlint ."
+	},
+	"pnpm": {
+		"overrides": {
+			"vite": "beta"
+		}
 	},
 	"packageManager": "pnpm@10.25.0"
 }
