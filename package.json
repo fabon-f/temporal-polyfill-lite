@@ -1,0 +1,13 @@
+{
+	"type": "module",
+	"name": "temporal-polyfill-lite",
+	"version": "0.1.0",
+	"description": "",
+	"keywords": [
+		"Temporal"
+	],
+	"author": "fabon <syobon.hinata.public@gmail.com> (https://www.fabon.info/)",
+	"license": "MIT",
+	"scripts": {},
+	"packageManager": "pnpm@10.25.0"
+}
