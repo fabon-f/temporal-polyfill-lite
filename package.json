@@ -9,10 +9,13 @@
 	"author": "fabon <syobon.hinata.public@gmail.com> (https://www.fabon.info/)",
 	"license": "MIT",
 	"devDependencies": {
+		"@tsconfig/strictest": "^2.0.8",
+		"@typescript/native-preview": "7.0.0-dev.20251210.1",
 		"oxfmt": "0.17.0",
 		"oxlint": "^1.32.0"
 	},
 	"scripts": {
+		"typecheck": "tsgo",
 		"lint": "oxfmt --check . && oxlint ."
 	},
 	"packageManager": "pnpm@10.25.0"
