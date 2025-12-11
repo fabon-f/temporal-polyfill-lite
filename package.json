@@ -8,6 +8,12 @@
 	],
 	"author": "fabon <syobon.hinata.public@gmail.com> (https://www.fabon.info/)",
 	"license": "MIT",
-	"scripts": {},
+	"devDependencies": {
+		"oxfmt": "0.17.0",
+		"oxlint": "^1.32.0"
+	},
+	"scripts": {
+		"lint": "oxfmt --check . && oxlint ."
+	},
 	"packageManager": "pnpm@10.25.0"
 }
