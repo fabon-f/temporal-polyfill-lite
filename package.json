@@ -9,10 +9,13 @@
 	"author": "fabon <syobon.hinata.public@gmail.com> (https://www.fabon.info/)",
 	"license": "MIT",
 	"devDependencies": {
+		"@rollup/plugin-terser": "^0.4.4",
 		"@tsconfig/strictest": "^2.0.8",
+		"@types/node": "^25.0.0",
 		"@typescript/native-preview": "7.0.0-dev.20251210.1",
 		"oxfmt": "0.17.0",
 		"oxlint": "^1.32.0",
+		"rolldown": "1.0.0-beta.53",
 		"vitest": "^4.0.15"
 	},
 	"scripts": {
