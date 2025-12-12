@@ -16,6 +16,7 @@
 		"oxfmt": "0.17.0",
 		"oxlint": "^1.32.0",
 		"rolldown": "1.0.0-beta.54",
+		"tzdata": "^1.0.46",
 		"vitest": "^4.0.15"
 	},
 	"scripts": {
