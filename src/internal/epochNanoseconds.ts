@@ -23,6 +23,14 @@ export function createEpochNanosecondsFromBigInt(epoch: bigint): EpochNanosecond
 	);
 }
 
+export function createEpochNanosecondsFromEpochMilliseconds(epoch: number): EpochNanoseconds {
+	return normalizeEpochNanoseconds(epoch, 0);
+}
+
+export function createEpochNanosecondsFromEpochSeconds(epoch: number): EpochNanoseconds {
+	return normalizeEpochNanoseconds(epoch * 1000, 0);
+}
+
 export function convertEpochNanosecondsToBigInt(epoch: EpochNanoseconds): bigint {
 	return BigInt(epoch[0]) * BigInt(nanosecondsPerMilliseconds) + BigInt(epoch[1]);
 }
@@ -37,4 +45,11 @@ export function epochMilliseconds(epoch: EpochNanoseconds): number {
 
 export function epochSeconds(epoch: EpochNanoseconds): number {
 	return divModFloor(epoch[0], 1000)[0];
+}
+
+export function addNanosecondsToEpochSeconds(
+	epoch: EpochNanoseconds,
+	delta: number,
+): EpochNanoseconds {
+	return normalizeEpochNanoseconds(epoch[0], epoch[1] + delta);
 }

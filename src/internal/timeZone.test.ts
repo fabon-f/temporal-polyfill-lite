@@ -1,13 +1,21 @@
 import tzdata from "tzdata" with { type: "json" };
 import { expect, test } from "vitest";
-import { getOffsetNanosecondsFor, normalizeIanaTimeZoneId } from "./timeZone.ts";
-import { normalizeEpochNanoseconds } from "./epochNanoseconds.ts";
+import {
+	getOffsetNanosecondsFor,
+	getTimeZoneTransition,
+	normalizeIanaTimeZoneId,
+} from "./timeZone.ts";
+import {
+	addNanosecondsToEpochSeconds,
+	createEpochNanosecondsFromEpochMilliseconds,
+} from "./epochNanoseconds.ts";
 import { millisecondsPerDay, nanosecondsPerMilliseconds } from "./constants.ts";
+import { describe } from "node:test";
 
 const ianaTimeZoneIds = Object.keys(tzdata.zones);
 
 function dateToEpochNanoseconds(date: Date) {
-	return normalizeEpochNanoseconds(date.getTime(), 0);
+	return createEpochNanosecondsFromEpochMilliseconds(date.getTime());
 }
 
 test.for(ianaTimeZoneIds)("time zone case normalization: %s", (timeZone) => {
@@ -52,4 +60,88 @@ test("getOffsetNanosecondsFor and far-past", () => {
 			),
 		),
 	).toBeLessThan(millisecondsPerDay * nanosecondsPerMilliseconds);
+});
+
+describe("getTimeZoneTransition", () => {
+	test("forward searching", () => {
+		const transition1 = dateToEpochNanoseconds(new Date("2025-03-30T01:00:00Z"));
+		const transition2 = dateToEpochNanoseconds(new Date("2025-10-26T01:00:00Z"));
+		expect(
+			getTimeZoneTransition("Europe/London", addNanosecondsToEpochSeconds(transition1, -1), 1),
+		).toEqual(transition1);
+		expect(getTimeZoneTransition("Europe/London", transition1, 1)).toEqual(transition2);
+		expect(
+			getTimeZoneTransition("Europe/London", addNanosecondsToEpochSeconds(transition1, 1), 1),
+		).toEqual(transition2);
+	});
+
+	test("forward searching in far future", () => {
+		const timeZoneWithRegularDst = "America/New_York";
+		const timeZoneWithoutRegularDst = "Asia/Tokyo";
+		expect(
+			getTimeZoneTransition(
+				timeZoneWithRegularDst,
+				dateToEpochNanoseconds(new Date("+200000-01-01T00:00:00Z")),
+				1,
+			),
+		).not.toBeNull();
+		expect(
+			getTimeZoneTransition(
+				timeZoneWithoutRegularDst,
+				dateToEpochNanoseconds(new Date("+200000-01-01T00:00:00Z")),
+				1,
+			),
+		).toBeNull();
+	});
+
+	test("forward searching in far past", () => {
+		// Japan has historical offset transition
+		expect(
+			getTimeZoneTransition(
+				"Asia/Tokyo",
+				dateToEpochNanoseconds(new Date("-200000-01-01T00:00:00Z")),
+				1,
+			),
+		).toEqual(dateToEpochNanoseconds(new Date("1888-01-01T00:00:00+09:00")));
+	});
+
+	test("backward searching", () => {
+		const transition1 = dateToEpochNanoseconds(new Date("2025-03-30T01:00:00Z"));
+		const transition2 = dateToEpochNanoseconds(new Date("2025-10-26T01:00:00Z"));
+		expect(
+			getTimeZoneTransition("Europe/London", addNanosecondsToEpochSeconds(transition2, -1), -1),
+		).toEqual(transition1);
+		expect(getTimeZoneTransition("Europe/London", transition2, -1)).toEqual(transition1);
+		expect(
+			getTimeZoneTransition("Europe/London", addNanosecondsToEpochSeconds(transition2, 1), -1),
+		).toEqual(transition2);
+	});
+
+	test("backward searching in far future", () => {
+		expect(
+			getTimeZoneTransition(
+				"America/New_York",
+				dateToEpochNanoseconds(new Date("+200000-01-01T00:00:00Z")),
+				-1,
+			),
+		).not.toBeNull();
+		const lastTransitionInJapan = dateToEpochNanoseconds(new Date("1951-09-09T00:00:00+09:00"));
+		expect(
+			getTimeZoneTransition(
+				"Asia/Tokyo",
+				dateToEpochNanoseconds(new Date("+200000-01-01T00:00:00Z")),
+				-1,
+			),
+		).toEqual(lastTransitionInJapan);
+	});
+
+	test("backward searching in far past", () => {
+		expect(
+			getTimeZoneTransition(
+				"America/New_York",
+				dateToEpochNanoseconds(new Date("-200000-01-01T00:00:00Z")),
+				-1,
+			),
+		).toBeNull();
+	});
 });
