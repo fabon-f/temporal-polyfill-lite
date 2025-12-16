@@ -3,11 +3,11 @@ import {
 	compareEpochNanoseconds,
 	convertEpochNanosecondsToBigInt,
 	createEpochNanosecondsFromBigInt,
-	msInNs,
 	normalizeEpochNanoseconds,
 } from "./epochNanoseconds.ts";
+import { nanosecondsPerMilliseconds } from "./constants.ts";
 
-const msInNsBigInt = BigInt(msInNs);
+const msInNsBigInt = BigInt(nanosecondsPerMilliseconds);
 
 test("createEpochNanosecondsFromBigInt", () => {
 	expect(createEpochNanosecondsFromBigInt(1500000n)).toEqual([1, 500000]);
