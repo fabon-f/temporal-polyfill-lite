@@ -11,10 +11,10 @@
 	"devDependencies": {
 		"@rollup/plugin-terser": "^0.4.4",
 		"@tsconfig/strictest": "^2.0.8",
-		"@types/node": "^25.0.1",
-		"@typescript/native-preview": "7.0.0-dev.20251211.1",
-		"oxfmt": "0.17.0",
-		"oxlint": "^1.32.0",
+		"@types/node": "^25.0.2",
+		"@typescript/native-preview": "7.0.0-dev.20251215.1",
+		"oxfmt": "0.18.0",
+		"oxlint": "^1.33.0",
 		"rolldown": "1.0.0-beta.54",
 		"tzdata": "^1.0.46",
 		"vitest": "^4.0.15"
@@ -29,5 +29,5 @@
 			"vite": "beta"
 		}
 	},
-	"packageManager": "pnpm@10.25.0"
+	"packageManager": "pnpm@10.26.0"
 }
