@@ -4,7 +4,7 @@ import {
 	getOffsetNanosecondsFor,
 	getTimeZoneTransition,
 	normalizeIanaTimeZoneId,
-} from "./timeZone.ts";
+} from "./timeZones.ts";
 import {
 	addNanosecondsToEpochSeconds,
 	createEpochNanosecondsFromEpochMilliseconds,
