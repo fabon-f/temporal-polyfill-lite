@@ -26,6 +26,7 @@ function getOffsetNanosecondsForEpochSecond(timeZone: string, epochSecond: numbe
 	return (utcEpochMilliseconds(...units) - clampedEpoch) * nanosecondsPerMilliseconds;
 }
 
+/** `GetOffsetNanosecondsFor` */
 export function getOffsetNanosecondsFor(timeZone: string, epoch: EpochNanoseconds) {
 	return getOffsetNanosecondsForEpochSecond(timeZone, epochSeconds(epoch));
 }
