@@ -1,6 +1,7 @@
 {
 	"extends": "@tsconfig/strictest/tsconfig.json",
 	"compilerOptions": {
+		"types": ["node"],
 		"target": "esnext",
 		"module": "nodenext",
 		"rootDir": ".",
