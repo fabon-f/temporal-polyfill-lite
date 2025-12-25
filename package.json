@@ -9,6 +9,7 @@
 	"author": "fabon <syobon.hinata.public@gmail.com> (https://www.fabon.info/)",
 	"license": "MIT",
 	"devDependencies": {
+		"@js-temporal/temporal-test262-runner": "github:js-temporal/temporal-test262-runner#main",
 		"@rollup/plugin-terser": "^0.4.4",
 		"@tsconfig/strictest": "^2.0.8",
 		"@types/node": "^25.0.3",
@@ -21,6 +22,7 @@
 	},
 	"scripts": {
 		"test": "vitest",
+		"test262": "node script/test262.ts",
 		"typecheck": "tsgo",
 		"lint": "oxfmt --check . && oxlint ."
 	},
