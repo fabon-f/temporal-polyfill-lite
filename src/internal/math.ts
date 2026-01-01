@@ -20,3 +20,7 @@ export function clamp(num: number, min: number, max: number) {
 	}
 	return num;
 }
+
+export function isWithin(num: number, min: number, max: number) {
+	return num >= min && num <= max;
+}

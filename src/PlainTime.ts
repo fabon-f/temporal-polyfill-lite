@@ -1,26 +1,148 @@
+import { toIntegerIfIntegral } from "./internal/ecmascript.ts";
+import { isWithin } from "./internal/math.ts";
 import { defineStringTag } from "./internal/property.ts";
 
+export interface TimeRecord {
+	$hour: number;
+	$minute: number;
+	$second: number;
+	$millisecond: number;
+	$microsecond: number;
+	$nanosecond: number;
+	$days: number;
+}
+
+type TimeRecordTupleWithoutDays = [
+	hour: number,
+	minute: number,
+	second: number,
+	millisecond: number,
+	microsecond: number,
+	nanosecond: number,
+];
+
+const internalSlotBrand = /*#__PURE__*/ Symbol();
+
+type PlainTimeSlot = TimeRecord & {
+	[internalSlotBrand]: unknown;
+};
+
+const slots = new WeakMap<any, PlainTimeSlot>();
+
+/** `CreateTimeRecord` */
+function createTimeRecord(
+	hour: number,
+	minute: number,
+	second: number,
+	millisecond: number,
+	microsecond: number,
+	nanosecond: number,
+	deltaDays = 0,
+): TimeRecord {
+	return {
+		$hour: hour,
+		$minute: minute,
+		$second: second,
+		$millisecond: millisecond,
+		$microsecond: microsecond,
+		$nanosecond: nanosecond,
+		$days: deltaDays,
+	};
+}
+
+/** `MidnightTimeRecord` */
+function midnightTimeRecord(): TimeRecord {
+	return createTimeRecord(0, 0, 0, 0, 0, 0);
+}
+
+/** `NoonTimeRecord` */
+function noonTimeRecord(): TimeRecord {
+	return createTimeRecord(12, 0, 0, 0, 0, 0);
+}
+
+/** `IsValidTime` */
+function isValidTime(
+	hour: number,
+	minute: number,
+	second: number,
+	millisecond: number,
+	microsecond: number,
+	nanosecond: number,
+): boolean {
+	return (
+		isWithin(hour, 0, 23) &&
+		isWithin(minute, 0, 59) &&
+		isWithin(second, 0, 59) &&
+		isWithin(millisecond, 0, 999) &&
+		isWithin(microsecond, 0, 999) &&
+		isWithin(nanosecond, 0, 999)
+	);
+}
+
+/** `CreateTemporalTime` */
+function createTemporalTime(time: TimeRecord, instance?: PlainTime): PlainTime {
+	instance ||= Object.create(PlainTime.prototype) as PlainTime;
+	slots.set(instance, createPlainTimeSlot(time));
+	return instance;
+}
+
+function createPlainTimeSlot(time: TimeRecord): PlainTimeSlot {
+	return time as PlainTimeSlot;
+}
+
+function getInternalSlotOrThrowForPlainTime(plainTime: unknown): PlainTimeSlot {
+	const slot = slots.get(plainTime);
+	if (!slot) {
+		throw new TypeError();
+	}
+	return slot;
+}
+
 export class PlainTime {
-	constructor() {}
+	constructor(
+		hour: unknown = 0,
+		minute: unknown = 0,
+		second: unknown = 0,
+		millisecond: unknown = 0,
+		microsecond: unknown = 0,
+		nanosecond: unknown = 0,
+	) {
+		if (!new.target) {
+			throw new TypeError();
+		}
+		const units = [hour, minute, second, millisecond, microsecond, nanosecond].map(
+			toIntegerIfIntegral,
+		) as TimeRecordTupleWithoutDays;
+		if (!isValidTime(...units)) {
+			throw new RangeError();
+		}
+		createTemporalTime(createTimeRecord(...units), this);
+	}
 	static from() {}
 	static compare() {}
 	get hour() {
-		return undefined;
+		const slot = getInternalSlotOrThrowForPlainTime(this);
+		return slot.$hour;
 	}
 	get minute() {
-		return undefined;
+		const slot = getInternalSlotOrThrowForPlainTime(this);
+		return slot.$minute;
 	}
 	get second() {
-		return undefined;
+		const slot = getInternalSlotOrThrowForPlainTime(this);
+		return slot.$second;
 	}
 	get millisecond() {
-		return undefined;
+		const slot = getInternalSlotOrThrowForPlainTime(this);
+		return slot.$millisecond;
 	}
 	get microsecond() {
-		return undefined;
+		const slot = getInternalSlotOrThrowForPlainTime(this);
+		return slot.$microsecond;
 	}
 	get nanosecond() {
-		return undefined;
+		const slot = getInternalSlotOrThrowForPlainTime(this);
+		return slot.$nanosecond;
 	}
 	add() {}
 	subtract() {}
