@@ -80,8 +80,10 @@ function isValidTime(
 }
 
 /** `CreateTemporalTime` */
-function createTemporalTime(time: TimeRecord, instance?: PlainTime): PlainTime {
-	instance ||= Object.create(PlainTime.prototype) as PlainTime;
+function createTemporalTime(
+	time: TimeRecord,
+	instance = Object.create(PlainTime.prototype) as PlainTime,
+): PlainTime {
 	slots.set(instance, createPlainTimeSlot(time));
 	return instance;
 }
