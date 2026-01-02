@@ -1,4 +1,5 @@
-import { daysPer400Years, millisecondsPerDay } from "./constants.ts";
+import { isoDateToEpochDays } from "./abstractOperations.ts";
+import { millisecondsPerDay } from "./constants.ts";
 
 export function utcEpochMilliseconds(
 	year: number,
@@ -9,10 +10,8 @@ export function utcEpochMilliseconds(
 	second = 0,
 	millisecond = 0,
 ): number {
-	// gregorian calendar has 400 years cycle
-	// avoid `Date.UTC` quirks on 1 or 2 digit years
 	return (
-		Date.UTC((year % 400) - 400, month - 1, day, hour, minute, second, millisecond) +
-		(Math.trunc(year / 400) + 1) * daysPer400Years * millisecondsPerDay
+		isoDateToEpochDays(year, month - 1, day) * millisecondsPerDay +
+		Date.UTC(1970, 0, 1, hour, minute, second, millisecond)
 	);
 }
