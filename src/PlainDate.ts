@@ -4,9 +4,11 @@ import {
 	isoDaysInMonth,
 	type SupportedCalendars,
 } from "./internal/calendars.ts";
-import { toIntegerIfIntegral } from "./internal/ecmascript.ts";
+import { toIntegerWithTruncation } from "./internal/ecmascript.ts";
 import { isWithin } from "./internal/math.ts";
 import { defineStringTag } from "./internal/property.ts";
+import { isoDateTimeWithinLimits } from "./PlainDateTime.ts";
+import { noonTimeRecord } from "./PlainTime.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 
@@ -39,6 +41,9 @@ function createTemporalDate(
 	calendar: string,
 	instance = Object.create(PlainDate.prototype) as PlainDate,
 ): PlainDate {
+	if (!isoDateWithinLimits(date)) {
+		throw new RangeError();
+	}
 	const slot = createPlainDateSlot(date, calendar);
 	slots.set(instance, slot);
 	return instance;
@@ -47,6 +52,11 @@ function createTemporalDate(
 /** `IsValidISODate` */
 function isValidIsoDate(year: number, month: number, day: number): boolean {
 	return isWithin(month, 1, 12) && isWithin(day, 1, isoDaysInMonth(year, month));
+}
+
+/** `ISODateWithinLimits` */
+function isoDateWithinLimits(isoDate: IsoDateRecord): boolean {
+	return isoDateTimeWithinLimits({ $isoDate: isoDate, $time: noonTimeRecord() });
 }
 
 function getInternalSlotOrThrowForPlainDate(plainDate: unknown): PlainDateSlot {
@@ -69,9 +79,9 @@ export class PlainDate {
 		if (!new.target) {
 			throw new TypeError();
 		}
-		const y = toIntegerIfIntegral(isoYear);
-		const m = toIntegerIfIntegral(isoMonth);
-		const d = toIntegerIfIntegral(isoDay);
+		const y = toIntegerWithTruncation(isoYear);
+		const m = toIntegerWithTruncation(isoMonth);
+		const d = toIntegerWithTruncation(isoDay);
 		if (typeof calendar !== "string") {
 			throw new TypeError();
 		}

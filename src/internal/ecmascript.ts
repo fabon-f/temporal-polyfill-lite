@@ -27,3 +27,12 @@ export function toIntegerIfIntegral(arg: unknown): number {
 	}
 	return num + 0;
 }
+
+/** `ToIntegerWithTruncation` */
+export function toIntegerWithTruncation(arg: unknown): number {
+	const num = toNumber(arg);
+	if (isNaN(num) || !isFinite(num)) {
+		throw new RangeError();
+	}
+	return Math.trunc(num + 0);
+}

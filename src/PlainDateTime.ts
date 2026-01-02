@@ -1,4 +1,25 @@
+import { isoDateToEpochDays } from "./internal/abstractOperations.ts";
 import { defineStringTag } from "./internal/property.ts";
+import type { IsoDateRecord } from "./PlainDate.ts";
+import { compareTimeRecord, midnightTimeRecord, type TimeRecord } from "./PlainTime.ts";
+
+export interface IsoDateTimeRecord {
+	$isoDate: IsoDateRecord;
+	$time: TimeRecord;
+}
+
+/** `ISODateTimeWithinLimits` */
+export function isoDateTimeWithinLimits(isoDateTime: IsoDateTimeRecord): boolean {
+	const epochDays = isoDateToEpochDays(
+		isoDateTime.$isoDate.$year,
+		isoDateTime.$isoDate.$month - 1,
+		isoDateTime.$isoDate.$day,
+	);
+	return (
+		Math.abs(epochDays) <= 1e8 ||
+		(epochDays === -100000001 && !!compareTimeRecord(isoDateTime.$time, midnightTimeRecord()))
+	);
+}
 
 export class PlainDateTime {
 	constructor() {}

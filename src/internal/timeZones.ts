@@ -157,3 +157,10 @@ export function normalizeIanaTimeZoneId(id: string) {
 		});
 	});
 }
+
+/** `GetAvailableNamedTimeZoneIdentifier` + throwing `RangeError` */
+export function getAvailableNamedTimeZoneIdentifier(timeZone: string) {
+	timeZone = normalizeIanaTimeZoneId(timeZone);
+	getFormatterForTimeZone(timeZone);
+	return timeZone;
+}

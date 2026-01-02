@@ -1,5 +1,5 @@
 import { toIntegerIfIntegral } from "./internal/ecmascript.ts";
-import { isWithin } from "./internal/math.ts";
+import { compare, isWithin, type NumberSign } from "./internal/math.ts";
 import { defineStringTag } from "./internal/property.ts";
 
 export interface TimeRecord {
@@ -51,12 +51,12 @@ function createTimeRecord(
 }
 
 /** `MidnightTimeRecord` */
-function midnightTimeRecord(): TimeRecord {
+export function midnightTimeRecord(): TimeRecord {
 	return createTimeRecord(0, 0, 0, 0, 0, 0);
 }
 
 /** `NoonTimeRecord` */
-function noonTimeRecord(): TimeRecord {
+export function noonTimeRecord(): TimeRecord {
 	return createTimeRecord(12, 0, 0, 0, 0, 0);
 }
 
@@ -86,6 +86,18 @@ function createTemporalTime(
 ): PlainTime {
 	slots.set(instance, createPlainTimeSlot(time));
 	return instance;
+}
+
+/** `CompareTimeRecord` */
+export function compareTimeRecord(time1: TimeRecord, time2: TimeRecord): NumberSign {
+	return (
+		compare(time1.$hour, time2.$hour) ||
+		compare(time1.$minute, time2.$minute) ||
+		compare(time1.$second, time2.$second) ||
+		compare(time1.$millisecond, time2.$millisecond) ||
+		compare(time1.$microsecond, time2.$microsecond) ||
+		compare(time1.$nanosecond, time2.$nanosecond)
+	);
 }
 
 function createPlainTimeSlot(time: TimeRecord): PlainTimeSlot {
