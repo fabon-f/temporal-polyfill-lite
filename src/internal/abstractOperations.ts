@@ -15,3 +15,12 @@ export function isoDateToEpochDays(year: number, month: number, day: number): nu
 		day
 	);
 }
+
+export function mathematicalDaysInYear(year: number): number {
+	return 365 + mathematicalInLeapYear(year);
+}
+
+export function mathematicalInLeapYear(year: number): number {
+	// https://codegolf.stackexchange.com/questions/50798/is-it-a-leap-year
+	return +!(year % (year % 25 ? 4 : 16));
+}
