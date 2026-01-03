@@ -1,5 +1,6 @@
 import { OriginalDateTimeFormat } from "../DateTimeFormat.ts";
 import { millisecondsPerDay, nanosecondsPerMilliseconds, secondsPerDay } from "./constants.ts";
+import { isTimeZoneIdentifier, parseDateTimeUtcOffset } from "./dateTimeParser.ts";
 import { toIntegerIfIntegral } from "./ecmascript.ts";
 import {
 	addNanosecondsToEpochSeconds,
@@ -163,4 +164,26 @@ export function getAvailableNamedTimeZoneIdentifier(timeZone: string) {
 /** `GetOffsetNanosecondsFor` */
 export function getOffsetNanosecondsFor(timeZone: string, epoch: EpochNanoseconds) {
 	return getOffsetNanosecondsForEpochSecond(timeZone, epochSeconds(epoch));
+}
+
+export type TimeZoneIdentifierParseRecord =
+	| {
+			$name: string;
+			$offsetMinutes?: undefined;
+	  }
+	| {
+			$name?: undefined;
+			$offsetMinutes: number;
+	  };
+
+/** `ParseTimeZoneIdentifier` */
+export function parseTimeZoneIdentifier(identifier: string): TimeZoneIdentifierParseRecord {
+	if (!isTimeZoneIdentifier(identifier)) {
+		throw new RangeError();
+	}
+	return /^[+-]/.test(identifier)
+		? {
+				$offsetMinutes: parseDateTimeUtcOffset(identifier) / 6e10,
+			}
+		: { $name: identifier };
 }

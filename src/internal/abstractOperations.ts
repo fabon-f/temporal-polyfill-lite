@@ -1,5 +1,16 @@
 import { daysPer400Years, millisecondsPerDay } from "./constants.ts";
+import {
+	isTimeZoneIdentifier,
+	parseIsoDateTime,
+	temporalDateTimeStringRegExp,
+	temporalInstantStringRegExp,
+	temporalMonthDayStringRegExp,
+	temporalTimeStringRegExp,
+	temporalYearMonthStringRegExp,
+	temporalZonedDateTimeStringRegExp,
+} from "./dateTimeParser.ts";
 import { divModFloor } from "./math.ts";
+import { parseTimeZoneIdentifier, type TimeZoneIdentifierParseRecord } from "./timeZones.ts";
 
 /** `ISODateToEpochDays` (`month` is 0-indexed) */
 export function isoDateToEpochDays(year: number, month: number, day: number): number {
@@ -23,4 +34,25 @@ export function mathematicalDaysInYear(year: number): number {
 export function mathematicalInLeapYear(year: number): number {
 	// https://codegolf.stackexchange.com/questions/50798/is-it-a-leap-year
 	return +!(year % (year % 25 ? 4 : 16));
+}
+
+/** `ParseTemporalTimeZoneString` */
+export function parseTemporalTimeZoneString(timeZoneString: string): TimeZoneIdentifierParseRecord {
+	if (isTimeZoneIdentifier(timeZoneString)) {
+		return parseTimeZoneIdentifier(timeZoneString);
+	}
+	const timeZone = parseIsoDateTime(timeZoneString, [
+		temporalZonedDateTimeStringRegExp,
+		temporalDateTimeStringRegExp,
+		temporalInstantStringRegExp,
+		temporalTimeStringRegExp,
+		temporalMonthDayStringRegExp,
+		temporalYearMonthStringRegExp,
+	]).$timeZone;
+	const timeZoneId =
+		timeZone.$timeZoneAnnotation || (timeZone.$z && "UTC") || timeZone.$offsetString;
+	if (!timeZoneId) {
+		throw new RangeError();
+	}
+	return parseTimeZoneIdentifier(timeZoneId);
 }

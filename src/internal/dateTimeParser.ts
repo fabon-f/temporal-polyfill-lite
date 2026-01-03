@@ -236,10 +236,11 @@ export function parseDateTimeUtcOffset(offset: string): number {
 		throw new RangeError();
 	}
 	return (
+		0 +
 		toNumber(`${result[1]!}1`) *
-		(toNumber(result[2]!) * 3.6e12 +
-			toNumber(result[4] || "") * 6e10 +
-			toNumber(result[5] || "") * 1e9 +
-			toNumber((result[6] || "").padEnd(9, "0")))
+			(toNumber(result[2]!) * 3.6e12 +
+				toNumber(result[4] || "") * 6e10 +
+				toNumber(result[5] || "") * 1e9 +
+				toNumber((result[6] || "").padEnd(9, "0")))
 	);
 }
