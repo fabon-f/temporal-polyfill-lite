@@ -30,7 +30,7 @@ type PlainTimeSlot = TimeRecord & {
 const slots = new WeakMap<any, PlainTimeSlot>();
 
 /** `CreateTimeRecord` */
-function createTimeRecord(
+export function createTimeRecord(
 	hour: number,
 	minute: number,
 	second: number,

@@ -50,7 +50,7 @@ function createTemporalDate(
 }
 
 /** `IsValidISODate` */
-function isValidIsoDate(year: number, month: number, day: number): boolean {
+export function isValidIsoDate(year: number, month: number, day: number): boolean {
 	return isWithin(month, 1, 12) && isWithin(day, 1, isoDaysInMonth(year, month));
 }
 
