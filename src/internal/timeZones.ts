@@ -26,11 +26,6 @@ function getOffsetNanosecondsForEpochSecond(timeZone: string, epochSecond: numbe
 	return (utcEpochMilliseconds(...units) - clampedEpoch) * nanosecondsPerMilliseconds;
 }
 
-/** `GetOffsetNanosecondsFor` */
-export function getOffsetNanosecondsFor(timeZone: string, epoch: EpochNanoseconds) {
-	return getOffsetNanosecondsForEpochSecond(timeZone, epochSeconds(epoch));
-}
-
 function getFormatterForTimeZone(timeZone: string): Intl.DateTimeFormat {
 	return (intlCache[timeZone] ||= new OriginalDateTimeFormat("en-u-hc-h23", {
 		timeZone,
@@ -163,4 +158,9 @@ export function getAvailableNamedTimeZoneIdentifier(timeZone: string) {
 	timeZone = normalizeIanaTimeZoneId(timeZone);
 	getFormatterForTimeZone(timeZone);
 	return timeZone;
+}
+
+/** `GetOffsetNanosecondsFor` */
+export function getOffsetNanosecondsFor(timeZone: string, epoch: EpochNanoseconds) {
+	return getOffsetNanosecondsForEpochSecond(timeZone, epochSeconds(epoch));
 }
