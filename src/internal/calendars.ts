@@ -14,7 +14,7 @@ import {
 	mathematicalInLeapYear,
 } from "./abstractOperations.ts";
 import { parseTemporalCalendarString } from "./dateTimeParser.ts";
-import { modFloor } from "./math.ts";
+import { divFloor, modFloor } from "./math.ts";
 import { asciiLowerCase, ToZeroPaddedDecimalString } from "./string.ts";
 import { unreachable } from "./utils.ts";
 
@@ -119,9 +119,9 @@ function isoWeeksInYear(year: number) {
 }
 
 /** `ISOWeekOfYear` */
-function isoWeekOfYear(isoDate: IsoDateRecord): YearWeekRecord {
+export function isoWeekOfYear(isoDate: IsoDateRecord): YearWeekRecord {
 	const year = isoDate.$year;
-	const weekNumber = modFloor(isoDayOfYear(isoDate) + 10 - isoDayOfWeek(isoDate), 7);
+	const weekNumber = divFloor(isoDayOfYear(isoDate) + 10 - isoDayOfWeek(isoDate), 7);
 	if (weekNumber < 1) {
 		// last week of the previous year
 		return {
@@ -142,12 +142,12 @@ function isoWeekOfYear(isoDate: IsoDateRecord): YearWeekRecord {
 }
 
 /** `ISODayOfYear` */
-function isoDayOfYear(isoDate: IsoDateRecord): number {
+export function isoDayOfYear(isoDate: IsoDateRecord): number {
 	return isoDateRecordToEpochDays(isoDate) - isoDateToEpochDays(isoDate.$year, 0, 0);
 }
 
 /** `ISODayOfWeek` */
-function isoDayOfWeek(isoDate: IsoDateRecord): number {
+export function isoDayOfWeek(isoDate: IsoDateRecord): number {
 	return modFloor(isoDateRecordToEpochDays(isoDate) + 3, 7) + 1;
 }
 
