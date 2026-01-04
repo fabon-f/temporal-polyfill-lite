@@ -1,5 +1,5 @@
 import { nanosecondsPerMilliseconds } from "./constants.ts";
-import { compare, divModFloor, type NumberSign } from "./math.ts";
+import { compare, divFloor, modFloor, type NumberSign } from "./math.ts";
 
 const epochNanosecondsBrand = /*#__PURE__*/ Symbol();
 
@@ -12,8 +12,10 @@ export function normalizeEpochNanoseconds(
 	milliseconds: number,
 	remainderNanoseconds: number,
 ): EpochNanoseconds {
-	const [quotient, remainder] = divModFloor(remainderNanoseconds, nanosecondsPerMilliseconds);
-	return [milliseconds + quotient, remainder] as EpochNanoseconds;
+	return [
+		milliseconds + divFloor(remainderNanoseconds, nanosecondsPerMilliseconds),
+		modFloor(remainderNanoseconds, nanosecondsPerMilliseconds),
+	] as EpochNanoseconds;
 }
 
 export function createEpochNanosecondsFromBigInt(epoch: bigint): EpochNanoseconds {
@@ -44,7 +46,7 @@ export function epochMilliseconds(epoch: EpochNanoseconds): number {
 }
 
 export function epochSeconds(epoch: EpochNanoseconds): number {
-	return divModFloor(epoch[0], 1000)[0];
+	return divFloor(epoch[0], 1000);
 }
 
 export function addNanosecondsToEpochSeconds(

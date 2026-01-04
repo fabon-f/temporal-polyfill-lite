@@ -1,10 +1,12 @@
 // without `-0` quirks
 export type NumberSign = -1 | 0 | 1;
 
-export function divModFloor(num: number, divisor: number): [quotient: number, remainder: number] {
-	const quotient = Math.floor(num / divisor) + 0;
-	const remainder = (((num % divisor) + divisor) % divisor) + 0;
-	return [quotient, remainder];
+export function divFloor(num: number, divisor: number): number {
+	return Math.floor(num / divisor) + 0;
+}
+
+export function modFloor(num: number, divisor: number): number {
+	return (((num % divisor) + divisor) % divisor) + 0;
 }
 
 export function compare(a: number, b: number): NumberSign {

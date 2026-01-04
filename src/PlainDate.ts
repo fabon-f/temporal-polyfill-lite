@@ -1,4 +1,8 @@
-import { getTemporalOverflowOption } from "./internal/abstractOperations.ts";
+import {
+	epochDaysToIsoDate,
+	getTemporalOverflowOption,
+	isoDateToEpochDays,
+} from "./internal/abstractOperations.ts";
 import {
 	calendarIsoToDate,
 	canonicalizeCalendar,
@@ -89,8 +93,13 @@ export function isValidIsoDate(year: number, month: number, day: number): boolea
 	return isWithin(month, 1, 12) && isWithin(day, 1, isoDaysInMonth(year, month));
 }
 
+/** `BalanceISODate` */
+export function balanceIsoDate(year: number, month: number, day: number): IsoDateRecord {
+	return epochDaysToIsoDate(isoDateToEpochDays(year, month - 1, day));
+}
+
 /** `ISODateWithinLimits` */
-function isoDateWithinLimits(isoDate: IsoDateRecord): boolean {
+export function isoDateWithinLimits(isoDate: IsoDateRecord): boolean {
 	return isoDateTimeWithinLimits({ $isoDate: isoDate, $time: noonTimeRecord() });
 }
 

@@ -13,7 +13,7 @@ import {
 	mathematicalInLeapYear,
 } from "./abstractOperations.ts";
 import { parseTemporalCalendarString } from "./dateTimeParser.ts";
-import { divModFloor } from "./math.ts";
+import { modFloor } from "./math.ts";
 import { asciiLowerCase, ToZeroPaddedDecimalString } from "./string.ts";
 import { unreachable } from "./utils.ts";
 
@@ -115,7 +115,7 @@ function isoWeeksInYear(year: number) {
 /** `ISOWeekOfYear` */
 function isoWeekOfYear(isoDate: IsoDateRecord): YearWeekRecord {
 	const year = isoDate.$year;
-	const weekNumber = divModFloor(isoDayOfYear(isoDate) + 10 - isoDayOfWeek(isoDate), 7)[1];
+	const weekNumber = modFloor(isoDayOfYear(isoDate) + 10 - isoDayOfWeek(isoDate), 7);
 	if (weekNumber < 1) {
 		// last week of the previous year
 		return {
@@ -145,13 +145,11 @@ function isoDayOfYear(isoDate: IsoDateRecord): number {
 
 /** `ISODayOfWeek` */
 function isoDayOfWeek(isoDate: IsoDateRecord): number {
-	return (
-		divModFloor(isoDateToEpochDays(isoDate.$year, isoDate.$month - 1, isoDate.$day) + 3, 7)[1] + 1
-	);
+	return modFloor(isoDateToEpochDays(isoDate.$year, isoDate.$month - 1, isoDate.$day) + 3, 7) + 1;
 }
 
 /** `NonISOCalendarISOToDate` */
-function nonIsoCalendarISOToDate(
+function nonIsoCalendarIsoToDate(
 	calendar: SupportedNonIsoCalendars,
 	isoDate: IsoDateRecord,
 ): CalendarDateRecord {
@@ -194,6 +192,6 @@ export function calendarIsoToDate(
 	if (calendar === "iso8601") {
 		return isoCalendarIsoToDate(isoDate);
 	} else {
-		return nonIsoCalendarISOToDate(calendar, isoDate);
+		return nonIsoCalendarIsoToDate(calendar, isoDate);
 	}
 }

@@ -1,8 +1,13 @@
 import { isoDateToEpochDays } from "./internal/abstractOperations.ts";
 import type { SupportedCalendars } from "./internal/calendars.ts";
 import { defineStringTag } from "./internal/property.ts";
-import type { IsoDateRecord } from "./PlainDate.ts";
-import { compareTimeRecord, midnightTimeRecord, type TimeRecord } from "./PlainTime.ts";
+import { balanceIsoDate, type IsoDateRecord } from "./PlainDate.ts";
+import {
+	balanceTime,
+	compareTimeRecord,
+	midnightTimeRecord,
+	type TimeRecord,
+} from "./PlainTime.ts";
 
 export interface IsoDateTimeRecord {
 	$isoDate: IsoDateRecord;
@@ -28,6 +33,28 @@ export function isoDateTimeWithinLimits(isoDateTime: IsoDateTimeRecord): boolean
 		Math.abs(epochDays) <= 1e8 ||
 		(epochDays === -100000001 && !!compareTimeRecord(isoDateTime.$time, midnightTimeRecord()))
 	);
+}
+
+/** `BalanceISODateTime` */
+export function balanceIsoDateTime(
+	year: number,
+	month: number,
+	day: number,
+	hour: number,
+	minute: number,
+	second: number,
+	milliseond: number,
+	microsecond: number,
+	nanosecond: number,
+): IsoDateTimeRecord {
+	const balancedTime = balanceTime(hour, minute, second, milliseond, microsecond, nanosecond);
+	return {
+		$isoDate: balanceIsoDate(year, month, day + balancedTime.$days),
+		$time: {
+			...balancedTime,
+			$days: 0,
+		},
+	};
 }
 
 export function getInternalSlotForPlainDateTime(

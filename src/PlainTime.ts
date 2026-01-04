@@ -1,5 +1,5 @@
 import { toIntegerIfIntegral } from "./internal/ecmascript.ts";
-import { compare, isWithin, type NumberSign } from "./internal/math.ts";
+import { compare, divFloor, isWithin, modFloor, type NumberSign } from "./internal/math.ts";
 import { defineStringTag } from "./internal/property.ts";
 
 export interface TimeRecord {
@@ -77,6 +77,31 @@ function isValidTime(
 		isWithin(microsecond, 0, 999) &&
 		isWithin(nanosecond, 0, 999)
 	);
+}
+
+/** `BalanceTime` */
+export function balanceTime(
+	hour: number,
+	minute: number,
+	second: number,
+	millisecond: number,
+	microsecond: number,
+	nanosecond: number,
+): TimeRecord {
+	microsecond += divFloor(nanosecond, 1000);
+	millisecond += divFloor(microsecond, 1000);
+	second += divFloor(millisecond, 1000);
+	minute += divFloor(second, 60);
+	hour += divFloor(minute, 60);
+	return {
+		$hour: modFloor(hour, 24),
+		$minute: modFloor(minute, 60),
+		$second: modFloor(second, 60),
+		$millisecond: modFloor(millisecond, 1000),
+		$microsecond: modFloor(microsecond, 1000),
+		$nanosecond: modFloor(nanosecond, 1000),
+		$days: divFloor(hour, 24),
+	};
 }
 
 /** `CreateTemporalTime` */

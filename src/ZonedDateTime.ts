@@ -1,9 +1,11 @@
 import type { SupportedCalendars } from "./internal/calendars.ts";
+import type { EpochNanoseconds } from "./internal/epochNanoseconds.ts";
 import { defineStringTag } from "./internal/property.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 
 interface ZonedDateTimeSlot {
+	$epochNanoseconds: EpochNanoseconds;
 	$calendar: SupportedCalendars;
 	[internalSlotBrand]: unknown;
 }

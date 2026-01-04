@@ -1,4 +1,11 @@
-import { toBigInt, toNumber } from "./internal/ecmascript.ts";
+import { getUtcEpochNanoseconds } from "./internal/abstractOperations.ts";
+import {
+	parseDateTimeUtcOffset,
+	parseIsoDateTime,
+	temporalInstantStringRegExp,
+} from "./internal/dateTimeParser.ts";
+import { toBigInt, toNumber, ToPrimitive } from "./internal/ecmascript.ts";
+import { startOfDay } from "./internal/enum.ts";
 import {
 	compareEpochNanoseconds,
 	convertEpochNanosecondsToBigInt,
@@ -7,7 +14,12 @@ import {
 	epochMilliseconds,
 	type EpochNanoseconds,
 } from "./internal/epochNanoseconds.ts";
+import { isObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
+import { isoDateWithinLimits } from "./PlainDate.ts";
+import { balanceIsoDateTime } from "./PlainDateTime.ts";
+import { midnightTimeRecord } from "./PlainTime.ts";
+import { getInternalSlotForZonedDateTime } from "./ZonedDateTime.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 
@@ -43,8 +55,50 @@ export function createTemporalInstant(
 	return instance;
 }
 
+/** `ToTemporalInstant` */
+function toTemporalInstant(item: unknown): Instant {
+	if (isObject(item)) {
+		const slot = getInternalSlotForInstant(item) || getInternalSlotForZonedDateTime(item);
+		if (slot) {
+			return createTemporalInstant(slot.$epochNanoseconds);
+		}
+		item = ToPrimitive(item);
+	}
+	if (typeof item !== "string") {
+		throw new TypeError();
+	}
+	const parsed = parseIsoDateTime(item, [temporalInstantStringRegExp]);
+	const offsetNanoseconds = parsed.$timeZone.$z
+		? 0
+		: parseDateTimeUtcOffset(parsed.$timeZone.$offsetString!);
+	const time = parsed.$time === startOfDay ? midnightTimeRecord() : parsed.$time;
+	const balanced = balanceIsoDateTime(
+		parsed.$year!,
+		parsed.$month,
+		parsed.$day,
+		time.$hour,
+		time.$minute,
+		time.$second,
+		time.$millisecond,
+		time.$microsecond,
+		time.$nanosecond - offsetNanoseconds,
+	);
+	if (!isoDateWithinLimits(balanced.$isoDate)) {
+		throw new RangeError();
+	}
+	const epoch = getUtcEpochNanoseconds(balanced);
+	if (!isValidEpochNanoseconds(epoch)) {
+		throw new RangeError();
+	}
+	return createTemporalInstant(epoch);
+}
+
+function getInternalSlotForInstant(instant: unknown): InstantSlot | undefined {
+	return slots.get(instant);
+}
+
 function getInternalSlotOrThrowForInstant(instant: unknown): InstantSlot {
-	const slot = slots.get(instant);
+	const slot = getInternalSlotForInstant(instant);
 	if (!slot) {
 		throw new TypeError();
 	}
@@ -68,7 +122,9 @@ export class Instant {
 		}
 		createTemporalInstant(epoch, this);
 	}
-	static from() {}
+	static from(item: unknown) {
+		return toTemporalInstant(item);
+	}
 	static fromEpochMilliseconds(epochMilliseconds: unknown) {
 		const epoch = createEpochNanosecondsFromEpochMilliseconds(toNumber(epochMilliseconds));
 		if (!isValidEpochNanoseconds(epoch)) {

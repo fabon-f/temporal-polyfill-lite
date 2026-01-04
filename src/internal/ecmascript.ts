@@ -1,5 +1,29 @@
 import { isObject } from "./object.ts";
 
+/** `ToPrimitive` when `preferredType` is string */
+export function ToPrimitive(input: unknown) {
+	if (!isObject(input)) {
+		return input;
+	}
+	const exoticToPrim = (input as { [Symbol.toPrimitive]: unknown })[Symbol.toPrimitive];
+	if (exoticToPrim !== null && exoticToPrim !== undefined) {
+		// `Date.call`: unbound `Function.prototype.call`
+		// `callFunc.call(exoticToPrim, input, "string")` means `exoticToPrim.call(input, "string")`
+		// throws `TypeError` if `exoticToPrim` isn't a function
+		const result = (Date.call as (a: unknown, ...rest: unknown[]) => unknown).call(
+			exoticToPrim,
+			input,
+			"string",
+		);
+		if (!isObject(result)) {
+			return result;
+		}
+		throw new TypeError();
+	}
+	// `Date.prototype[Symbol.toPrimitive]` do almost same things to `OrdinaryToPrimitive`
+	return Date.prototype[Symbol.toPrimitive].call(input, "string");
+}
+
 /** `ToString` */
 export function toString(value: unknown): string {
 	if (typeof value === "symbol") {

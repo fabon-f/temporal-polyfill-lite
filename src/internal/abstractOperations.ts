@@ -1,3 +1,5 @@
+import type { IsoDateRecord } from "../PlainDate.ts";
+import type { IsoDateTimeRecord } from "../PlainDateTime.ts";
 import { daysPer400Years, millisecondsPerDay } from "./constants.ts";
 import {
 	isTimeZoneIdentifier,
@@ -20,19 +22,24 @@ import {
 	type Disambiguation,
 	type Overflow,
 } from "./enum.ts";
-import { divModFloor } from "./math.ts";
+import {
+	addNanosecondsToEpochSeconds,
+	createEpochNanosecondsFromEpochMilliseconds,
+	type EpochNanoseconds,
+} from "./epochNanoseconds.ts";
+import { divFloor, modFloor } from "./math.ts";
+import { utcEpochMilliseconds } from "./time.ts";
 import { parseTimeZoneIdentifier, type TimeZoneIdentifierParseRecord } from "./timeZones.ts";
 
 /** `ISODateToEpochDays` (`month` is 0-indexed) */
 export function isoDateToEpochDays(year: number, month: number, day: number): number {
-	const [y, m] = divModFloor(month, 12);
-	year += y;
+	year += divFloor(month, 12);
 
 	// Gregorian calendar has 400 years cycle (146097 days).
 	// In order to avoid `Date.UTC` quirks on 1 or 2 digit years
 	// and handle extreme dates not supported by `Date`.
 	return (
-		Date.UTC((year % 400) - 400, m, 0) / millisecondsPerDay +
+		Date.UTC((year % 400) - 400, modFloor(month, 12), 0) / millisecondsPerDay +
 		(Math.trunc(year / 400) + 1) * daysPer400Years +
 		day
 	);
@@ -86,4 +93,31 @@ export function parseTemporalTimeZoneString(timeZoneString: string): TimeZoneIde
 		throw new RangeError();
 	}
 	return parseTimeZoneIdentifier(timeZoneId);
+}
+
+/** `GetUTCEpochNanoseconds` */
+export function getUtcEpochNanoseconds(isoDateTime: IsoDateTimeRecord): EpochNanoseconds {
+	return addNanosecondsToEpochSeconds(
+		createEpochNanosecondsFromEpochMilliseconds(
+			utcEpochMilliseconds(
+				isoDateTime.$isoDate.$year,
+				isoDateTime.$isoDate.$month,
+				isoDateTime.$isoDate.$day,
+				isoDateTime.$time.$hour,
+				isoDateTime.$time.$minute,
+				isoDateTime.$time.$second,
+				isoDateTime.$time.$millisecond,
+			),
+		),
+		isoDateTime.$time.$microsecond * 1e3 + isoDateTime.$time.$nanosecond,
+	);
+}
+
+export function epochDaysToIsoDate(epochDays: number): IsoDateRecord {
+	const date = new Date(modFloor(epochDays, daysPer400Years) * millisecondsPerDay);
+	return {
+		$year: date.getUTCFullYear() + divFloor(epochDays, daysPer400Years) * 400,
+		$month: date.getUTCMonth() + 1,
+		$day: date.getUTCDate(),
+	};
 }
