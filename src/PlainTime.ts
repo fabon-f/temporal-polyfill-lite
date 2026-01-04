@@ -1,5 +1,12 @@
-import { toIntegerIfIntegral } from "./internal/ecmascript.ts";
+import { getTemporalOverflowOption } from "./internal/abstractOperations.ts";
+import {
+	isAmbiguousTemporalTimeString,
+	parseIsoDateTime,
+	temporalTimeStringRegExp,
+} from "./internal/dateTimeParser.ts";
+import { getOptionsObject, toIntegerIfIntegral } from "./internal/ecmascript.ts";
 import { compare, divFloor, isWithin, modFloor, type NumberSign } from "./internal/math.ts";
+import { isObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
 
 export interface TimeRecord {
@@ -58,6 +65,26 @@ export function midnightTimeRecord(): TimeRecord {
 /** `NoonTimeRecord` */
 export function noonTimeRecord(): TimeRecord {
 	return createTimeRecord(12, 0, 0, 0, 0, 0);
+}
+
+/** `ToTemporalTime` */
+function toTemporalTime(item: unknown, options?: unknown) {
+	if (isObject(item)) {
+		if (isPlainTime(item)) {
+			getTemporalOverflowOption(getOptionsObject(options));
+			return createTemporalTime(getInternalSlotOrThrowForPlainTime(item));
+		}
+		// TODO
+	}
+	if (typeof item !== "string") {
+		throw new TypeError();
+	}
+	const result = parseIsoDateTime(item, [temporalTimeStringRegExp]);
+	if (isAmbiguousTemporalTimeString(item)) {
+		throw new RangeError();
+	}
+	getTemporalOverflowOption(getOptionsObject(options));
+	return createTemporalTime(result.$time as TimeRecord);
 }
 
 /** `IsValidTime` */
@@ -137,6 +164,10 @@ function getInternalSlotOrThrowForPlainTime(plainTime: unknown): PlainTimeSlot {
 	return slot;
 }
 
+function isPlainTime(item: unknown) {
+	return slots.has(item);
+}
+
 export class PlainTime {
 	constructor(
 		hour: unknown = 0,
@@ -157,8 +188,15 @@ export class PlainTime {
 		}
 		createTemporalTime(createTimeRecord(...units), this);
 	}
-	static from() {}
-	static compare() {}
+	static from(item: unknown, options?: unknown) {
+		return toTemporalTime(item, options);
+	}
+	static compare(one: unknown, two: unknown) {
+		return compareTimeRecord(
+			getInternalSlotOrThrowForPlainTime(toTemporalTime(one)),
+			getInternalSlotOrThrowForPlainTime(toTemporalTime(two)),
+		);
+	}
 	get hour() {
 		const slot = getInternalSlotOrThrowForPlainTime(this);
 		return slot.$hour;
@@ -189,7 +227,12 @@ export class PlainTime {
 	until() {}
 	since() {}
 	round() {}
-	equals() {}
+	equals(other: unknown) {
+		return !compareTimeRecord(
+			getInternalSlotOrThrowForPlainTime(this),
+			getInternalSlotOrThrowForPlainTime(toTemporalTime(other)),
+		);
+	}
 	toString() {}
 	toLocaleString() {}
 	toJSON() {}

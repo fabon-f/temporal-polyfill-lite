@@ -105,7 +105,7 @@ export function isoDateWithinLimits(isoDate: IsoDateRecord): boolean {
 }
 
 /** `CompareISODate` */
-function compareIsoDate(isoDate1: IsoDateRecord, isoDate2: IsoDateRecord): NumberSign {
+export function compareIsoDate(isoDate1: IsoDateRecord, isoDate2: IsoDateRecord): NumberSign {
 	return compare(isoDateRecordToEpochDays(isoDate1), isoDateRecordToEpochDays(isoDate2));
 }
 

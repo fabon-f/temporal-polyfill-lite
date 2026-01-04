@@ -97,6 +97,11 @@ export function getTemporalCalendarIdentifierWithIsoDefault(item: object) {
 	return toTemporalCalendarIdentifier(calendarLike);
 }
 
+/** `CalendarEquals` */
+export function calendarEquals(one: SupportedCalendars, two: SupportedCalendars) {
+	return one === two;
+}
+
 /** `ISODaysInMonth` */
 export function isoDaysInMonth(year: number, month: number): number {
 	return isoDateToEpochDays(year, month, 1) - isoDateToEpochDays(year, month - 1, 1);
