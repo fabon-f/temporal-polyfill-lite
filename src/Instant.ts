@@ -139,7 +139,12 @@ export class Instant {
 		}
 		createTemporalInstant(epoch);
 	}
-	static compare() {}
+	static compare(one: unknown, two: unknown) {
+		return compareEpochNanoseconds(
+			getInternalSlotOrThrowForInstant(toTemporalInstant(one)).$epochNanoseconds,
+			getInternalSlotOrThrowForInstant(toTemporalInstant(two)).$epochNanoseconds,
+		);
+	}
 	get epochMilliseconds() {
 		return epochMilliseconds(getInternalSlotOrThrowForInstant(this).$epochNanoseconds);
 	}
@@ -153,7 +158,12 @@ export class Instant {
 	until() {}
 	since() {}
 	round() {}
-	equals() {}
+	equals(other: unknown) {
+		return !compareEpochNanoseconds(
+			getInternalSlotOrThrowForInstant(this).$epochNanoseconds,
+			getInternalSlotOrThrowForInstant(toTemporalInstant(other)).$epochNanoseconds,
+		);
+	}
 	toString() {}
 	toLocaleString() {}
 	toJSON() {}

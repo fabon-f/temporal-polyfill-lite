@@ -45,6 +45,10 @@ export function isoDateToEpochDays(year: number, month: number, day: number): nu
 	);
 }
 
+export function isoDateRecordToEpochDays(isoDate: IsoDateRecord): number {
+	return isoDateToEpochDays(isoDate.$year, isoDate.$month - 1, isoDate.$day);
+}
+
 export function mathematicalDaysInYear(year: number): number {
 	return 365 + mathematicalInLeapYear(year);
 }

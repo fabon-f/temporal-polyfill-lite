@@ -61,7 +61,7 @@ export function noonTimeRecord(): TimeRecord {
 }
 
 /** `IsValidTime` */
-function isValidTime(
+export function isValidTime(
 	hour: number,
 	minute: number,
 	second: number,

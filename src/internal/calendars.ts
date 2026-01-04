@@ -8,6 +8,7 @@ import { getInternalSlotForPlainMonthDay } from "../PlainMonthDay.ts";
 import { getInternalSlotForPlainYearMonth } from "../PlainYearMonth.ts";
 import { getInternalSlotForZonedDateTime } from "../ZonedDateTime.ts";
 import {
+	isoDateRecordToEpochDays,
 	isoDateToEpochDays,
 	mathematicalDaysInYear,
 	mathematicalInLeapYear,
@@ -137,15 +138,12 @@ function isoWeekOfYear(isoDate: IsoDateRecord): YearWeekRecord {
 
 /** `ISODayOfYear` */
 function isoDayOfYear(isoDate: IsoDateRecord): number {
-	return (
-		isoDateToEpochDays(isoDate.$year, isoDate.$month - 1, isoDate.$day) -
-		isoDateToEpochDays(isoDate.$year, 0, 0)
-	);
+	return isoDateRecordToEpochDays(isoDate) - isoDateToEpochDays(isoDate.$year, 0, 0);
 }
 
 /** `ISODayOfWeek` */
 function isoDayOfWeek(isoDate: IsoDateRecord): number {
-	return modFloor(isoDateToEpochDays(isoDate.$year, isoDate.$month - 1, isoDate.$day) + 3, 7) + 1;
+	return modFloor(isoDateRecordToEpochDays(isoDate) + 3, 7) + 1;
 }
 
 /** `NonISOCalendarISOToDate` */

@@ -1,6 +1,7 @@
 import {
 	epochDaysToIsoDate,
 	getTemporalOverflowOption,
+	isoDateRecordToEpochDays,
 	isoDateToEpochDays,
 } from "./internal/abstractOperations.ts";
 import {
@@ -12,7 +13,7 @@ import {
 } from "./internal/calendars.ts";
 import { parseIsoDateTime, temporalDateTimeStringRegExp } from "./internal/dateTimeParser.ts";
 import { getOptionsObject, toIntegerWithTruncation } from "./internal/ecmascript.ts";
-import { isWithin } from "./internal/math.ts";
+import { compare, isWithin, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
 import { isoDateTimeWithinLimits, isPlainDateTime } from "./PlainDateTime.ts";
@@ -47,7 +48,7 @@ export function createIsoDateRecord(year: number, month: number, day: number): I
 /** `CreateTemporalDate` */
 function createTemporalDate(
 	date: IsoDateRecord,
-	calendar: string,
+	calendar: SupportedCalendars,
 	instance = Object.create(PlainDate.prototype) as PlainDate,
 ): PlainDate {
 	if (!isoDateWithinLimits(date)) {
@@ -103,6 +104,11 @@ export function isoDateWithinLimits(isoDate: IsoDateRecord): boolean {
 	return isoDateTimeWithinLimits({ $isoDate: isoDate, $time: noonTimeRecord() });
 }
 
+/** `CompareISODate` */
+function compareIsoDate(isoDate1: IsoDateRecord, isoDate2: IsoDateRecord): NumberSign {
+	return compare(isoDateRecordToEpochDays(isoDate1), isoDateRecordToEpochDays(isoDate2));
+}
+
 export function getInternalSlotForPlainDate(plainDate: unknown): PlainDateSlot | undefined {
 	return slots.get(plainDate);
 }
@@ -119,7 +125,7 @@ function isPlainDate(item: unknown): boolean {
 	return !!getInternalSlotForPlainDate(item);
 }
 
-function createPlainDateSlot(date: IsoDateRecord, calendar: string): PlainDateSlot {
+function createPlainDateSlot(date: IsoDateRecord, calendar: SupportedCalendars): PlainDateSlot {
 	return {
 		$isoDate: date,
 		$calendar: calendar,
@@ -146,7 +152,12 @@ export class PlainDate {
 	static from(item: unknown, options?: unknown) {
 		return toTemporalDate(item, options);
 	}
-	static compare() {}
+	static compare(one: unknown, two: unknown) {
+		return compareIsoDate(
+			getInternalSlotOrThrowForPlainDate(toTemporalDate(one)).$isoDate,
+			getInternalSlotOrThrowForPlainDate(toTemporalDate(two)).$isoDate,
+		);
+	}
 	get calendarId() {
 		return getInternalSlotOrThrowForPlainDate(this).$calendar;
 	}
@@ -218,7 +229,12 @@ export class PlainDate {
 	withCalendar() {}
 	until() {}
 	since() {}
-	equals() {}
+	equals(other: unknown) {
+		return !compareIsoDate(
+			getInternalSlotOrThrowForPlainDate(this).$isoDate,
+			getInternalSlotOrThrowForPlainDate(toTemporalDate(other)).$isoDate,
+		);
+	}
 	toPlainDateTime() {}
 	toZonedDateTime() {}
 	toString() {}

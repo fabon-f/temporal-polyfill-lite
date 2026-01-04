@@ -30,7 +30,10 @@ new OriginalDateTimeFormat(
 
 const slots = new WeakMap<any, DateTimeFormatSlot>();
 
-function createInternalSlot(rawDTF: RawDTF, originalOptions: Intl.DateTimeFormatOptions) {
+function createInternalSlot(
+	rawDTF: RawDTF,
+	originalOptions: Intl.DateTimeFormatOptions,
+): DateTimeFormatSlot {
 	return {
 		$rawDtf: rawDTF,
 		$originalOptions: originalOptions,
