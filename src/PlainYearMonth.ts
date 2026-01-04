@@ -1,4 +1,31 @@
+import type { SupportedCalendars } from "./internal/calendars.ts";
 import { defineStringTag } from "./internal/property.ts";
+
+const internalSlotBrand = /*#__PURE__*/ Symbol();
+interface PlainYearMonthSlot {
+	$calendar: SupportedCalendars;
+	[internalSlotBrand]: unknown;
+}
+
+const slots = new WeakMap<any, PlainYearMonthSlot>();
+
+export function getInternalSlotForPlainYearMonth(
+	plainDateTime: unknown,
+): PlainYearMonthSlot | undefined {
+	return slots.get(plainDateTime);
+}
+
+function getInternalSlotOrThrowForPlainYearMonth(plainDateTime: unknown): PlainYearMonthSlot {
+	const slot = getInternalSlotForPlainYearMonth(plainDateTime);
+	if (!slot) {
+		throw new TypeError();
+	}
+	return slot;
+}
+
+export function isPlainYearMonth(item: unknown): boolean {
+	return !!getInternalSlotForPlainYearMonth(item);
+}
 
 export class PlainYearMonth {
 	constructor() {}

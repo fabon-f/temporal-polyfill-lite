@@ -1,14 +1,19 @@
+import { getTemporalOverflowOption } from "./internal/abstractOperations.ts";
 import {
 	calendarIsoToDate,
 	canonicalizeCalendar,
+	getTemporalCalendarIdentifierWithIsoDefault,
 	isoDaysInMonth,
 	type SupportedCalendars,
 } from "./internal/calendars.ts";
-import { toIntegerWithTruncation } from "./internal/ecmascript.ts";
+import { parseIsoDateTime, temporalDateTimeStringRegExp } from "./internal/dateTimeParser.ts";
+import { getOptionsObject, toIntegerWithTruncation } from "./internal/ecmascript.ts";
 import { isWithin } from "./internal/math.ts";
+import { isObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
-import { isoDateTimeWithinLimits } from "./PlainDateTime.ts";
+import { isoDateTimeWithinLimits, isPlainDateTime } from "./PlainDateTime.ts";
 import { noonTimeRecord } from "./PlainTime.ts";
+import { isZonedDateTime } from "./ZonedDateTime.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 
@@ -49,6 +54,36 @@ function createTemporalDate(
 	return instance;
 }
 
+/** `ToTemporalDate` */
+function toTemporalDate(item: unknown, options?: unknown) {
+	if (isObject(item)) {
+		if (isPlainDate(item)) {
+			getTemporalOverflowOption(getOptionsObject(options));
+			const slot = getInternalSlotOrThrowForPlainDate(item);
+			return createTemporalDate(slot.$isoDate, slot.$calendar);
+		}
+		if (isZonedDateTime(item)) {
+			// TODO
+		}
+		if (isPlainDateTime(item)) {
+			// TODO
+		}
+		const calendar = getTemporalCalendarIdentifierWithIsoDefault(item);
+		// TODO
+		return createTemporalDate(createIsoDateRecord(1970, 1, 1), "iso8601");
+	}
+	if (typeof item !== "string") {
+		throw new TypeError();
+	}
+	const result = parseIsoDateTime(item, [temporalDateTimeStringRegExp]);
+	const calendar = canonicalizeCalendar(result.$calendar || "iso8601");
+	getTemporalOverflowOption(getOptionsObject(options));
+	return createTemporalDate(
+		createIsoDateRecord(result.$year!, result.$month, result.$day),
+		calendar,
+	);
+}
+
 /** `IsValidISODate` */
 export function isValidIsoDate(year: number, month: number, day: number): boolean {
 	return isWithin(month, 1, 12) && isWithin(day, 1, isoDaysInMonth(year, month));
@@ -59,12 +94,20 @@ function isoDateWithinLimits(isoDate: IsoDateRecord): boolean {
 	return isoDateTimeWithinLimits({ $isoDate: isoDate, $time: noonTimeRecord() });
 }
 
+export function getInternalSlotForPlainDate(plainDate: unknown): PlainDateSlot | undefined {
+	return slots.get(plainDate);
+}
+
 function getInternalSlotOrThrowForPlainDate(plainDate: unknown): PlainDateSlot {
-	const slot = slots.get(plainDate);
+	const slot = getInternalSlotForPlainDate(plainDate);
 	if (!slot) {
 		throw new TypeError();
 	}
 	return slot;
+}
+
+function isPlainDate(item: unknown): boolean {
+	return !!getInternalSlotForPlainDate(item);
 }
 
 function createPlainDateSlot(date: IsoDateRecord, calendar: string): PlainDateSlot {
@@ -91,7 +134,9 @@ export class PlainDate {
 		}
 		createTemporalDate(createIsoDateRecord(y, m, d), canonicalizedCalendar, this);
 	}
-	static from() {}
+	static from(item: unknown, options?: unknown) {
+		return toTemporalDate(item, options);
+	}
 	static compare() {}
 	get calendarId() {
 		return getInternalSlotOrThrowForPlainDate(this).$calendar;

@@ -9,6 +9,17 @@ import {
 	temporalYearMonthStringRegExp,
 	temporalZonedDateTimeStringRegExp,
 } from "./dateTimeParser.ts";
+import { getOption } from "./ecmascript.ts";
+import {
+	disambiguationCompatible,
+	disambiguationEarlier,
+	disambiguationLater,
+	disambiguationReject,
+	overflowConstrain,
+	overflowReject,
+	type Disambiguation,
+	type Overflow,
+} from "./enum.ts";
 import { divModFloor } from "./math.ts";
 import { parseTimeZoneIdentifier, type TimeZoneIdentifierParseRecord } from "./timeZones.ts";
 
@@ -34,6 +45,26 @@ export function mathematicalDaysInYear(year: number): number {
 export function mathematicalInLeapYear(year: number): number {
 	// https://codegolf.stackexchange.com/questions/50798/is-it-a-leap-year
 	return +!(year % (year % 25 ? 4 : 16));
+}
+
+/** `GetTemporalOverflowOption` */
+export function getTemporalOverflowOption(options: object): Overflow {
+	return getOption(
+		options as Record<string, unknown>,
+		"overflow",
+		[overflowConstrain, overflowReject],
+		overflowConstrain,
+	);
+}
+
+/** `GetTemporalDisambiguationOption` */
+function getTemporalDisambiguationOption(options: object): Disambiguation {
+	return getOption(
+		options,
+		"disambiguation",
+		[disambiguationCompatible, disambiguationEarlier, disambiguationLater, disambiguationReject],
+		disambiguationCompatible,
+	);
 }
 
 /** `ParseTemporalTimeZoneString` */

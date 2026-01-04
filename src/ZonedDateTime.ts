@@ -1,4 +1,32 @@
+import type { SupportedCalendars } from "./internal/calendars.ts";
 import { defineStringTag } from "./internal/property.ts";
+
+const internalSlotBrand = /*#__PURE__*/ Symbol();
+
+interface ZonedDateTimeSlot {
+	$calendar: SupportedCalendars;
+	[internalSlotBrand]: unknown;
+}
+
+const slots = new WeakMap<any, ZonedDateTimeSlot>();
+
+export function getInternalSlotForZonedDateTime(
+	zonedDateTime: unknown,
+): ZonedDateTimeSlot | undefined {
+	return slots.get(zonedDateTime);
+}
+
+export function getInternalSlotOrThrowForZonedDateTime(zonedDateTime: unknown): ZonedDateTimeSlot {
+	const slot = getInternalSlotForZonedDateTime(zonedDateTime);
+	if (!slot) {
+		throw new TypeError();
+	}
+	return slot;
+}
+
+export function isZonedDateTime(item: unknown): boolean {
+	return !!getInternalSlotForZonedDateTime(item);
+}
 
 export class ZonedDateTime {
 	constructor() {}

@@ -1,9 +1,18 @@
-import { createIsoDateRecord, type IsoDateRecord } from "../PlainDate.ts";
+import {
+	createIsoDateRecord,
+	getInternalSlotForPlainDate,
+	type IsoDateRecord,
+} from "../PlainDate.ts";
+import { getInternalSlotForPlainDateTime } from "../PlainDateTime.ts";
+import { getInternalSlotForPlainMonthDay } from "../PlainMonthDay.ts";
+import { getInternalSlotForPlainYearMonth } from "../PlainYearMonth.ts";
+import { getInternalSlotForZonedDateTime } from "../ZonedDateTime.ts";
 import {
 	isoDateToEpochDays,
 	mathematicalDaysInYear,
 	mathematicalInLeapYear,
 } from "./abstractOperations.ts";
+import { parseTemporalCalendarString } from "./dateTimeParser.ts";
 import { divModFloor } from "./math.ts";
 import { asciiLowerCase, ToZeroPaddedDecimalString } from "./string.ts";
 import { unreachable } from "./utils.ts";
@@ -50,6 +59,41 @@ export function canonicalizeCalendar(id: string): SupportedCalendars {
 /** `CreateMonthCode` */
 function createMonthCode(monthNumber: number, isLeapMonth = false) {
 	return `M${ToZeroPaddedDecimalString(monthNumber, 2)}${isLeapMonth ? "L" : ""}`;
+}
+
+/** `ToTemporalCalendarIdentifier` */
+function toTemporalCalendarIdentifier(temporalCalendarLike: unknown): SupportedCalendars {
+	const slot =
+		getInternalSlotForPlainDate(temporalCalendarLike) ||
+		getInternalSlotForPlainDateTime(temporalCalendarLike) ||
+		getInternalSlotForPlainMonthDay(temporalCalendarLike) ||
+		getInternalSlotForPlainYearMonth(temporalCalendarLike) ||
+		getInternalSlotForZonedDateTime(temporalCalendarLike);
+	if (slot) {
+		return slot.$calendar;
+	}
+	if (typeof temporalCalendarLike !== "string") {
+		throw new TypeError();
+	}
+	return canonicalizeCalendar(parseTemporalCalendarString(temporalCalendarLike));
+}
+
+/** `GetTemporalCalendarIdentifierWithISODefault` */
+export function getTemporalCalendarIdentifierWithIsoDefault(item: object) {
+	const slot =
+		getInternalSlotForPlainDate(item) ||
+		getInternalSlotForPlainDateTime(item) ||
+		getInternalSlotForPlainMonthDay(item) ||
+		getInternalSlotForPlainYearMonth(item) ||
+		getInternalSlotForZonedDateTime(item);
+	if (slot) {
+		return slot.$calendar;
+	}
+	const calendarLike = (item as Record<string, unknown>)["calendar"];
+	if (calendarLike === undefined) {
+		return "iso8601";
+	}
+	return toTemporalCalendarIdentifier(calendarLike);
 }
 
 /** `ISODaysInMonth` */

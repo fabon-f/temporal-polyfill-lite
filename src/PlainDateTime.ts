@@ -1,4 +1,5 @@
 import { isoDateToEpochDays } from "./internal/abstractOperations.ts";
+import type { SupportedCalendars } from "./internal/calendars.ts";
 import { defineStringTag } from "./internal/property.ts";
 import type { IsoDateRecord } from "./PlainDate.ts";
 import { compareTimeRecord, midnightTimeRecord, type TimeRecord } from "./PlainTime.ts";
@@ -7,6 +8,14 @@ export interface IsoDateTimeRecord {
 	$isoDate: IsoDateRecord;
 	$time: TimeRecord;
 }
+
+const internalSlotBrand = /*#__PURE__*/ Symbol();
+interface PlainDateTimeSlot {
+	$calendar: SupportedCalendars;
+	[internalSlotBrand]: unknown;
+}
+
+const slots = new WeakMap<any, PlainDateTimeSlot>();
 
 /** `ISODateTimeWithinLimits` */
 export function isoDateTimeWithinLimits(isoDateTime: IsoDateTimeRecord): boolean {
@@ -19,6 +28,24 @@ export function isoDateTimeWithinLimits(isoDateTime: IsoDateTimeRecord): boolean
 		Math.abs(epochDays) <= 1e8 ||
 		(epochDays === -100000001 && !!compareTimeRecord(isoDateTime.$time, midnightTimeRecord()))
 	);
+}
+
+export function getInternalSlotForPlainDateTime(
+	plainDateTime: unknown,
+): PlainDateTimeSlot | undefined {
+	return slots.get(plainDateTime);
+}
+
+function getInternalSlotOrThrowForPlainDateTime(plainDateTime: unknown): PlainDateTimeSlot {
+	const slot = getInternalSlotForPlainDateTime(plainDateTime);
+	if (!slot) {
+		throw new TypeError();
+	}
+	return slot;
+}
+
+export function isPlainDateTime(item: unknown): boolean {
+	return !!getInternalSlotForPlainDateTime(item);
 }
 
 export class PlainDateTime {
