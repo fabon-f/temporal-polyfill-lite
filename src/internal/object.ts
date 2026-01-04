@@ -1,5 +1,5 @@
 export function isObject(obj: unknown): obj is object {
-	return typeof obj === "object" && obj !== null;
+	return (typeof obj === "object" || typeof obj === "function") && obj !== null;
 }
 
 export function pickObject<O extends object, K extends keyof O>(object: O, keys: K[]): Pick<O, K>;

@@ -21,6 +21,21 @@ export function toNumber(arg: unknown): number {
 	return Number(arg);
 }
 
+/** `ToBigInt` */
+export function toBigInt(arg: unknown) {
+	if (isObject(arg)) {
+		// `BigInt.asIntN` do almost the same thing to `ToBigInt` AO.
+		// However, this code path returns incorrect result
+		// when `arg` is converted to BigInt larger than `2**53-1` bits,
+		// which is unlikely to occur due to a limit of JavaScript engines.
+		return BigInt.asIntN(2 ** 53 - 1, arg as any);
+	}
+	if (typeof arg === "number") {
+		throw new TypeError();
+	}
+	return BigInt(arg as any);
+}
+
 /** `ToIntegerIfIntegral` */
 export function toIntegerIfIntegral(arg: unknown): number {
 	const num = toNumber(arg);

@@ -1,4 +1,4 @@
-import { toTemporalInstant } from "./Instant.ts";
+import { toTemporalInstant } from "./Date.ts";
 import { defineNonEnumerableProperty } from "./internal/property.ts";
 import { Intl } from "./Intl.ts";
 import { Temporal } from "./Temporal.ts";
