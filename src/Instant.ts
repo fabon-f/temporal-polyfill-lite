@@ -31,7 +31,7 @@ interface InstantSlot {
 const slots = new WeakMap<any, InstantSlot>();
 
 /** `IsValidEpochNanoseconds` */
-function isValidEpochNanoseconds(epochNanoseconds: EpochNanoseconds): boolean {
+export function isValidEpochNanoseconds(epochNanoseconds: EpochNanoseconds): boolean {
 	return (
 		compareEpochNanoseconds(
 			createEpochNanosecondsFromEpochMilliseconds(8.64e15),

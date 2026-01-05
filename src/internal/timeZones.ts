@@ -8,13 +8,18 @@ import {
 	epochSeconds,
 	type EpochNanoseconds,
 } from "./epochNanoseconds.ts";
-import { clamp } from "./math.ts";
-import { asciiCapitalize, asciiLowerCase, asciiUpperCase } from "./string.ts";
+import { clamp, divFloor, modFloor } from "./math.ts";
+import {
+	asciiCapitalize,
+	asciiLowerCase,
+	asciiUpperCase,
+	ToZeroPaddedDecimalString,
+} from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
 
 const intlCache = Object.create(null) as Record<string, Intl.DateTimeFormat>;
 
-function getOffsetNanosecondsForEpochSecond(timeZone: string, epochSecond: number) {
+function getNamedTimeZoneOffsetNanosecondsForEpochSecond(timeZone: string, epochSecond: number) {
 	if (timeZone === "UTC") {
 		return 0;
 	}
@@ -45,14 +50,14 @@ function bisectOffsetTransition(
 	startEpochSecond: number,
 	endEpochSecond: number,
 ) {
-	const startOffset = getOffsetNanosecondsForEpochSecond(timeZone, startEpochSecond);
+	const startOffset = getNamedTimeZoneOffsetNanosecondsForEpochSecond(timeZone, startEpochSecond);
 	// left: always same offset to `start`
 	// right: always different offset to `start` (same to `end`)
 	let left = startEpochSecond;
 	let right = endEpochSecond;
 	while (right - left > 1) {
 		const mid = Math.floor((right + left) / 2);
-		if (getOffsetNanosecondsForEpochSecond(timeZone, mid) === startOffset) {
+		if (getNamedTimeZoneOffsetNanosecondsForEpochSecond(timeZone, mid) === startOffset) {
 			left = mid;
 		} else {
 			right = mid;
@@ -86,8 +91,8 @@ function searchTimeZoneTransition(
 	let currentEnd = startEpochSeconds + window;
 	while ((endEpochSeconds - currentEnd) * direction > 0) {
 		if (
-			getOffsetNanosecondsForEpochSecond(timeZone, currentStart) !==
-			getOffsetNanosecondsForEpochSecond(timeZone, currentEnd)
+			getNamedTimeZoneOffsetNanosecondsForEpochSecond(timeZone, currentStart) !==
+			getNamedTimeZoneOffsetNanosecondsForEpochSecond(timeZone, currentEnd)
 		) {
 			const transition =
 				direction > 0
@@ -161,9 +166,18 @@ export function getAvailableNamedTimeZoneIdentifier(timeZone: string) {
 	return timeZone;
 }
 
+/** `FormatOffsetTimeZoneIdentifier` */
+export function formatOffsetTimeZoneIdentifier(offsetMinutes: number) {
+	const abs = Math.abs(offsetMinutes);
+	return `${offsetMinutes < 0 ? "-" : "+"}${ToZeroPaddedDecimalString(divFloor(abs, 60), 2)}:${ToZeroPaddedDecimalString(modFloor(abs, 60), 2)}`;
+}
+
 /** `GetOffsetNanosecondsFor` */
-export function getOffsetNanosecondsFor(timeZone: string, epoch: EpochNanoseconds) {
-	return getOffsetNanosecondsForEpochSecond(timeZone, epochSeconds(epoch));
+export function getOffsetNanosecondsFor(timeZone: string, epoch: EpochNanoseconds): number {
+	const result = parseTimeZoneIdentifier(timeZone);
+	return result.$name === undefined
+		? result.$offsetMinutes * 6e10
+		: getNamedTimeZoneOffsetNanosecondsForEpochSecond(result.$name, epochSeconds(epoch));
 }
 
 export type TimeZoneIdentifierParseRecord =

@@ -4,5 +4,8 @@ import { createEpochNanosecondsFromEpochMilliseconds } from "./internal/epochNan
 export function toTemporalInstant(this: unknown): Instant {
 	// brand check
 	const epochMilliseconds = Date.prototype.valueOf.call(this);
+	if (isNaN(epochMilliseconds)) {
+		throw new RangeError();
+	}
 	return createTemporalInstant(createEpochNanosecondsFromEpochMilliseconds(epochMilliseconds));
 }

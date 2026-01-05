@@ -28,7 +28,7 @@ type YearWeekRecord =
 			$week: undefined;
 	  };
 
-interface CalendarDateRecord {
+export interface CalendarDateRecord {
 	$era?: string | undefined;
 	$eraYear?: number | undefined;
 	$year: number;

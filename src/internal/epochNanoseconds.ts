@@ -1,4 +1,4 @@
-import { nanosecondsPerMilliseconds } from "./constants.ts";
+import { millisecondsPerDay, nanosecondsPerMilliseconds } from "./constants.ts";
 import { compare, divFloor, modFloor, type NumberSign } from "./math.ts";
 
 const epochNanosecondsBrand = /*#__PURE__*/ Symbol();
@@ -47,6 +47,15 @@ export function epochMilliseconds(epoch: EpochNanoseconds): number {
 
 export function epochSeconds(epoch: EpochNanoseconds): number {
 	return divFloor(epoch[0], 1000);
+}
+
+export function epochDaysAndRemainderNanoseconds(
+	epoch: EpochNanoseconds,
+): [epochDays: number, remainderNanoseconds: number] {
+	return [
+		divFloor(epoch[0], millisecondsPerDay),
+		modFloor(epoch[0], millisecondsPerDay) * 1e6 + epoch[1],
+	];
 }
 
 export function addNanosecondsToEpochSeconds(
