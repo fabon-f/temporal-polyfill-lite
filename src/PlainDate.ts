@@ -15,18 +15,30 @@ import {
 } from "./internal/calendars.ts";
 import { parseIsoDateTime, temporalDateTimeStringRegExp } from "./internal/dateTimeParser.ts";
 import { getOptionsObject, toIntegerWithTruncation } from "./internal/ecmascript.ts";
-import { overflowConstrain, type Overflow } from "./internal/enum.ts";
+import { disambiguationCompatible, overflowConstrain, type Overflow } from "./internal/enum.ts";
 import { clamp, compare, isWithin, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
 import {
+	getEpochNanosecondsFor,
+	getStartOfDay,
+	toTemporalTimeZoneIdentifier,
+} from "./internal/timeZones.ts";
+import {
 	combineIsoDateAndTimeRecord,
+	createTemporalDateTime,
 	getInternalSlotOrThrowForPlainDateTime,
 	isoDateTimeWithinLimits,
 	isPlainDateTime,
 } from "./PlainDateTime.ts";
-import { noonTimeRecord } from "./PlainTime.ts";
 import {
+	getInternalSlotOrThrowForPlainTime,
+	noonTimeRecord,
+	toTemporalTime,
+	toTimeRecordOrMidnight,
+} from "./PlainTime.ts";
+import {
+	createTemporalZonedDateTime,
 	getInternalSlotOrThrowForZonedDateTime,
 	getIsoDateTimeForZonedDateTimeSlot,
 	isZonedDateTime,
@@ -58,7 +70,7 @@ export function createIsoDateRecord(year: number, month: number, day: number): I
 }
 
 /** `CreateTemporalDate` */
-function createTemporalDate(
+export function createTemporalDate(
 	date: IsoDateRecord,
 	calendar: SupportedCalendars,
 	instance = Object.create(PlainDate.prototype) as PlainDate,
@@ -274,8 +286,55 @@ export class PlainDate {
 			getInternalSlotOrThrowForPlainDate(toTemporalDate(other)).$isoDate,
 		);
 	}
-	toPlainDateTime() {}
-	toZonedDateTime() {}
+	toPlainDateTime(temporalTime?: unknown) {
+		const slot = getInternalSlotOrThrowForPlainDate(this);
+		return createTemporalDateTime(
+			combineIsoDateAndTimeRecord(slot.$isoDate, toTimeRecordOrMidnight(temporalTime)),
+			slot.$calendar,
+		);
+	}
+	toZonedDateTime(item: unknown) {
+		const slot = getInternalSlotOrThrowForPlainDate(this);
+		let temporalTime: unknown;
+		let timeZone: string;
+		if (isObject(item)) {
+			const tzLike = (item as Record<string, unknown>)["timeZone"];
+			if (tzLike === undefined) {
+				timeZone = toTemporalTimeZoneIdentifier(item);
+				temporalTime = undefined;
+			} else {
+				timeZone = toTemporalTimeZoneIdentifier(tzLike);
+				temporalTime = (item as Record<string, unknown>)["plainTime"];
+			}
+		} else {
+			timeZone = toTemporalTimeZoneIdentifier(item);
+			temporalTime = undefined;
+		}
+		const cache = new Map<number, number>();
+		if (temporalTime === undefined) {
+			return createTemporalZonedDateTime(
+				getStartOfDay(timeZone, slot.$isoDate, cache),
+				timeZone,
+				slot.$calendar,
+				undefined,
+				cache,
+			);
+		}
+		const isoDateTime = combineIsoDateAndTimeRecord(
+			slot.$isoDate,
+			getInternalSlotOrThrowForPlainTime(toTemporalTime(temporalTime)),
+		);
+		if (!isoDateTimeWithinLimits(isoDateTime)) {
+			throw new RangeError();
+		}
+		return createTemporalZonedDateTime(
+			getEpochNanosecondsFor(timeZone, isoDateTime, disambiguationCompatible, cache),
+			timeZone,
+			slot.$calendar,
+			undefined,
+			cache,
+		);
+	}
 	toString() {}
 	toLocaleString() {}
 	toJSON() {}

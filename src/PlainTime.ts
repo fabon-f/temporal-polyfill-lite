@@ -4,11 +4,21 @@ import {
 	parseIsoDateTime,
 	temporalTimeStringRegExp,
 } from "./internal/dateTimeParser.ts";
-import { getOptionsObject, toIntegerIfIntegral } from "./internal/ecmascript.ts";
+import {
+	getOptionsObject,
+	toIntegerIfIntegral,
+	toIntegerWithTruncation,
+} from "./internal/ecmascript.ts";
 import { overflowConstrain, type Overflow } from "./internal/enum.ts";
 import { clamp, compare, divFloor, isWithin, modFloor, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
+import { getInternalSlotOrThrowForPlainDateTime, isPlainDateTime } from "./PlainDateTime.ts";
+import {
+	getInternalSlotOrThrowForZonedDateTime,
+	getIsoDateTimeForZonedDateTimeSlot,
+	isZonedDateTime,
+} from "./ZonedDateTime.ts";
 
 export interface TimeRecord {
 	$hour: number;
@@ -69,13 +79,35 @@ export function noonTimeRecord(): TimeRecord {
 }
 
 /** `ToTemporalTime` */
-function toTemporalTime(item: unknown, options?: unknown) {
+export function toTemporalTime(item: unknown, options?: unknown) {
 	if (isObject(item)) {
 		if (isPlainTime(item)) {
 			getTemporalOverflowOption(getOptionsObject(options));
 			return createTemporalTime(getInternalSlotOrThrowForPlainTime(item));
 		}
-		// TODO
+		if (isPlainDateTime(item)) {
+			getTemporalOverflowOption(getOptionsObject(options));
+			return createTemporalTime(getInternalSlotOrThrowForPlainDateTime(item).$isoDateTime.$time);
+		}
+		if (isZonedDateTime(item)) {
+			getTemporalOverflowOption(getOptionsObject(options));
+			return createTemporalTime(
+				getIsoDateTimeForZonedDateTimeSlot(getInternalSlotOrThrowForZonedDateTime(item)).$time,
+			);
+		}
+		const fields = toTemporalTimeRecord(item);
+		const overflow = getTemporalOverflowOption(getOptionsObject(options));
+		return createTemporalTime(
+			regulateTime(
+				fields.hour,
+				fields.minute,
+				fields.second,
+				fields.millisecond,
+				fields.microsecond,
+				fields.nanosecond,
+				overflow,
+			),
+		);
 	}
 	if (typeof item !== "string") {
 		throw new TypeError();
@@ -86,6 +118,13 @@ function toTemporalTime(item: unknown, options?: unknown) {
 	}
 	getTemporalOverflowOption(getOptionsObject(options));
 	return createTemporalTime(result.$time as TimeRecord);
+}
+
+/** `ToTimeRecordOrMidnight` */
+export function toTimeRecordOrMidnight(item: unknown): TimeRecord {
+	return item === undefined
+		? midnightTimeRecord()
+		: getInternalSlotOrThrowForPlainTime(toTemporalTime(item));
 }
 
 /** `RegulateTime` */
@@ -159,12 +198,41 @@ export function balanceTime(
 }
 
 /** `CreateTemporalTime` */
-function createTemporalTime(
+export function createTemporalTime(
 	time: TimeRecord,
 	instance = Object.create(PlainTime.prototype) as PlainTime,
 ): PlainTime {
 	slots.set(instance, createPlainTimeSlot(time));
 	return instance;
+}
+
+interface TemporalTimeLikeRecord {
+	hour: number;
+	minute: number;
+	second: number;
+	millisecond: number;
+	microsecond: number;
+	nanosecond: number;
+}
+
+function toTemporalTimeRecord(item: object, partial: true): Partial<TemporalTimeLikeRecord>;
+function toTemporalTimeRecord(item: object, partial?: false): TemporalTimeLikeRecord;
+function toTemporalTimeRecord(item: object, partial = false) {
+	const record = Object.create(null);
+	let any = false;
+	for (const property of ["hour", "microsecond", "millisecond", "minute", "nanosecond", "second"]) {
+		const value = (item as Record<string, unknown>)[property];
+		if (value !== undefined) {
+			any = true;
+			record[property] = toIntegerWithTruncation(value);
+		} else if (!partial) {
+			record[property] = 0;
+		}
+	}
+	if (!any) {
+		throw new RangeError();
+	}
+	return record;
 }
 
 /** `CompareTimeRecord` */
@@ -183,7 +251,7 @@ function createPlainTimeSlot(time: TimeRecord): PlainTimeSlot {
 	return time as PlainTimeSlot;
 }
 
-function getInternalSlotOrThrowForPlainTime(plainTime: unknown): PlainTimeSlot {
+export function getInternalSlotOrThrowForPlainTime(plainTime: unknown): PlainTimeSlot {
 	const slot = slots.get(plainTime);
 	if (!slot) {
 		throw new TypeError();

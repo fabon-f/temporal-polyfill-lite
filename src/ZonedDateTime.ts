@@ -1,4 +1,4 @@
-import { isValidEpochNanoseconds } from "./Instant.ts";
+import { createTemporalInstant, isValidEpochNanoseconds } from "./Instant.ts";
 import {
 	epochDaysToIsoDate,
 	getTemporalDisambiguationOption,
@@ -55,14 +55,15 @@ import {
 	parseTimeZoneIdentifier,
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
-import { createIsoDateRecord, type IsoDateRecord } from "./PlainDate.ts";
+import { createIsoDateRecord, createTemporalDate, type IsoDateRecord } from "./PlainDate.ts";
 import {
 	balanceIsoDateTime,
 	combineIsoDateAndTimeRecord,
+	createTemporalDateTime,
 	interpretTemporalDateTimeFields,
 	type IsoDateTimeRecord,
 } from "./PlainDateTime.ts";
-import type { TimeRecord } from "./PlainTime.ts";
+import { createTemporalTime, type TimeRecord } from "./PlainTime.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 
@@ -234,7 +235,7 @@ function toTemporalZonedDateTime(item: unknown, options: unknown) {
 }
 
 /** ` CreateTemporalZonedDateTime` */
-function createTemporalZonedDateTime(
+export function createTemporalZonedDateTime(
 	epochNanoseconds: EpochNanoseconds,
 	timeZone: string,
 	calendar: SupportedCalendars,
@@ -473,12 +474,34 @@ export class ZonedDateTime {
 	toLocaleString() {}
 	toJSON() {}
 	valueOf() {}
-	startOfDay() {}
+	startOfDay() {
+		const cache = new Map<number, number>();
+		const slot = getInternalSlotOrThrowForZonedDateTime(this);
+		return createTemporalZonedDateTime(
+			getStartOfDay(slot.$timeZone, getIsoDateTimeForZonedDateTimeSlot(slot).$isoDate, cache),
+			slot.$timeZone,
+			slot.$calendar,
+			undefined,
+			cache,
+		);
+	}
 	getTimeZoneTransition() {}
-	toInstant() {}
-	toPlainDate() {}
-	toPlainTime() {}
-	toPlainDateTime() {}
+	toInstant() {
+		return createTemporalInstant(getInternalSlotOrThrowForZonedDateTime(this).$epochNanoseconds);
+	}
+	toPlainDate() {
+		const slot = getInternalSlotOrThrowForZonedDateTime(this);
+		return createTemporalDate(getIsoDateTimeForZonedDateTimeSlot(slot).$isoDate, slot.$calendar);
+	}
+	toPlainTime() {
+		return createTemporalTime(
+			getIsoDateTimeForZonedDateTimeSlot(getInternalSlotOrThrowForZonedDateTime(this)).$time,
+		);
+	}
+	toPlainDateTime() {
+		const slot = getInternalSlotOrThrowForZonedDateTime(this);
+		return createTemporalDateTime(getIsoDateTimeForZonedDateTimeSlot(slot), slot.$calendar);
+	}
 }
 
 defineStringTag(ZonedDateTime.prototype, "Temporal.ZonedDateTime");
