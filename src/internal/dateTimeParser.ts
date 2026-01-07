@@ -1,5 +1,6 @@
 import { isValidIsoDate } from "../PlainDate.ts";
 import { createTimeRecord, type TimeRecord } from "../PlainTime.ts";
+import { nanosecondsPerMinute } from "./constants.ts";
 import { toNumber } from "./ecmascript.ts";
 import { startOfDay } from "./enum.ts";
 import { asciiLowerCase } from "./string.ts";
@@ -239,7 +240,7 @@ export function parseDateTimeUtcOffset(offset: string): number {
 		0 +
 		toNumber(`${result[1]!}1`) *
 			(toNumber(result[2]!) * 3.6e12 +
-				toNumber(result[4] || "") * 6e10 +
+				toNumber(result[4] || "") * nanosecondsPerMinute +
 				toNumber(result[5] || "") * 1e9 +
 				toNumber((result[6] || "").padEnd(9, "0")))
 	);

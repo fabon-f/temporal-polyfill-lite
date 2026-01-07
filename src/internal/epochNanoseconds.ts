@@ -54,7 +54,7 @@ export function epochDaysAndRemainderNanoseconds(
 ): [epochDays: number, remainderNanoseconds: number] {
 	return [
 		divFloor(epoch[0], millisecondsPerDay),
-		modFloor(epoch[0], millisecondsPerDay) * 1e6 + epoch[1],
+		modFloor(epoch[0], millisecondsPerDay) * nanosecondsPerMilliseconds + epoch[1],
 	];
 }
 

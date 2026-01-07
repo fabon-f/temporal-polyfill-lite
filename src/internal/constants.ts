@@ -1,4 +1,5 @@
 export const nanosecondsPerMilliseconds = 1e6;
+export const nanosecondsPerMinute = 6e10;
 export const secondsPerDay = 86400;
 export const millisecondsPerDay = 8.64e7;
 export const daysPer400Years = 146097;
