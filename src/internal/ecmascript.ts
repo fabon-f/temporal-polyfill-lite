@@ -78,6 +78,15 @@ export function toIntegerWithTruncation(arg: unknown): number {
 	return Math.trunc(num + 0);
 }
 
+/** `ToPositiveIntegerWithTruncation` */
+export function toPositiveIntegerWithTruncation(arg: unknown) {
+	const integer = toIntegerWithTruncation(arg);
+	if (integer <= 0) {
+		throw new RangeError();
+	}
+	return integer;
+}
+
 /** `GetOptionsObject` */
 export function getOptionsObject(options: unknown = Object.create(null)) {
 	if (!isObject(options)) {

@@ -74,7 +74,7 @@ function getOffsetNanosecondsForZonedDateTimeSlot(slot: ZonedDateTimeSlot): numb
 }
 
 /** `GetISODateTimeFor` with caching */
-function getIsoDateTimeForZonedDateTimeSlot(slot: ZonedDateTimeSlot): IsoDateTimeRecord {
+export function getIsoDateTimeForZonedDateTimeSlot(slot: ZonedDateTimeSlot): IsoDateTimeRecord {
 	const offsetNanoseconds = getOffsetNanosecondsForZonedDateTimeSlot(slot);
 	// `GetISOPartsFromEpoch`
 	const [epochDays, remainderNanoseconds] = epochDaysAndRemainderNanoseconds(

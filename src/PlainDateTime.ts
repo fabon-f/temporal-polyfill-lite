@@ -141,7 +141,7 @@ export function getInternalSlotForPlainDateTime(
 	return slots.get(plainDateTime);
 }
 
-function getInternalSlotOrThrowForPlainDateTime(plainDateTime: unknown): PlainDateTimeSlot {
+export function getInternalSlotOrThrowForPlainDateTime(plainDateTime: unknown): PlainDateTimeSlot {
 	const slot = getInternalSlotForPlainDateTime(plainDateTime);
 	if (!slot) {
 		throw new TypeError();

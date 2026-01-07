@@ -2,6 +2,12 @@
 
 /** `START-OF-DAY` */
 export const startOfDay = Symbol();
+/** `DATE` */
+export const date = Symbol();
+/** `YEAR-MONTH` */
+export const yearMonth = Symbol();
+/** `MONTH-DAY` */
+export const monthDay = Symbol();
 
 export const overflowConstrain = "constrain";
 export const overflowReject = "reject";

@@ -5,20 +5,31 @@ import {
 	isoDateToEpochDays,
 } from "./internal/abstractOperations.ts";
 import {
+	calendarDateFromFields,
 	calendarIsoToDate,
 	canonicalizeCalendar,
 	getTemporalCalendarIdentifierWithIsoDefault,
 	isoDaysInMonth,
+	prepareCalendarFields,
 	type SupportedCalendars,
 } from "./internal/calendars.ts";
 import { parseIsoDateTime, temporalDateTimeStringRegExp } from "./internal/dateTimeParser.ts";
 import { getOptionsObject, toIntegerWithTruncation } from "./internal/ecmascript.ts";
-import { compare, isWithin, type NumberSign } from "./internal/math.ts";
+import { overflowConstrain, type Overflow } from "./internal/enum.ts";
+import { clamp, compare, isWithin, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
-import { isoDateTimeWithinLimits, isPlainDateTime } from "./PlainDateTime.ts";
+import {
+	getInternalSlotOrThrowForPlainDateTime,
+	isoDateTimeWithinLimits,
+	isPlainDateTime,
+} from "./PlainDateTime.ts";
 import { noonTimeRecord } from "./PlainTime.ts";
-import { isZonedDateTime } from "./ZonedDateTime.ts";
+import {
+	getInternalSlotOrThrowForZonedDateTime,
+	getIsoDateTimeForZonedDateTimeSlot,
+	isZonedDateTime,
+} from "./ZonedDateTime.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 
@@ -68,14 +79,24 @@ function toTemporalDate(item: unknown, options?: unknown) {
 			return createTemporalDate(slot.$isoDate, slot.$calendar);
 		}
 		if (isZonedDateTime(item)) {
-			// TODO
+			getTemporalOverflowOption(getOptionsObject(options));
+			const slot = getInternalSlotOrThrowForZonedDateTime(item);
+			return createTemporalDate(getIsoDateTimeForZonedDateTimeSlot(slot).$isoDate, slot.$calendar);
 		}
 		if (isPlainDateTime(item)) {
-			// TODO
+			getTemporalOverflowOption(getOptionsObject(options));
+			const slot = getInternalSlotOrThrowForPlainDateTime(item);
+			return createTemporalDate(slot.$isoDateTime.$isoDate, slot.$calendar);
 		}
 		const calendar = getTemporalCalendarIdentifierWithIsoDefault(item);
-		// TODO
-		return createTemporalDate(createIsoDateRecord(1970, 1, 1), "iso8601");
+		const fields = prepareCalendarFields(
+			calendar,
+			item as Record<string, unknown>,
+			["year", "month", "monthCode", "day"],
+			[],
+		);
+		const oveflow = getTemporalOverflowOption(getOptionsObject(options));
+		return createTemporalDate(calendarDateFromFields(calendar, fields, oveflow), calendar);
 	}
 	if (typeof item !== "string") {
 		throw new TypeError();
@@ -87,6 +108,23 @@ function toTemporalDate(item: unknown, options?: unknown) {
 		createIsoDateRecord(result.$year!, result.$month, result.$day),
 		calendar,
 	);
+}
+
+/** `RegulateISODate` */
+export function regulateIsoDate(
+	year: number,
+	month: number,
+	day: number,
+	overflow: Overflow,
+): IsoDateRecord {
+	if (overflow === overflowConstrain) {
+		month = clamp(month, 1, 12);
+		return createIsoDateRecord(year, month, clamp(day, 1, isoDaysInMonth(year, month)));
+	}
+	if (!isValidIsoDate(year, month, day)) {
+		throw new RangeError();
+	}
+	return createIsoDateRecord(year, month, day);
 }
 
 /** `IsValidISODate` */

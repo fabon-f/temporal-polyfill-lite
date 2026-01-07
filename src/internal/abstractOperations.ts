@@ -3,6 +3,7 @@ import type { IsoDateTimeRecord } from "../PlainDateTime.ts";
 import { daysPer400Years, millisecondsPerDay } from "./constants.ts";
 import {
 	isTimeZoneIdentifier,
+	parseDateTimeUtcOffset,
 	parseIsoDateTime,
 	temporalDateTimeStringRegExp,
 	temporalInstantStringRegExp,
@@ -11,7 +12,7 @@ import {
 	temporalYearMonthStringRegExp,
 	temporalZonedDateTimeStringRegExp,
 } from "./dateTimeParser.ts";
-import { getOption } from "./ecmascript.ts";
+import { getOption, ToPrimitive } from "./ecmascript.ts";
 import {
 	disambiguationCompatible,
 	disambiguationEarlier,
@@ -97,6 +98,16 @@ export function parseTemporalTimeZoneString(timeZoneString: string): TimeZoneIde
 		throw new RangeError();
 	}
 	return parseTimeZoneIdentifier(timeZoneId);
+}
+
+/** `ToOffsetString` */
+export function toOffsetString(arg: unknown): string {
+	const offset = ToPrimitive(arg);
+	if (typeof offset !== "string") {
+		throw new TypeError();
+	}
+	parseDateTimeUtcOffset(offset);
+	return offset;
 }
 
 /** `GetUTCEpochNanoseconds` */

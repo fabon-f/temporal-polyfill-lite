@@ -1,4 +1,6 @@
 import { OriginalDateTimeFormat } from "../DateTimeFormat.ts";
+import { getInternalSlotOrThrowForZonedDateTime, isZonedDateTime } from "../ZonedDateTime.ts";
+import { parseTemporalTimeZoneString } from "./abstractOperations.ts";
 import { millisecondsPerDay, nanosecondsPerMilliseconds, secondsPerDay } from "./constants.ts";
 import { isTimeZoneIdentifier, parseDateTimeUtcOffset } from "./dateTimeParser.ts";
 import { toIntegerIfIntegral } from "./ecmascript.ts";
@@ -170,6 +172,21 @@ export function getAvailableNamedTimeZoneIdentifier(timeZone: string) {
 export function formatOffsetTimeZoneIdentifier(offsetMinutes: number) {
 	const abs = Math.abs(offsetMinutes);
 	return `${offsetMinutes < 0 ? "-" : "+"}${ToZeroPaddedDecimalString(divFloor(abs, 60), 2)}:${ToZeroPaddedDecimalString(modFloor(abs, 60), 2)}`;
+}
+
+/** `ToTemporalTimeZoneIdentifier` */
+export function toTemporalTimeZoneIdentifier(temporalTimeZoneLike: unknown) {
+	if (isZonedDateTime(temporalTimeZoneLike)) {
+		return getInternalSlotOrThrowForZonedDateTime(temporalTimeZoneLike).$timeZone;
+	}
+	if (typeof temporalTimeZoneLike !== "string") {
+		throw new TypeError();
+	}
+	const result = parseTemporalTimeZoneString(temporalTimeZoneLike);
+	if (result.$name === undefined) {
+		return formatOffsetTimeZoneIdentifier(result.$offsetMinutes);
+	}
+	return getAvailableNamedTimeZoneIdentifier(result.$name);
 }
 
 /** `GetOffsetNanosecondsFor` */
