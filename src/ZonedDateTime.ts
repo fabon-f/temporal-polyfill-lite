@@ -4,6 +4,7 @@ import {
 	getTemporalDisambiguationOption,
 	getTemporalOffsetOption,
 	getTemporalOverflowOption,
+	getUtcEpochNanoseconds,
 } from "./internal/abstractOperations.ts";
 import {
 	calendarIsoToDate,
@@ -15,31 +16,49 @@ import {
 } from "./internal/calendars.ts";
 import {
 	hasUtcOffsetSubMinuteParts,
+	parseDateTimeUtcOffset,
 	parseIsoDateTime,
 	temporalZonedDateTimeStringRegExp,
 } from "./internal/dateTimeParser.ts";
 import { getOptionsObject, toBigInt } from "./internal/ecmascript.ts";
-import { overflowReject, startOfDay, type Disambiguation, type Offset } from "./internal/enum.ts";
+import {
+	offsetBehaviourExact,
+	offsetBehaviourOption,
+	offsetBehaviourWall,
+	offsetIgnore,
+	offsetReject,
+	offsetUse,
+	overflowReject,
+	startOfDay,
+	type Disambiguation,
+	type Offset,
+	type OffsetBehaviour,
+} from "./internal/enum.ts";
 import {
 	convertEpochNanosecondsToBigInt,
 	createEpochNanosecondsFromBigInt,
-	createEpochNanosecondsFromEpochMilliseconds,
 	epochDaysAndRemainderNanoseconds,
 	epochMilliseconds,
+	epochSeconds,
 	type EpochNanoseconds,
 } from "./internal/epochNanoseconds.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
 import {
+	disambiguatePossibleEpochNanoseconds,
 	formatOffsetTimeZoneIdentifier,
 	getAvailableNamedTimeZoneIdentifier,
+	getEpochNanosecondsFor,
 	getOffsetNanosecondsFor,
+	getPossibleEpochNanoseconds,
+	getStartOfDay,
 	parseTimeZoneIdentifier,
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
 import { createIsoDateRecord, type IsoDateRecord } from "./PlainDate.ts";
 import {
 	balanceIsoDateTime,
+	combineIsoDateAndTimeRecord,
 	interpretTemporalDateTimeFields,
 	type IsoDateTimeRecord,
 } from "./PlainDateTime.ts";
@@ -57,6 +76,72 @@ interface ZonedDateTimeSlot {
 }
 
 const slots = new WeakMap<any, ZonedDateTimeSlot>();
+
+/** `InterpretISODateTimeOffset` */
+function interpretISODateTimeOffset(
+	isoDate: IsoDateRecord,
+	time: typeof startOfDay | TimeRecord,
+	offsetBehaviour: OffsetBehaviour,
+	offsetNanoseconds: number,
+	timeZone: string,
+	disambiguation: Disambiguation,
+	offsetOption: Offset,
+	matchExactly: boolean,
+	offsetCacheMap: Map<number, number>,
+): EpochNanoseconds {
+	if (time === startOfDay) {
+		return getStartOfDay(timeZone, isoDate, offsetCacheMap);
+	}
+	const isoDateTime = combineIsoDateAndTimeRecord(isoDate, time);
+	if (
+		offsetBehaviour === offsetBehaviourWall ||
+		(offsetBehaviour === offsetBehaviourOption && offsetOption == offsetIgnore)
+	) {
+		return getEpochNanosecondsFor(timeZone, isoDateTime, disambiguation, offsetCacheMap);
+	}
+	if (
+		offsetBehaviour === offsetBehaviourExact ||
+		(offsetBehaviour === offsetBehaviourOption && offsetOption == offsetUse)
+	) {
+		const epoch = getUtcEpochNanoseconds(
+			balanceIsoDateTime(
+				isoDateTime.$isoDate.$year,
+				isoDateTime.$isoDate.$month,
+				isoDateTime.$isoDate.$day,
+				isoDateTime.$time.$hour,
+				isoDateTime.$time.$minute,
+				isoDateTime.$time.$second,
+				isoDateTime.$time.$millisecond,
+				isoDateTime.$time.$microsecond,
+				isoDateTime.$time.$nanosecond - offsetNanoseconds,
+			),
+		);
+		if (!isValidEpochNanoseconds(epoch)) {
+			throw new RangeError();
+		}
+		return epoch;
+	}
+	const possibleEpochNs = getPossibleEpochNanoseconds(timeZone, isoDateTime, offsetCacheMap);
+	for (const candidate of possibleEpochNs) {
+		const candidateOffset = getOffsetNanosecondsFor(timeZone, candidate, offsetCacheMap);
+		if (candidateOffset === offsetNanoseconds) {
+			return candidate;
+		}
+		if (!matchExactly) {
+			// TODO
+		}
+	}
+	if (offsetOption === offsetReject) {
+		throw new RangeError();
+	}
+	return disambiguatePossibleEpochNanoseconds(
+		possibleEpochNs,
+		timeZone,
+		isoDateTime,
+		disambiguation,
+		offsetCacheMap,
+	);
+}
 
 /** `ToTemporalZonedDateTime` */
 function toTemporalZonedDateTime(item: unknown, options: unknown) {
@@ -126,12 +211,26 @@ function toTemporalZonedDateTime(item: unknown, options: unknown) {
 		isoDate = createIsoDateRecord(result.$year!, result.$month, result.$day);
 		time = result.$time;
 	}
-	// TODO
-	return createTemporalZonedDateTime(
-		createEpochNanosecondsFromEpochMilliseconds(0),
+	const offsetBehaviour = hasUtcDesignator
+		? offsetBehaviourExact
+		: offsetString === undefined
+			? offsetBehaviourWall
+			: offsetBehaviourOption;
+	const offsetNanoseconds =
+		offsetBehaviour === offsetBehaviourOption ? parseDateTimeUtcOffset(offsetString!) : 0;
+	const cache = new Map<number, number>();
+	const epoch = interpretISODateTimeOffset(
+		isoDate,
+		time,
+		offsetBehaviour,
+		offsetNanoseconds,
 		timeZone,
-		calendar,
+		disambiguation,
+		offsetOption,
+		matchExactly,
+		cache,
 	);
+	return createTemporalZonedDateTime(epoch, timeZone, calendar, undefined, cache);
 }
 
 /** ` CreateTemporalZonedDateTime` */
@@ -140,9 +239,15 @@ function createTemporalZonedDateTime(
 	timeZone: string,
 	calendar: SupportedCalendars,
 	instance = Object.create(ZonedDateTime.prototype) as ZonedDateTime,
+	offsetCacheMap?: Map<number, number>,
 ): ZonedDateTime {
 	return createTemporalZonedDateTimeFromSlot(
-		createInternalSlot(epochNanoseconds, timeZone, calendar),
+		createInternalSlot(
+			epochNanoseconds,
+			timeZone,
+			calendar,
+			offsetCacheMap && offsetCacheMap.get(epochSeconds(epochNanoseconds)),
+		),
 		instance,
 	);
 }

@@ -32,3 +32,11 @@ export type Offset =
 	| typeof offsetUse
 	| typeof offsetIgnore
 	| typeof offsetReject;
+
+export const offsetBehaviourOption = Symbol();
+export const offsetBehaviourExact = Symbol();
+export const offsetBehaviourWall = Symbol();
+export type OffsetBehaviour =
+	| typeof offsetBehaviourOption
+	| typeof offsetBehaviourExact
+	| typeof offsetBehaviourWall;

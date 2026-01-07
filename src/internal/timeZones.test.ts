@@ -2,12 +2,13 @@ import tzdata from "tzdata" with { type: "json" };
 import { expect, test } from "vitest";
 import {
 	getOffsetNanosecondsFor,
-	getTimeZoneTransition,
+	getTimeZoneTransition as getTimeZoneTransitionOriginal,
 	normalizeIanaTimeZoneId,
 } from "./timeZones.ts";
 import {
 	addNanosecondsToEpochSeconds,
 	createEpochNanosecondsFromEpochMilliseconds,
+	type EpochNanoseconds,
 } from "./epochNanoseconds.ts";
 import { millisecondsPerDay, nanosecondsPerMilliseconds } from "./constants.ts";
 import { describe } from "node:test";
@@ -61,6 +62,10 @@ test("getOffsetNanosecondsFor and far-past", () => {
 		),
 	).toBeLessThan(millisecondsPerDay * nanosecondsPerMilliseconds);
 });
+
+function getTimeZoneTransition(timeZone: string, epoch: EpochNanoseconds, direction: -1 | 1) {
+	return getTimeZoneTransitionOriginal(timeZone, epoch, direction, new Map());
+}
 
 describe("getTimeZoneTransition", () => {
 	test("forward searching", () => {
