@@ -16,7 +16,7 @@ export async function bundle() {
 		plugins: [terserPlugin],
 	});
 	const result = await bundle.generate({
-		format: "esm",
+		format: "iife",
 		plugins: [terserPlugin],
 	});
 	return result.output[0].code;
