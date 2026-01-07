@@ -20,6 +20,7 @@ import { clamp, compare, isWithin, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
 import {
+	combineIsoDateAndTimeRecord,
 	getInternalSlotOrThrowForPlainDateTime,
 	isoDateTimeWithinLimits,
 	isPlainDateTime,
@@ -139,7 +140,7 @@ export function balanceIsoDate(year: number, month: number, day: number): IsoDat
 
 /** `ISODateWithinLimits` */
 export function isoDateWithinLimits(isoDate: IsoDateRecord): boolean {
-	return isoDateTimeWithinLimits({ $isoDate: isoDate, $time: noonTimeRecord() });
+	return isoDateTimeWithinLimits(combineIsoDateAndTimeRecord(isoDate, noonTimeRecord()));
 }
 
 /** `CompareISODate` */
@@ -151,7 +152,7 @@ export function getInternalSlotForPlainDate(plainDate: unknown): PlainDateSlot |
 	return slots.get(plainDate);
 }
 
-function getInternalSlotOrThrowForPlainDate(plainDate: unknown): PlainDateSlot {
+export function getInternalSlotOrThrowForPlainDate(plainDate: unknown): PlainDateSlot {
 	const slot = getInternalSlotForPlainDate(plainDate);
 	if (!slot) {
 		throw new TypeError();
@@ -159,7 +160,7 @@ function getInternalSlotOrThrowForPlainDate(plainDate: unknown): PlainDateSlot {
 	return slot;
 }
 
-function isPlainDate(item: unknown): boolean {
+export function isPlainDate(item: unknown): boolean {
 	return !!getInternalSlotForPlainDate(item);
 }
 

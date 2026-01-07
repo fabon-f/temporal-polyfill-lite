@@ -22,3 +22,13 @@ export type Disambiguation =
 	| typeof disambiguationEarlier
 	| typeof disambiguationLater
 	| typeof disambiguationReject;
+
+export const offsetPrefer = "prefer";
+export const offsetUse = "use";
+export const offsetIgnore = "ignore";
+export const offsetReject = "reject";
+export type Offset =
+	| typeof offsetPrefer
+	| typeof offsetUse
+	| typeof offsetIgnore
+	| typeof offsetReject;

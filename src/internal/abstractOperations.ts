@@ -18,9 +18,14 @@ import {
 	disambiguationEarlier,
 	disambiguationLater,
 	disambiguationReject,
+	offsetIgnore,
+	offsetPrefer,
+	offsetReject,
+	offsetUse,
 	overflowConstrain,
 	overflowReject,
 	type Disambiguation,
+	type Offset,
 	type Overflow,
 } from "./enum.ts";
 import {
@@ -70,12 +75,22 @@ export function getTemporalOverflowOption(options: object): Overflow {
 }
 
 /** `GetTemporalDisambiguationOption` */
-function getTemporalDisambiguationOption(options: object): Disambiguation {
+export function getTemporalDisambiguationOption(options: object): Disambiguation {
 	return getOption(
 		options,
 		"disambiguation",
 		[disambiguationCompatible, disambiguationEarlier, disambiguationLater, disambiguationReject],
 		disambiguationCompatible,
+	);
+}
+
+/** `GetTemporalOffsetOption` */
+export function getTemporalOffsetOption(options: object, fallback: Offset): Offset {
+	return getOption(
+		options,
+		"offset",
+		[offsetPrefer, offsetUse, offsetIgnore, offsetReject],
+		fallback,
 	);
 }
 

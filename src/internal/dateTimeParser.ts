@@ -244,3 +244,8 @@ export function parseDateTimeUtcOffset(offset: string): number {
 				toNumber((result[6] || "").padEnd(9, "0")))
 	);
 }
+
+export function hasUtcOffsetSubMinuteParts(offset: string): boolean {
+	const result = offset.match(utcOffsetWithSubMinuteRegExp);
+	return !!(result && result[5]);
+}

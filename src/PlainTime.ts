@@ -5,7 +5,8 @@ import {
 	temporalTimeStringRegExp,
 } from "./internal/dateTimeParser.ts";
 import { getOptionsObject, toIntegerIfIntegral } from "./internal/ecmascript.ts";
-import { compare, divFloor, isWithin, modFloor, type NumberSign } from "./internal/math.ts";
+import { overflowConstrain, type Overflow } from "./internal/enum.ts";
+import { clamp, compare, divFloor, isWithin, modFloor, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
 
@@ -85,6 +86,32 @@ function toTemporalTime(item: unknown, options?: unknown) {
 	}
 	getTemporalOverflowOption(getOptionsObject(options));
 	return createTemporalTime(result.$time as TimeRecord);
+}
+
+/** `RegulateTime` */
+export function regulateTime(
+	hour: number,
+	minute: number,
+	second: number,
+	millisecond: number,
+	microsecond: number,
+	nanosecond: number,
+	overflow: Overflow,
+) {
+	if (overflow === overflowConstrain) {
+		createTimeRecord(
+			clamp(hour, 0, 23),
+			clamp(minute, 0, 59),
+			clamp(second, 0, 59),
+			clamp(millisecond, 0, 999),
+			clamp(microsecond, 0, 999),
+			clamp(nanosecond, 0, 999),
+		);
+	}
+	if (!isValidTime(hour, minute, second, millisecond, microsecond, nanosecond)) {
+		throw new RangeError();
+	}
+	return createTimeRecord(hour, minute, second, millisecond, microsecond, nanosecond);
 }
 
 /** `IsValidTime` */

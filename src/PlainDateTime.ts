@@ -3,14 +3,18 @@ import {
 	isoDateRecordToEpochDays,
 } from "./internal/abstractOperations.ts";
 import {
+	calendarDateFromFields,
 	calendarEquals,
 	calendarIsoToDate,
 	canonicalizeCalendar,
+	getTemporalCalendarIdentifierWithIsoDefault,
+	prepareCalendarFields,
+	type CalendarFieldsRecord,
 	type SupportedCalendars,
 } from "./internal/calendars.ts";
 import { parseIsoDateTime, temporalDateTimeStringRegExp } from "./internal/dateTimeParser.ts";
 import { getOptionsObject, toIntegerWithTruncation } from "./internal/ecmascript.ts";
-import { startOfDay } from "./internal/enum.ts";
+import { startOfDay, type Overflow } from "./internal/enum.ts";
 import type { NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
@@ -18,6 +22,8 @@ import {
 	balanceIsoDate,
 	compareIsoDate,
 	createIsoDateRecord,
+	getInternalSlotOrThrowForPlainDate,
+	isPlainDate,
 	isValidIsoDate,
 	type IsoDateRecord,
 } from "./PlainDate.ts";
@@ -27,8 +33,14 @@ import {
 	createTimeRecord,
 	isValidTime,
 	midnightTimeRecord,
+	regulateTime,
 	type TimeRecord,
 } from "./PlainTime.ts";
+import {
+	getInternalSlotOrThrowForZonedDateTime,
+	getIsoDateTimeForZonedDateTimeSlot,
+	isZonedDateTime,
+} from "./ZonedDateTime.ts";
 
 export interface IsoDateTimeRecord {
 	$isoDate: IsoDateRecord;
@@ -44,12 +56,43 @@ interface PlainDateTimeSlot {
 
 const slots = new WeakMap<any, PlainDateTimeSlot>();
 
+/** `CombineISODateAndTimeRecord` */
+export function combineIsoDateAndTimeRecord(
+	isoDate: IsoDateRecord,
+	time: TimeRecord,
+): IsoDateTimeRecord {
+	return {
+		$isoDate: isoDate,
+		$time: time,
+	};
+}
+
 /** `ISODateTimeWithinLimits` */
 export function isoDateTimeWithinLimits(isoDateTime: IsoDateTimeRecord): boolean {
 	const epochDays = isoDateRecordToEpochDays(isoDateTime.$isoDate);
 	return (
 		Math.abs(epochDays) <= 1e8 ||
 		(epochDays === -100000001 && !!compareTimeRecord(isoDateTime.$time, midnightTimeRecord()))
+	);
+}
+
+/** `InterpretTemporalDateTimeFields` */
+export function interpretTemporalDateTimeFields(
+	calendar: SupportedCalendars,
+	fields: CalendarFieldsRecord,
+	overflow: Overflow,
+): IsoDateTimeRecord {
+	return combineIsoDateAndTimeRecord(
+		calendarDateFromFields(calendar, fields, overflow),
+		regulateTime(
+			fields.hour!,
+			fields.minute!,
+			fields.second!,
+			fields.millisecond!,
+			fields.microsecond!,
+			fields.nanosecond!,
+			overflow,
+		),
 	);
 }
 
@@ -61,7 +104,42 @@ function toTemporalDateTime(item: unknown, options?: unknown) {
 			const slot = getInternalSlotOrThrowForPlainDateTime(item);
 			return createTemporalDateTime(slot.$isoDateTime, slot.$calendar);
 		}
-		// TODO
+		if (isZonedDateTime(item)) {
+			const slot = getInternalSlotOrThrowForZonedDateTime(item);
+			getTemporalOverflowOption(getOptionsObject(options));
+			return createTemporalDateTime(getIsoDateTimeForZonedDateTimeSlot(slot), slot.$calendar);
+		}
+		if (isPlainDate(item)) {
+			getTemporalOverflowOption(getOptionsObject(options));
+			const slot = getInternalSlotOrThrowForPlainDate(item);
+			return createTemporalDateTime(
+				combineIsoDateAndTimeRecord(slot.$isoDate, midnightTimeRecord()),
+				slot.$calendar,
+			);
+		}
+		const calendar = getTemporalCalendarIdentifierWithIsoDefault(item);
+		const fields = prepareCalendarFields(
+			calendar,
+			item as Record<string, unknown>,
+			[
+				"year",
+				"month",
+				"monthCode",
+				"day",
+				"hour",
+				"minute",
+				"second",
+				"millisecond",
+				"microsecond",
+				"nanosecond",
+			],
+			[],
+		);
+		const overflow = getTemporalOverflowOption(getOptionsObject(options));
+		return createTemporalDateTime(
+			interpretTemporalDateTimeFields(calendar, fields, overflow),
+			calendar,
+		);
 	}
 	if (typeof item !== "string") {
 		throw new TypeError();
@@ -70,10 +148,10 @@ function toTemporalDateTime(item: unknown, options?: unknown) {
 	const calendar = canonicalizeCalendar(result.$calendar || "iso8601");
 	getTemporalOverflowOption(getOptionsObject(options));
 	return createTemporalDateTime(
-		{
-			$isoDate: createIsoDateRecord(result.$year!, result.$month, result.$day),
-			$time: result.$time === startOfDay ? midnightTimeRecord() : result.$time,
-		},
+		combineIsoDateAndTimeRecord(
+			createIsoDateRecord(result.$year!, result.$month, result.$day),
+			result.$time === startOfDay ? midnightTimeRecord() : result.$time,
+		),
 		calendar,
 	);
 }
@@ -91,13 +169,10 @@ export function balanceIsoDateTime(
 	nanosecond: number,
 ): IsoDateTimeRecord {
 	const balancedTime = balanceTime(hour, minute, second, milliseond, microsecond, nanosecond);
-	return {
-		$isoDate: balanceIsoDate(year, month, day + balancedTime.$days),
-		$time: {
-			...balancedTime,
-			$days: 0,
-		},
-	};
+	return combineIsoDateAndTimeRecord(balanceIsoDate(year, month, day + balancedTime.$days), {
+		...balancedTime,
+		$days: 0,
+	});
 }
 
 /** `CreateTemporalDateTime` */
@@ -185,7 +260,10 @@ export class PlainDateTime {
 			throw new RangeError();
 		}
 		createTemporalDateTime(
-			{ $isoDate: createIsoDateRecord(...dateUnits), $time: createTimeRecord(...timeUnits) },
+			combineIsoDateAndTimeRecord(
+				createIsoDateRecord(...dateUnits),
+				createTimeRecord(...timeUnits),
+			),
 			canonicalizedCalendar,
 			this,
 		);

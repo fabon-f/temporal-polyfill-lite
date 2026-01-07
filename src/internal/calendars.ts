@@ -60,7 +60,7 @@ export interface CalendarDateRecord {
 export type SupportedNonIsoCalendars = "gregory";
 export type SupportedCalendars = "iso8601" | SupportedNonIsoCalendars;
 
-interface CalendarFieldsRecord {
+export interface CalendarFieldsRecord {
 	era?: string | undefined;
 	eraYear?: number | undefined;
 	year?: number | undefined;
