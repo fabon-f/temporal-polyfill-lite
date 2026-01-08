@@ -279,7 +279,7 @@ export class PlainDate {
 	subtract() {}
 	with() {}
 	withCalendar(calendarLike: unknown) {
-		createTemporalDate(
+		return createTemporalDate(
 			getInternalSlotOrThrowForPlainDate(this).$isoDate,
 			toTemporalCalendarIdentifier(calendarLike),
 		);

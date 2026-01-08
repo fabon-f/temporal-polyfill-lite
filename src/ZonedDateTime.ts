@@ -255,7 +255,7 @@ export function createTemporalZonedDateTime(
 	offsetCacheMap?: Map<number, number>,
 ): ZonedDateTime {
 	return createTemporalZonedDateTimeFromSlot(
-		createInternalSlot(
+		createZonedDateTimeSlot(
 			epochNanoseconds,
 			timeZone,
 			calendar,
@@ -265,7 +265,7 @@ export function createTemporalZonedDateTime(
 	);
 }
 
-function createInternalSlot(
+export function createZonedDateTimeSlot(
 	epochNanoseconds: EpochNanoseconds,
 	timeZone: string,
 	calendar: SupportedCalendars,

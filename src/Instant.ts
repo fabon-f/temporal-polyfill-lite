@@ -4,7 +4,7 @@ import {
 	parseIsoDateTime,
 	temporalInstantStringRegExp,
 } from "./internal/dateTimeParser.ts";
-import { toBigInt, toNumber, ToPrimitive } from "./internal/ecmascript.ts";
+import { toBigInt, toIntegerIfIntegral, ToPrimitive } from "./internal/ecmascript.ts";
 import { startOfDay } from "./internal/enum.ts";
 import {
 	compareEpochNanoseconds,
@@ -127,7 +127,9 @@ export class Instant {
 		return toTemporalInstant(item);
 	}
 	static fromEpochMilliseconds(epochMilliseconds: unknown) {
-		const epoch = createEpochNanosecondsFromEpochMilliseconds(toNumber(epochMilliseconds));
+		const epoch = createEpochNanosecondsFromEpochMilliseconds(
+			toIntegerIfIntegral(epochMilliseconds),
+		);
 		if (!isValidEpochNanoseconds(epoch)) {
 			throw new RangeError();
 		}
@@ -138,7 +140,7 @@ export class Instant {
 		if (!isValidEpochNanoseconds(epoch)) {
 			throw new RangeError();
 		}
-		createTemporalInstant(epoch);
+		return createTemporalInstant(epoch);
 	}
 	static compare(one: unknown, two: unknown) {
 		return compareEpochNanoseconds(

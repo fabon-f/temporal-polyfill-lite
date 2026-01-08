@@ -1,5 +1,19 @@
 import { OriginalDateTimeFormat } from "./DateTimeFormat.ts";
+import { createTemporalInstant } from "./Instant.ts";
+import {
+	createEpochNanosecondsFromEpochMilliseconds,
+	type EpochNanoseconds,
+} from "./internal/epochNanoseconds.ts";
 import { defineStringTag, makePropertiesNonEnumerable } from "./internal/property.ts";
+import { toTemporalTimeZoneIdentifier } from "./internal/timeZones.ts";
+import { createTemporalDate } from "./PlainDate.ts";
+import { createTemporalDateTime, type IsoDateTimeRecord } from "./PlainDateTime.ts";
+import { createTemporalTime } from "./PlainTime.ts";
+import {
+	createTemporalZonedDateTime,
+	createZonedDateTimeSlot,
+	getIsoDateTimeForZonedDateTimeSlot,
+} from "./ZonedDateTime.ts";
 
 /** `SystemTimeZoneIdentifier` */
 function systemTimeZoneIdentifier() {
@@ -10,15 +24,45 @@ function systemTimeZoneIdentifier() {
 	return new OriginalDateTimeFormat().resolvedOptions().timeZone;
 }
 
+/** `SystemUTCEpochNanoseconds` */
+function systemUtcEpochNanoseconds(): EpochNanoseconds {
+	return createEpochNanosecondsFromEpochMilliseconds(Date.now());
+}
+
+/** `SystemDateTime` */
+function systemDateTime(temporalTimeZoneLike: unknown): IsoDateTimeRecord {
+	const timeZone =
+		temporalTimeZoneLike === undefined
+			? systemTimeZoneIdentifier()
+			: toTemporalTimeZoneIdentifier(temporalTimeZoneLike);
+	return getIsoDateTimeForZonedDateTimeSlot(
+		createZonedDateTimeSlot(systemUtcEpochNanoseconds(), timeZone, "iso8601"),
+	);
+}
+
 export const Now = {
 	timeZoneId() {
 		return systemTimeZoneIdentifier();
 	},
-	instant() {},
-	plainDateTimeISO() {},
-	zonedDateTimeISO() {},
-	plainDateISO() {},
-	plainTimeISO() {},
+	instant() {
+		return createTemporalInstant(systemUtcEpochNanoseconds());
+	},
+	plainDateTimeISO(temporalTimeZoneLike?: unknown) {
+		return createTemporalDateTime(systemDateTime(temporalTimeZoneLike), "iso8601");
+	},
+	zonedDateTimeISO(temporalTimeZoneLike?: unknown) {
+		const timeZone =
+			temporalTimeZoneLike === undefined
+				? systemTimeZoneIdentifier()
+				: toTemporalTimeZoneIdentifier(temporalTimeZoneLike);
+		return createTemporalZonedDateTime(systemUtcEpochNanoseconds(), timeZone, "iso8601");
+	},
+	plainDateISO(temporalTimeZoneLike?: unknown) {
+		return createTemporalDate(systemDateTime(temporalTimeZoneLike).$isoDate, "iso8601");
+	},
+	plainTimeISO(temporalTimeZoneLike?: unknown) {
+		return createTemporalTime(systemDateTime(temporalTimeZoneLike).$time);
+	},
 };
 
 defineStringTag(Now, "Temporal.Now");

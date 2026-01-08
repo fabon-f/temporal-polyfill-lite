@@ -1,4 +1,8 @@
-import { canonicalizeCalendar, type SupportedCalendars } from "./internal/calendars.ts";
+import {
+	calendarIsoToDate,
+	canonicalizeCalendar,
+	type SupportedCalendars,
+} from "./internal/calendars.ts";
 import { toIntegerWithTruncation } from "./internal/ecmascript.ts";
 import { defineStringTag } from "./internal/property.ts";
 import {
@@ -84,10 +88,12 @@ export class PlainMonthDay {
 		return getInternalSlotOrThrowForPlainMonthDay(this).$calendar;
 	}
 	get monthCode() {
-		return undefined;
+		const slot = getInternalSlotOrThrowForPlainMonthDay(this);
+		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$monthCode;
 	}
 	get day() {
-		return undefined;
+		const slot = getInternalSlotOrThrowForPlainMonthDay(this);
+		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$day;
 	}
 	with() {}
 	equals() {}

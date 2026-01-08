@@ -61,7 +61,7 @@ export function toBigInt(arg: unknown) {
 	return BigInt(arg as any);
 }
 
-/** `ToIntegerIfIntegral` */
+/** `ToIntegerIfIntegral` and alternative to `NumberToBigInt` */
 export function toIntegerIfIntegral(arg: unknown): number {
 	const num = toNumber(arg);
 	if (!Number.isInteger(num)) {

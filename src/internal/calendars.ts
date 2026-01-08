@@ -333,6 +333,9 @@ function isoResolveFields(
 	if (type !== yearMonth && fields.day === undefined) {
 		throw new TypeError();
 	}
+	if (fields.monthCode === undefined && fields.month === undefined) {
+		throw new TypeError();
+	}
 	const monthCode = mapUnlessUndefined(fields.monthCode, parseMonthCode);
 	if (monthCode) {
 		if (

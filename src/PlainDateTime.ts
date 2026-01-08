@@ -366,7 +366,7 @@ export class PlainDateTime {
 		return calendarIsoToDate(slot.$calendar, slot.$isoDateTime.$isoDate).$inLeapYear;
 	}
 	with() {}
-	withPlainTime(plainTimeLike: unknown) {
+	withPlainTime(plainTimeLike?: unknown) {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);
 		return createTemporalDateTime(
 			combineIsoDateAndTimeRecord(
