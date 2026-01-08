@@ -255,7 +255,7 @@ function toTemporalTimeRecord(item: object, partial = false) {
 		}
 	}
 	if (!any) {
-		throw new RangeError();
+		throw new TypeError();
 	}
 	return record;
 }

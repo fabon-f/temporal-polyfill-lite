@@ -3,6 +3,7 @@ import { createTimeRecord, type TimeRecord } from "../PlainTime.ts";
 import { nanosecondsPerMinute } from "./constants.ts";
 import { toNumber } from "./ecmascript.ts";
 import { startOfDay } from "./enum.ts";
+import { clamp } from "./math.ts";
 import { asciiLowerCase } from "./string.ts";
 import { mapUnlessUndefined } from "./utils.ts";
 
@@ -145,7 +146,7 @@ function getTimeRecordFromMatchedGroups(matchedGroups: Record<string, string>): 
 	return createTimeRecord(
 		toNumber(matchedGroups["d"] || 0),
 		toNumber(matchedGroups["e"] || 0),
-		toNumber(matchedGroups["f"] || 0),
+		clamp(toNumber(matchedGroups["f"] || 0), 0, 59),
 		toNumber(fractionalSecond.slice(0, 3)),
 		toNumber(fractionalSecond.slice(3, 6)),
 		toNumber(fractionalSecond.slice(6)),
