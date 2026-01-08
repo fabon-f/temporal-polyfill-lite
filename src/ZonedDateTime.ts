@@ -363,7 +363,7 @@ export class ZonedDateTime {
 		}
 		createTemporalZonedDateTime(epoch, timeZoneString, canonicalizeCalendar(calendar), this);
 	}
-	static from(item: unknown, options?: unknown) {
+	static from(item: unknown, options: unknown = undefined) {
 		return toTemporalZonedDateTime(item, options);
 	}
 	static compare() {}
@@ -473,7 +473,7 @@ export class ZonedDateTime {
 		return undefined;
 	}
 	with() {}
-	withPlainTime(plainTimeLike?: unknown) {
+	withPlainTime(plainTimeLike: unknown = undefined) {
 		const cache = new Map<number, number>();
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
 		const isoDateTime = getIsoDateTimeForZonedDateTimeSlot(slot);

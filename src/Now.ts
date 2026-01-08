@@ -47,20 +47,20 @@ export const Now = {
 	instant() {
 		return createTemporalInstant(systemUtcEpochNanoseconds());
 	},
-	plainDateTimeISO(temporalTimeZoneLike?: unknown) {
+	plainDateTimeISO(temporalTimeZoneLike: unknown = undefined) {
 		return createTemporalDateTime(systemDateTime(temporalTimeZoneLike), "iso8601");
 	},
-	zonedDateTimeISO(temporalTimeZoneLike?: unknown) {
+	zonedDateTimeISO(temporalTimeZoneLike: unknown = undefined) {
 		const timeZone =
 			temporalTimeZoneLike === undefined
 				? systemTimeZoneIdentifier()
 				: toTemporalTimeZoneIdentifier(temporalTimeZoneLike);
 		return createTemporalZonedDateTime(systemUtcEpochNanoseconds(), timeZone, "iso8601");
 	},
-	plainDateISO(temporalTimeZoneLike?: unknown) {
+	plainDateISO(temporalTimeZoneLike: unknown = undefined) {
 		return createTemporalDate(systemDateTime(temporalTimeZoneLike).$isoDate, "iso8601");
 	},
-	plainTimeISO(temporalTimeZoneLike?: unknown) {
+	plainTimeISO(temporalTimeZoneLike: unknown = undefined) {
 		return createTemporalTime(systemDateTime(temporalTimeZoneLike).$time);
 	},
 };

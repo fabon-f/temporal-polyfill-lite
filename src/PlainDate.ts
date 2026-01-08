@@ -201,7 +201,7 @@ export class PlainDate {
 		}
 		createTemporalDate(createIsoDateRecord(y, m, d), canonicalizedCalendar, this);
 	}
-	static from(item: unknown, options?: unknown) {
+	static from(item: unknown, options: unknown = undefined) {
 		return toTemporalDate(item, options);
 	}
 	static compare(one: unknown, two: unknown) {
@@ -292,7 +292,7 @@ export class PlainDate {
 			getInternalSlotOrThrowForPlainDate(toTemporalDate(other)).$isoDate,
 		);
 	}
-	toPlainDateTime(temporalTime?: unknown) {
+	toPlainDateTime(temporalTime: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainDate(this);
 		return createTemporalDateTime(
 			combineIsoDateAndTimeRecord(slot.$isoDate, toTimeRecordOrMidnight(temporalTime)),

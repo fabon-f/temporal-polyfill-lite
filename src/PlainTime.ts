@@ -33,7 +33,6 @@ import {
 	unitHour,
 	unitNanosecond,
 	type SingularUnitKey,
-	type Unit,
 } from "./internal/unit.ts";
 import { clamp, compare, divFloor, isWithin, modFloor, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
@@ -342,7 +341,7 @@ export class PlainTime {
 		}
 		createTemporalTime(createTimeRecord(...units), this);
 	}
-	static from(item: unknown, options?: unknown) {
+	static from(item: unknown, options: unknown = undefined) {
 		return toTemporalTime(item, options);
 	}
 	static compare(one: unknown, two: unknown) {

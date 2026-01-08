@@ -275,7 +275,7 @@ export class PlainDateTime {
 			this,
 		);
 	}
-	static from(item: unknown, options?: unknown) {
+	static from(item: unknown, options: unknown = undefined) {
 		return toTemporalDateTime(item, options);
 	}
 	static compare(one: unknown, two: unknown) {
@@ -366,7 +366,7 @@ export class PlainDateTime {
 		return calendarIsoToDate(slot.$calendar, slot.$isoDateTime.$isoDate).$inLeapYear;
 	}
 	with() {}
-	withPlainTime(plainTimeLike?: unknown) {
+	withPlainTime(plainTimeLike: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);
 		return createTemporalDateTime(
 			combineIsoDateAndTimeRecord(
@@ -401,7 +401,7 @@ export class PlainDateTime {
 	valueOf() {
 		throw new TypeError();
 	}
-	toZonedDateTime(temporalTimeZoneLike: unknown, options?: unknown) {
+	toZonedDateTime(temporalTimeZoneLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);
 		const timeZone = toTemporalTimeZoneIdentifier(temporalTimeZoneLike);
 		const disambiguation = getTemporalDisambiguationOption(getOptionsObject(options));
