@@ -25,6 +25,7 @@ import {
 } from "./internal/dateTimeParser.ts";
 import { getOptionsObject, toBigInt } from "./internal/ecmascript.ts";
 import {
+	disambiguationCompatible,
 	offsetBehaviourExact,
 	offsetBehaviourOption,
 	offsetBehaviourWall,
@@ -69,7 +70,12 @@ import {
 	interpretTemporalDateTimeFields,
 	type IsoDateTimeRecord,
 } from "./PlainDateTime.ts";
-import { createTemporalTime, type TimeRecord } from "./PlainTime.ts";
+import {
+	createTemporalTime,
+	getInternalSlotOrThrowForPlainTime,
+	toTemporalTime,
+	type TimeRecord,
+} from "./PlainTime.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 
@@ -467,7 +473,35 @@ export class ZonedDateTime {
 		return undefined;
 	}
 	with() {}
-	withPlainTime() {}
+	withPlainTime(plainTimeLike?: unknown) {
+		const cache = new Map<number, number>();
+		const slot = getInternalSlotOrThrowForZonedDateTime(this);
+		const isoDateTime = getIsoDateTimeForZonedDateTimeSlot(slot);
+		if (plainTimeLike === undefined) {
+			return createTemporalZonedDateTime(
+				getStartOfDay(slot.$timeZone, isoDateTime.$isoDate, cache),
+				slot.$timeZone,
+				slot.$calendar,
+				undefined,
+				cache,
+			);
+		}
+		return createTemporalZonedDateTime(
+			getEpochNanosecondsFor(
+				slot.$timeZone,
+				combineIsoDateAndTimeRecord(
+					isoDateTime.$isoDate,
+					getInternalSlotOrThrowForPlainTime(toTemporalTime(plainTimeLike)),
+				),
+				disambiguationCompatible,
+				cache,
+			),
+			slot.$timeZone,
+			slot.$calendar,
+			undefined,
+			cache,
+		);
+	}
 	withTimeZone(timeZoneLike: unknown) {
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
 		return createTemporalZonedDateTime(

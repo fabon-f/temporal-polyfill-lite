@@ -12,8 +12,10 @@ import {
 	temporalYearMonthStringRegExp,
 	temporalZonedDateTimeStringRegExp,
 } from "./dateTimeParser.ts";
-import { getOption, ToPrimitive } from "./ecmascript.ts";
+import { getOption, toIntegerWithTruncation, ToPrimitive } from "./ecmascript.ts";
 import {
+	date,
+	dateTime,
 	disambiguationCompatible,
 	disambiguationEarlier,
 	disambiguationLater,
@@ -24,9 +26,21 @@ import {
 	offsetUse,
 	overflowConstrain,
 	overflowReject,
+	required,
+	roundingModeCeil,
+	roundingModeExpand,
+	roundingModeFloor,
+	roundingModeHalfCeil,
+	roundingModeHalfEven,
+	roundingModeHalfExpand,
+	roundingModeHalfFloor,
+	roundingModeHalfTrunc,
+	roundingModeTrunc,
+	time,
 	type Disambiguation,
 	type Offset,
 	type Overflow,
+	type RoundingMode,
 } from "./enum.ts";
 import {
 	addNanosecondsToEpochSeconds,
@@ -34,8 +48,23 @@ import {
 	type EpochNanoseconds,
 } from "./epochNanoseconds.ts";
 import { divFloor, modFloor } from "./math.ts";
+import {
+	roundExpand,
+	roundHalfCeil,
+	roundHalfEven,
+	roundHalfExpand,
+	roundHalfFloor,
+	roundHalfTrunc,
+} from "./rounding.ts";
 import { utcEpochMilliseconds } from "./time.ts";
 import { parseTimeZoneIdentifier, type TimeZoneIdentifierParseRecord } from "./timeZones.ts";
+import {
+	pluralUnitKeys,
+	singularUnitKeys,
+	type PluralUnitKey,
+	type SingularUnitKey,
+} from "./unit.ts";
+import { mapUnlessUndefined } from "./utils.ts";
 
 /** `ISODateToEpochDays` (`month` is 0-indexed) */
 export function isoDateToEpochDays(year: number, month: number, day: number): number {
@@ -96,7 +125,123 @@ export function getTemporalOffsetOption(options: object, fallback: Offset): Offs
 
 /** `GetDirectionOption` */
 export function getDirectionOption(options: object): "next" | "previous" {
-	return getOption(options, "direction", ["next", "previous"]);
+	return getOption(options, "direction", ["next", "previous"], required);
+}
+
+/** `ValidateTemporalRoundingIncrement` */
+export function validateTemporalRoundingIncrement(
+	increment: number,
+	dividend: number,
+	inclusive: boolean,
+) {
+	const maximum = inclusive ? dividend : dividend - 1;
+	if (increment > maximum || dividend % increment !== 0) {
+		throw new RangeError();
+	}
+}
+
+/** `GetTemporalUnitValuedOption` */
+export function getTemporalUnitValuedOption(
+	options: object,
+	key: string,
+	defaultValue: typeof required,
+): SingularUnitKey | "auto";
+export function getTemporalUnitValuedOption(
+	options: object,
+	key: string,
+	defaultValue: undefined,
+): SingularUnitKey | "auto" | undefined;
+export function getTemporalUnitValuedOption(
+	options: object,
+	key: string,
+	defaultValue: typeof required | undefined,
+) {
+	const allowedStrings = [...singularUnitKeys, ...pluralUnitKeys, "auto"];
+	return mapUnlessUndefined(getOption(options, key, allowedStrings, defaultValue), (s) =>
+		s.replace(/s$/, ""),
+	);
+}
+
+/** `ValidateTemporalUnitValue` */
+export function validateTemporalUnitValue(
+	value: SingularUnitKey | "auto" | undefined,
+	unitGroup: typeof date | typeof time | typeof dateTime,
+	extraValues: string[] = [],
+) {
+	if (value === undefined || extraValues.includes(value)) {
+		return;
+	}
+	if (value === "auto") {
+		throw new RangeError();
+	}
+	const index = singularUnitKeys.indexOf(value);
+	const dayIndex = singularUnitKeys.indexOf("day");
+	if ((index <= dayIndex && unitGroup === time) || (index > dayIndex && unitGroup === date)) {
+		throw new RangeError();
+	}
+}
+
+/** `MaximumTemporalDurationRoundingIncrement` */
+export function maximumTemporalDurationRoundingIncrement(unit: SingularUnitKey) {
+	return {
+		year: undefined,
+		month: undefined,
+		week: undefined,
+		day: undefined,
+		hour: 24,
+		minute: 60,
+		second: 60,
+		millisecond: 1000,
+		microsecond: 1000,
+		nanosecond: 1000,
+	}[unit];
+}
+
+const roundingFunctions: Record<RoundingMode, (num: number) => number> = {
+	[roundingModeCeil]: Math.ceil,
+	[roundingModeFloor]: Math.floor,
+	[roundingModeExpand]: roundExpand,
+	[roundingModeTrunc]: Math.trunc,
+	[roundingModeHalfCeil]: roundHalfCeil,
+	[roundingModeHalfFloor]: roundHalfFloor,
+	[roundingModeHalfExpand]: roundHalfExpand,
+	[roundingModeHalfTrunc]: roundHalfTrunc,
+	[roundingModeHalfEven]: roundHalfEven,
+};
+
+/** `RoundNumberToIncrement` */
+export function roundNumberToIncrement(x: number, increment: number, roundingMode: RoundingMode) {
+	return roundingFunctions[roundingMode](x / increment) * increment;
+}
+
+/** `GetRoundingModeOption` */
+export function getRoundingModeOption(options: object, fallback: RoundingMode): RoundingMode {
+	return getOption(
+		options,
+		"roundingMode",
+		[
+			roundingModeCeil,
+			roundingModeFloor,
+			roundingModeExpand,
+			roundingModeTrunc,
+			roundingModeHalfCeil,
+			roundingModeHalfFloor,
+			roundingModeHalfExpand,
+			roundingModeHalfTrunc,
+			roundingModeHalfEven,
+		],
+		fallback,
+	);
+}
+
+/** `GetRoundingIncrementOption` */
+export function getRoundingIncrementOption(options: object): number {
+	const value = (options as Record<string, unknown>)["roundingIncrement"];
+	const integerIncrement = value === undefined ? 1 : toIntegerWithTruncation(value);
+	if (integerIncrement < 1 || integerIncrement > 1e9) {
+		throw new RangeError();
+	}
+	return integerIncrement;
 }
 
 /** `ParseTemporalTimeZoneString` */

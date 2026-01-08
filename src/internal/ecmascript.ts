@@ -1,3 +1,4 @@
+import { required } from "./enum.ts";
 import { isObject } from "./object.ts";
 
 /** `ToPrimitive` when `preferredType` is string */
@@ -96,15 +97,15 @@ export function getOptionsObject(options: unknown = Object.create(null)) {
 }
 
 /** `GetOption` */
-export function getOption<V extends string>(
+export function getOption<V extends string | undefined>(
 	options: object,
 	property: string,
 	values: V[],
-	defaultValue?: V,
+	defaultValue: typeof required | V,
 ): V {
 	const rawValue = (options as Record<string, unknown>)[property];
 	if (rawValue === undefined) {
-		if (defaultValue === undefined) {
+		if (defaultValue === required) {
 			throw new RangeError();
 		}
 		return defaultValue;

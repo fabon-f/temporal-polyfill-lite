@@ -4,10 +4,16 @@
 export const startOfDay = Symbol();
 /** `DATE` */
 export const date = Symbol();
+/** `TIME` */
+export const time = Symbol();
+/** `DATETIME` */
+export const dateTime = Symbol();
 /** `YEAR-MONTH` */
 export const yearMonth = Symbol();
 /** `MONTH-DAY` */
 export const monthDay = Symbol();
+/** `REQUIRED` */
+export const required = Symbol();
 
 export const overflowConstrain = "constrain";
 export const overflowReject = "reject";
@@ -40,3 +46,23 @@ export type OffsetBehaviour =
 	| typeof offsetBehaviourOption
 	| typeof offsetBehaviourExact
 	| typeof offsetBehaviourWall;
+
+export const roundingModeCeil = "ceil";
+export const roundingModeFloor = "floor";
+export const roundingModeExpand = "expand";
+export const roundingModeTrunc = "trunc";
+export const roundingModeHalfCeil = "halfCeil";
+export const roundingModeHalfFloor = "halfFloor";
+export const roundingModeHalfExpand = "halfExpand";
+export const roundingModeHalfTrunc = "halfTrunc";
+export const roundingModeHalfEven = "halfEven";
+export type RoundingMode =
+	| typeof roundingModeCeil
+	| typeof roundingModeFloor
+	| typeof roundingModeExpand
+	| typeof roundingModeTrunc
+	| typeof roundingModeHalfCeil
+	| typeof roundingModeHalfFloor
+	| typeof roundingModeHalfExpand
+	| typeof roundingModeHalfTrunc
+	| typeof roundingModeHalfEven;

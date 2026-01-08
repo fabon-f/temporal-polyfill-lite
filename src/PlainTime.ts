@@ -1,4 +1,13 @@
-import { getTemporalOverflowOption } from "./internal/abstractOperations.ts";
+import {
+	getRoundingIncrementOption,
+	getRoundingModeOption,
+	getTemporalOverflowOption,
+	getTemporalUnitValuedOption,
+	maximumTemporalDurationRoundingIncrement,
+	roundNumberToIncrement,
+	validateTemporalRoundingIncrement,
+	validateTemporalUnitValue,
+} from "./internal/abstractOperations.ts";
 import {
 	isAmbiguousTemporalTimeString,
 	parseIsoDateTime,
@@ -9,7 +18,23 @@ import {
 	toIntegerIfIntegral,
 	toIntegerWithTruncation,
 } from "./internal/ecmascript.ts";
-import { overflowConstrain, type Overflow } from "./internal/enum.ts";
+import {
+	overflowConstrain,
+	required,
+	roundingModeHalfExpand,
+	time,
+	type Overflow,
+	type RoundingMode,
+} from "./internal/enum.ts";
+import {
+	singularUnitKeys,
+	timeUnitLengths,
+	unitDay,
+	unitHour,
+	unitNanosecond,
+	type SingularUnitKey,
+	type Unit,
+} from "./internal/unit.ts";
 import { clamp, compare, divFloor, isWithin, modFloor, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
@@ -247,6 +272,40 @@ export function compareTimeRecord(time1: TimeRecord, time2: TimeRecord): NumberS
 	);
 }
 
+/** `RoundTime` */
+function roundTime(
+	time: TimeRecord,
+	increment: number,
+	unit: SingularUnitKey,
+	roundingMode: RoundingMode,
+) {
+	const unitIndex = singularUnitKeys.indexOf(unit);
+	const values = [
+		time.$hour,
+		time.$minute,
+		time.$second,
+		time.$millisecond,
+		time.$microsecond,
+		time.$nanosecond,
+	];
+	let quantity = 0;
+	for (let i = unitIndex === unitDay ? unitHour : unitIndex; i <= unitNanosecond; i++) {
+		quantity += timeUnitLengths[i - 3]! * values[i - 4]!;
+	}
+	const unitLength = timeUnitLengths[unitIndex - 3]!;
+	const result =
+		roundNumberToIncrement(quantity, increment * unitLength, roundingMode) / unitLength;
+	if (unitIndex === unitDay) {
+		return createTimeRecord(0, 0, 0, 0, 0, 0, result);
+	}
+	return balanceTime(
+		// @ts-expect-error
+		...values.slice(0, unitIndex - unitHour),
+		result,
+		...Array.from({ length: unitNanosecond - unitIndex }, () => 0),
+	);
+}
+
 function createPlainTimeSlot(time: TimeRecord): PlainTimeSlot {
 	return time as PlainTimeSlot;
 }
@@ -321,7 +380,23 @@ export class PlainTime {
 	with() {}
 	until() {}
 	since() {}
-	round() {}
+	round(roundTo: unknown) {
+		const slot = getInternalSlotOrThrowForPlainTime(this);
+		if (roundTo === undefined) {
+			throw new TypeError();
+		}
+		const roundToOptions =
+			typeof roundTo === "string" ? { smallestUnit: roundTo } : getOptionsObject(roundTo);
+		const roundingIncrement = getRoundingIncrementOption(roundToOptions);
+		const roundingMode = getRoundingModeOption(roundToOptions, roundingModeHalfExpand);
+		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", required);
+		validateTemporalUnitValue(smallestUnit, time);
+		const maximum = maximumTemporalDurationRoundingIncrement(smallestUnit as SingularUnitKey)!;
+		validateTemporalRoundingIncrement(roundingIncrement, maximum, false);
+		return createTemporalTime(
+			roundTime(slot, roundingIncrement, smallestUnit as SingularUnitKey, roundingMode),
+		);
+	}
 	equals(other: unknown) {
 		return !compareTimeRecord(
 			getInternalSlotOrThrowForPlainTime(this),
