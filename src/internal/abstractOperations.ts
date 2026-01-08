@@ -94,6 +94,11 @@ export function getTemporalOffsetOption(options: object, fallback: Offset): Offs
 	);
 }
 
+/** `GetDirectionOption` */
+export function getDirectionOption(options: object): "next" | "previous" {
+	return getOption(options, "direction", ["next", "previous"]);
+}
+
 /** `ParseTemporalTimeZoneString` */
 export function parseTemporalTimeZoneString(timeZoneString: string): TimeZoneIdentifierParseRecord {
 	if (isTimeZoneIdentifier(timeZoneString)) {

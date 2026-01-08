@@ -70,7 +70,9 @@ export class PlainYearMonth {
 	toString() {}
 	toLocaleString() {}
 	toJSON() {}
-	valueOf() {}
+	valueOf() {
+		throw new TypeError();
+	}
 	toPlainDate() {}
 }
 

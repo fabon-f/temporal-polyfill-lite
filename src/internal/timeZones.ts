@@ -368,6 +368,22 @@ export function getStartOfDay(
 	)!;
 }
 
+/** `TimeZoneEquals` */
+export function timeZoneEquals(one: string, two: string): boolean {
+	if (one === two) {
+		return true;
+	}
+	const id1 = parseTimeZoneIdentifier(one);
+	const id2 = parseTimeZoneIdentifier(two);
+	if (id1.$offsetMinutes === undefined && id2.$offsetMinutes === undefined) {
+		return (
+			getFormatterForTimeZone(id1.$name).resolvedOptions().timeZone ===
+			getFormatterForTimeZone(id2.$name).resolvedOptions().timeZone
+		);
+	}
+	return id1.$offsetMinutes === id2.$offsetMinutes;
+}
+
 export type TimeZoneIdentifierParseRecord =
 	| {
 			$name: string;

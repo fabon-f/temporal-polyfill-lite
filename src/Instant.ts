@@ -16,10 +16,11 @@ import {
 } from "./internal/epochNanoseconds.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
+import { toTemporalTimeZoneIdentifier } from "./internal/timeZones.ts";
 import { isoDateWithinLimits } from "./PlainDate.ts";
 import { balanceIsoDateTime } from "./PlainDateTime.ts";
 import { midnightTimeRecord } from "./PlainTime.ts";
-import { getInternalSlotForZonedDateTime } from "./ZonedDateTime.ts";
+import { createTemporalZonedDateTime, getInternalSlotForZonedDateTime } from "./ZonedDateTime.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 
@@ -167,8 +168,16 @@ export class Instant {
 	toString() {}
 	toLocaleString() {}
 	toJSON() {}
-	valueOf() {}
-	toZonedDateTimeISO() {}
+	valueOf() {
+		throw new TypeError();
+	}
+	toZonedDateTimeISO(timeZone: unknown) {
+		return createTemporalZonedDateTime(
+			getInternalSlotOrThrowForInstant(this).$epochNanoseconds,
+			toTemporalTimeZoneIdentifier(timeZone),
+			"iso8601",
+		);
+	}
 }
 
 defineStringTag(Instant.prototype, "Temporal.Instant");

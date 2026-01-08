@@ -44,7 +44,9 @@ export class PlainMonthDay {
 	toString() {}
 	toLocaleString() {}
 	toJSON() {}
-	valueOf() {}
+	valueOf() {
+		throw new TypeError();
+	}
 	toPlainDate() {}
 }
 

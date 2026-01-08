@@ -10,6 +10,7 @@ import {
 	canonicalizeCalendar,
 	getTemporalCalendarIdentifierWithIsoDefault,
 	prepareCalendarFields,
+	toTemporalCalendarIdentifier,
 	type CalendarFieldsRecord,
 	type SupportedCalendars,
 } from "./internal/calendars.ts";
@@ -38,6 +39,7 @@ import {
 	isValidTime,
 	midnightTimeRecord,
 	regulateTime,
+	toTimeRecordOrMidnight,
 	type TimeRecord,
 } from "./PlainTime.ts";
 import {
@@ -364,8 +366,22 @@ export class PlainDateTime {
 		return calendarIsoToDate(slot.$calendar, slot.$isoDateTime.$isoDate).$inLeapYear;
 	}
 	with() {}
-	withPlainTime() {}
-	withCalendar() {}
+	withPlainTime(plainTimeLike: unknown) {
+		const slot = getInternalSlotOrThrowForPlainDateTime(this);
+		return createTemporalDateTime(
+			combineIsoDateAndTimeRecord(
+				slot.$isoDateTime.$isoDate,
+				toTimeRecordOrMidnight(plainTimeLike),
+			),
+			slot.$calendar,
+		);
+	}
+	withCalendar(calendarLike: unknown) {
+		return createTemporalDateTime(
+			getInternalSlotOrThrowForPlainDateTime(this).$isoDateTime,
+			toTemporalCalendarIdentifier(calendarLike),
+		);
+	}
 	add() {}
 	subtract() {}
 	until() {}
@@ -382,7 +398,9 @@ export class PlainDateTime {
 	toString() {}
 	toLocaleString() {}
 	toJSON() {}
-	valueOf() {}
+	valueOf() {
+		throw new TypeError();
+	}
 	toZonedDateTime(temporalTimeZoneLike: unknown, options?: unknown) {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);
 		const timeZone = toTemporalTimeZoneIdentifier(temporalTimeZoneLike);

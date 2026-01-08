@@ -11,6 +11,7 @@ import {
 	getTemporalCalendarIdentifierWithIsoDefault,
 	isoDaysInMonth,
 	prepareCalendarFields,
+	toTemporalCalendarIdentifier,
 	type SupportedCalendars,
 } from "./internal/calendars.ts";
 import { parseIsoDateTime, temporalDateTimeStringRegExp } from "./internal/dateTimeParser.ts";
@@ -277,7 +278,12 @@ export class PlainDate {
 	add() {}
 	subtract() {}
 	with() {}
-	withCalendar() {}
+	withCalendar(calendarLike: unknown) {
+		createTemporalDate(
+			getInternalSlotOrThrowForPlainDate(this).$isoDate,
+			toTemporalCalendarIdentifier(calendarLike),
+		);
+	}
 	until() {}
 	since() {}
 	equals(other: unknown) {
@@ -338,7 +344,9 @@ export class PlainDate {
 	toString() {}
 	toLocaleString() {}
 	toJSON() {}
-	valueOf() {}
+	valueOf() {
+		throw new TypeError();
+	}
 }
 
 defineStringTag(PlainDate.prototype, "Temporal.PlainDate");

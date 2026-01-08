@@ -331,7 +331,9 @@ export class PlainTime {
 	toString() {}
 	toLocaleString() {}
 	toJSON() {}
-	valueOf() {}
+	valueOf() {
+		throw new TypeError();
+	}
 }
 
 defineStringTag(PlainTime.prototype, "Temporal.PlainTime");

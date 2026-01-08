@@ -150,7 +150,7 @@ export function prepareCalendarFields(
 }
 
 /** `ToTemporalCalendarIdentifier` */
-function toTemporalCalendarIdentifier(temporalCalendarLike: unknown): SupportedCalendars {
+export function toTemporalCalendarIdentifier(temporalCalendarLike: unknown): SupportedCalendars {
 	const slot =
 		getInternalSlotForPlainDate(temporalCalendarLike) ||
 		getInternalSlotForPlainDateTime(temporalCalendarLike) ||

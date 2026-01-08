@@ -1,16 +1,19 @@
 import { createTemporalInstant, isValidEpochNanoseconds } from "./Instant.ts";
 import {
 	epochDaysToIsoDate,
+	getDirectionOption,
 	getTemporalDisambiguationOption,
 	getTemporalOffsetOption,
 	getTemporalOverflowOption,
 	getUtcEpochNanoseconds,
 } from "./internal/abstractOperations.ts";
 import {
+	calendarEquals,
 	calendarIsoToDate,
 	canonicalizeCalendar,
 	getTemporalCalendarIdentifierWithIsoDefault,
 	prepareCalendarFields,
+	toTemporalCalendarIdentifier,
 	type CalendarDateRecord,
 	type SupportedCalendars,
 } from "./internal/calendars.ts";
@@ -35,6 +38,7 @@ import {
 	type OffsetBehaviour,
 } from "./internal/enum.ts";
 import {
+	compareEpochNanoseconds,
 	convertEpochNanosecondsToBigInt,
 	createEpochNanosecondsFromBigInt,
 	epochDaysAndRemainderNanoseconds,
@@ -52,7 +56,9 @@ import {
 	getOffsetNanosecondsFor,
 	getPossibleEpochNanoseconds,
 	getStartOfDay,
+	getTimeZoneTransition,
 	parseTimeZoneIdentifier,
+	timeZoneEquals,
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
 import { createIsoDateRecord, createTemporalDate, type IsoDateRecord } from "./PlainDate.ts";
@@ -145,7 +151,7 @@ function interpretISODateTimeOffset(
 }
 
 /** `ToTemporalZonedDateTime` */
-function toTemporalZonedDateTime(item: unknown, options: unknown) {
+function toTemporalZonedDateTime(item: unknown, options?: unknown) {
 	let timeZone: string;
 	let offsetString: string | undefined;
 	let hasUtcDesignator = false;
@@ -462,18 +468,42 @@ export class ZonedDateTime {
 	}
 	with() {}
 	withPlainTime() {}
-	withTimeZone() {}
-	withCalendar() {}
+	withTimeZone(timeZoneLike: unknown) {
+		const slot = getInternalSlotOrThrowForZonedDateTime(this);
+		return createTemporalZonedDateTime(
+			slot.$epochNanoseconds,
+			toTemporalTimeZoneIdentifier(timeZoneLike),
+			slot.$calendar,
+		);
+	}
+	withCalendar(calendarLike: unknown) {
+		const slot = getInternalSlotOrThrowForZonedDateTime(this);
+		return createTemporalZonedDateTime(
+			slot.$epochNanoseconds,
+			slot.$timeZone,
+			toTemporalCalendarIdentifier(calendarLike),
+		);
+	}
 	add() {}
 	subtract() {}
 	until() {}
 	since() {}
 	round() {}
-	equals() {}
+	equals(other: unknown) {
+		const slot = getInternalSlotOrThrowForZonedDateTime(this);
+		const otherSlot = getInternalSlotOrThrowForZonedDateTime(toTemporalZonedDateTime(other));
+		return (
+			!compareEpochNanoseconds(slot.$epochNanoseconds, otherSlot.$epochNanoseconds) &&
+			timeZoneEquals(slot.$timeZone, otherSlot.$timeZone) &&
+			calendarEquals(slot.$calendar, otherSlot.$calendar)
+		);
+	}
 	toString() {}
 	toLocaleString() {}
 	toJSON() {}
-	valueOf() {}
+	valueOf() {
+		throw new TypeError();
+	}
 	startOfDay() {
 		const cache = new Map<number, number>();
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
@@ -485,7 +515,34 @@ export class ZonedDateTime {
 			cache,
 		);
 	}
-	getTimeZoneTransition() {}
+	getTimeZoneTransition(directionParam: unknown) {
+		const slot = getInternalSlotOrThrowForZonedDateTime(this);
+		if (directionParam === undefined) {
+			throw new TypeError();
+		}
+		const direction = getDirectionOption(
+			typeof directionParam === "string"
+				? { direction: directionParam }
+				: getOptionsObject(directionParam),
+		);
+		const cache = new Map<number, number>();
+		const transition = getTimeZoneTransition(
+			slot.$timeZone,
+			slot.$epochNanoseconds,
+			direction === "next" ? 1 : -1,
+			cache,
+		);
+		if (transition === null) {
+			return null;
+		}
+		return createTemporalZonedDateTime(
+			transition,
+			slot.$timeZone,
+			slot.$calendar,
+			undefined,
+			cache,
+		);
+	}
 	toInstant() {
 		return createTemporalInstant(getInternalSlotOrThrowForZonedDateTime(this).$epochNanoseconds);
 	}
