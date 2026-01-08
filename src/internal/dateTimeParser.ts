@@ -177,6 +177,7 @@ export function parseIsoDateTime(
 	for (const format of allowedFormats) {
 		const result = isoString.match(format);
 		if (!result || !isSemanticallyValid((matchedGroups = result.groups!))) {
+			matchedGroups = undefined;
 			continue;
 		}
 
