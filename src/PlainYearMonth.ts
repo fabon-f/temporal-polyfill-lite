@@ -1,13 +1,54 @@
-import type { SupportedCalendars } from "./internal/calendars.ts";
+import {
+	calendarIsoToDate,
+	canonicalizeCalendar,
+	type SupportedCalendars,
+} from "./internal/calendars.ts";
+import { toIntegerWithTruncation } from "./internal/ecmascript.ts";
+import { isWithin } from "./internal/math.ts";
 import { defineStringTag } from "./internal/property.ts";
+import { createIsoDateRecord, isValidIsoDate, type IsoDateRecord } from "./PlainDate.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 interface PlainYearMonthSlot {
+	$isoDate: IsoDateRecord;
 	$calendar: SupportedCalendars;
 	[internalSlotBrand]: unknown;
 }
 
 const slots = new WeakMap<any, PlainYearMonthSlot>();
+
+/** `ISOYearMonthWithinLimits` */
+function isoYearMonthWithinLimits(isoDate: IsoDateRecord): boolean {
+	return (
+		isWithin(isoDate.$year, -271821, 275760) &&
+		(isoDate.$year !== -271821 || isoDate.$month >= 4) &&
+		isoDate.$year !== 275760 &&
+		isoDate.$month <= 9
+	);
+}
+
+/** `CreateTemporalYearMonth` */
+function createTemporalYearMonth(
+	isoDate: IsoDateRecord,
+	calendar: SupportedCalendars,
+	instance = Object.create(PlainYearMonth.prototype) as PlainYearMonth,
+) {
+	if (!isoYearMonthWithinLimits(isoDate)) {
+		throw new RangeError();
+	}
+	slots.set(instance, createPlainYearMonthSlot(isoDate, calendar));
+	return instance;
+}
+
+function createPlainYearMonthSlot(
+	isoDate: IsoDateRecord,
+	calendar: SupportedCalendars,
+): PlainYearMonthSlot {
+	return {
+		$isoDate: isoDate,
+		$calendar: calendar,
+	} as PlainYearMonthSlot;
+}
 
 export function getInternalSlotForPlainYearMonth(
 	plainDateTime: unknown,
@@ -28,38 +69,67 @@ export function isPlainYearMonth(item: unknown): boolean {
 }
 
 export class PlainYearMonth {
-	constructor() {}
+	constructor(
+		isoYear: unknown,
+		isoMonth: unknown,
+		calendar: unknown = "iso8601",
+		referenceIsoDay: unknown = 1,
+	) {
+		if (!new.target) {
+			throw new TypeError();
+		}
+		const y = toIntegerWithTruncation(isoYear);
+		const m = toIntegerWithTruncation(isoMonth);
+		if (typeof calendar !== "string") {
+			throw new TypeError();
+		}
+		const canonicalizedCalendar = canonicalizeCalendar(calendar);
+		const ref = toIntegerWithTruncation(referenceIsoDay);
+		if (!isValidIsoDate(y, m, ref)) {
+			throw new RangeError();
+		}
+		createTemporalYearMonth(createIsoDateRecord(y, m, ref), canonicalizedCalendar, this);
+	}
 	static from() {}
 	static compare() {}
 	get calendarId() {
-		return undefined;
+		return getInternalSlotOrThrowForPlainYearMonth(this).$calendar;
 	}
 	get era() {
-		return undefined;
+		const slot = getInternalSlotOrThrowForPlainYearMonth(this);
+		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$era;
 	}
 	get eraYear() {
-		return undefined;
+		const slot = getInternalSlotOrThrowForPlainYearMonth(this);
+		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$eraYear;
 	}
 	get year() {
-		return undefined;
+		const slot = getInternalSlotOrThrowForPlainYearMonth(this);
+		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$year;
 	}
 	get month() {
-		return undefined;
+		const slot = getInternalSlotOrThrowForPlainYearMonth(this);
+		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$month;
 	}
 	get monthCode() {
-		return undefined;
+		const slot = getInternalSlotOrThrowForPlainYearMonth(this);
+		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$monthCode;
 	}
 	get daysInYear() {
-		return undefined;
+		const slot = getInternalSlotOrThrowForPlainYearMonth(this);
+		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$daysInYear;
 	}
 	get daysInMonth() {
-		return undefined;
+		const slot = getInternalSlotOrThrowForPlainYearMonth(this);
+		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$daysInMonth;
 	}
 	get monthsInYear() {
-		return undefined;
+		const slot = getInternalSlotOrThrowForPlainYearMonth(this);
+		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$monthsInYear;
 	}
 	get inLeapYear() {
-		return undefined;
+		const slot = getInternalSlotOrThrowForPlainYearMonth(this);
+		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$inLeapYear;
 	}
 	with() {}
 	add() {}

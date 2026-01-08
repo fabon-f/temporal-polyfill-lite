@@ -163,7 +163,7 @@ export function regulateTime(
 	overflow: Overflow,
 ) {
 	if (overflow === overflowConstrain) {
-		createTimeRecord(
+		return createTimeRecord(
 			clamp(hour, 0, 23),
 			clamp(minute, 0, 59),
 			clamp(second, 0, 59),

@@ -82,15 +82,19 @@ export const temporalYearMonthStringRegExp = createRegExp(
 	`(${dateTime}|${dateSpecYearMonth})(?:${timeZoneAnnotation})?${annotations}`,
 );
 
-// remove named capture groups because duplicate names of capture groups are allowed only after ES2025
-const ambiguousTemporalTimeStringRegExp = createRegExp(
-	`(${dateSpecMonthDay}|${dateSpecYearMonth})(${timeZoneAnnotation})?(${annotation})*`.replace(
-		/<[^>]>/g,
-		":",
-	),
-);
+const ambiguousTemporalTimeStringRegExp = [
+	createRegExp(`${dateSpecMonthDay}(${timeZoneAnnotation})?(${annotation})*`),
+	createRegExp(`${dateSpecYearMonth}(${timeZoneAnnotation})?(${annotation})*`),
+];
+
 export function isAmbiguousTemporalTimeString(isoString: string): boolean {
-	return ambiguousTemporalTimeStringRegExp.test(isoString);
+	for (const regexp of ambiguousTemporalTimeStringRegExp) {
+		const result = isoString.match(regexp);
+		if (result && isSemanticallyValid(result.groups!)) {
+			return true;
+		}
+	}
+	return false;
 }
 
 const timeZoneIdentifierRegExp = createRegExp(timeZoneIdentifier);
