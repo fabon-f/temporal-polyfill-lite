@@ -58,12 +58,7 @@ import {
 } from "./rounding.ts";
 import { utcEpochMilliseconds } from "./time.ts";
 import { parseTimeZoneIdentifier, type TimeZoneIdentifierParseRecord } from "./timeZones.ts";
-import {
-	pluralUnitKeys,
-	singularUnitKeys,
-	type PluralUnitKey,
-	type SingularUnitKey,
-} from "./unit.ts";
+import { pluralUnitKeys, singularUnitKeys, type SingularUnitKey } from "./unit.ts";
 import { mapUnlessUndefined } from "./utils.ts";
 
 /** `ISODateToEpochDays` (`month` is 0-indexed) */
