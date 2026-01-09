@@ -48,7 +48,7 @@ import {
 	type EpochNanoseconds,
 } from "./internal/epochNanoseconds.ts";
 import { isObject } from "./internal/object.ts";
-import { defineStringTag } from "./internal/property.ts";
+import { defineStringTag, renameFunction } from "./internal/property.ts";
 import {
 	disambiguatePossibleEpochNanoseconds,
 	formatOffsetTimeZoneIdentifier,
@@ -596,3 +596,4 @@ export class ZonedDateTime {
 }
 
 defineStringTag(ZonedDateTime.prototype, "Temporal.ZonedDateTime");
+renameFunction(ZonedDateTime, "ZonedDateTime");

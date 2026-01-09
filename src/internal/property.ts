@@ -22,3 +22,8 @@ export function defineStringTag(obj: object, tag: string) {
 		configurable: true,
 	});
 }
+
+// NOTE: terser's `keep_classnames` config doesn't work for some reason, so handle `name` property manually
+export function renameFunction(func: Function, name: string) {
+	Object.defineProperty(func, "name", { value: name });
+}

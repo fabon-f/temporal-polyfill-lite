@@ -1,4 +1,4 @@
-import { defineStringTag } from "./internal/property.ts";
+import { defineStringTag, renameFunction } from "./internal/property.ts";
 
 export class Duration {
 	constructor() {}
@@ -56,3 +56,4 @@ export class Duration {
 }
 
 defineStringTag(Duration.prototype, "Temporal.Duration");
+renameFunction(Duration, "Duration");

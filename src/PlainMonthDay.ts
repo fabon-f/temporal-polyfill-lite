@@ -4,7 +4,7 @@ import {
 	type SupportedCalendars,
 } from "./internal/calendars.ts";
 import { toIntegerWithTruncation } from "./internal/ecmascript.ts";
-import { defineStringTag } from "./internal/property.ts";
+import { defineStringTag, renameFunction } from "./internal/property.ts";
 import {
 	createIsoDateRecord,
 	isoDateWithinLimits,
@@ -107,3 +107,4 @@ export class PlainMonthDay {
 }
 
 defineStringTag(PlainMonthDay.prototype, "Temporal.PlainMonthDay");
+renameFunction(PlainMonthDay, "PlainMonthDay");

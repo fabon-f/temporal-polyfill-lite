@@ -36,7 +36,7 @@ import {
 } from "./internal/unit.ts";
 import { clamp, compare, divFloor, isWithin, modFloor, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
-import { defineStringTag } from "./internal/property.ts";
+import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { getInternalSlotOrThrowForPlainDateTime, isPlainDateTime } from "./PlainDateTime.ts";
 import {
 	getInternalSlotOrThrowForZonedDateTime,
@@ -411,3 +411,4 @@ export class PlainTime {
 }
 
 defineStringTag(PlainTime.prototype, "Temporal.PlainTime");
+renameFunction(PlainTime, "PlainTime");

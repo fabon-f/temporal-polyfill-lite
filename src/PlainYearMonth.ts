@@ -5,7 +5,7 @@ import {
 } from "./internal/calendars.ts";
 import { toIntegerWithTruncation } from "./internal/ecmascript.ts";
 import { isWithin } from "./internal/math.ts";
-import { defineStringTag } from "./internal/property.ts";
+import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { createIsoDateRecord, isValidIsoDate, type IsoDateRecord } from "./PlainDate.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
@@ -146,3 +146,4 @@ export class PlainYearMonth {
 }
 
 defineStringTag(PlainYearMonth.prototype, "Temporal.PlainYearMonth");
+renameFunction(PlainYearMonth, "PlainYearMonth");

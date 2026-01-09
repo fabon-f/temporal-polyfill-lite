@@ -15,7 +15,7 @@ import {
 	type EpochNanoseconds,
 } from "./internal/epochNanoseconds.ts";
 import { isObject } from "./internal/object.ts";
-import { defineStringTag } from "./internal/property.ts";
+import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toTemporalTimeZoneIdentifier } from "./internal/timeZones.ts";
 import { isoDateWithinLimits } from "./PlainDate.ts";
 import { balanceIsoDateTime } from "./PlainDateTime.ts";
@@ -183,3 +183,4 @@ export class Instant {
 }
 
 defineStringTag(Instant.prototype, "Temporal.Instant");
+renameFunction(Instant, "Instant");

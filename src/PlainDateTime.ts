@@ -19,7 +19,7 @@ import { getOptionsObject, toIntegerWithTruncation } from "./internal/ecmascript
 import { startOfDay, type Overflow } from "./internal/enum.ts";
 import type { NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
-import { defineStringTag } from "./internal/property.ts";
+import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { getEpochNanosecondsFor, toTemporalTimeZoneIdentifier } from "./internal/timeZones.ts";
 import {
 	balanceIsoDate,
@@ -424,3 +424,4 @@ export class PlainDateTime {
 }
 
 defineStringTag(PlainDateTime.prototype, "Temporal.PlainDateTime");
+renameFunction(PlainDateTime, "PlainDateTime");
