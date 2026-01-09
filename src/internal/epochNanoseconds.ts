@@ -1,40 +1,43 @@
-import { millisecondsPerDay, nanosecondsPerMilliseconds } from "./constants.ts";
+import { millisecondsPerDay, nanosecondsPerDay, nanosecondsPerMilliseconds } from "./constants.ts";
 import { compare, divFloor, modFloor, type NumberSign } from "./math.ts";
 
 const epochNanosecondsBrand = /*#__PURE__*/ Symbol();
 
 /** remainder is always positive */
-export type EpochNanoseconds = [milliseconds: number, remainderNanoseconds: number] & {
+export type EpochNanoseconds = [days: number, remainderNanoseconds: number] & {
 	[epochNanosecondsBrand]: unknown;
 };
 
 export function normalizeEpochNanoseconds(
-	milliseconds: number,
+	days: number,
 	remainderNanoseconds: number,
 ): EpochNanoseconds {
 	return [
-		milliseconds + divFloor(remainderNanoseconds, nanosecondsPerMilliseconds),
-		modFloor(remainderNanoseconds, nanosecondsPerMilliseconds),
+		days + divFloor(remainderNanoseconds, nanosecondsPerDay),
+		modFloor(remainderNanoseconds, nanosecondsPerDay),
 	] as EpochNanoseconds;
 }
 
 export function createEpochNanosecondsFromBigInt(epoch: bigint): EpochNanoseconds {
 	return normalizeEpochNanoseconds(
-		Number(epoch / BigInt(nanosecondsPerMilliseconds)),
-		Number(epoch % BigInt(nanosecondsPerMilliseconds)),
+		Number(epoch / BigInt(nanosecondsPerDay)),
+		Number(epoch % BigInt(nanosecondsPerDay)),
 	);
 }
 
 export function createEpochNanosecondsFromEpochMilliseconds(epoch: number): EpochNanoseconds {
-	return normalizeEpochNanoseconds(epoch, 0);
+	return normalizeEpochNanoseconds(
+		divFloor(epoch, millisecondsPerDay),
+		modFloor(epoch, millisecondsPerDay) * 1e6,
+	);
 }
 
 export function createEpochNanosecondsFromEpochSeconds(epoch: number): EpochNanoseconds {
-	return normalizeEpochNanoseconds(epoch * 1000, 0);
+	return createEpochNanosecondsFromEpochMilliseconds(epoch * 1e3);
 }
 
 export function convertEpochNanosecondsToBigInt(epoch: EpochNanoseconds): bigint {
-	return BigInt(epoch[0]) * BigInt(nanosecondsPerMilliseconds) + BigInt(epoch[1]);
+	return BigInt(epoch[0]) * BigInt(nanosecondsPerDay) + BigInt(epoch[1]);
 }
 
 export function compareEpochNanoseconds(a: EpochNanoseconds, b: EpochNanoseconds): NumberSign {
@@ -42,20 +45,17 @@ export function compareEpochNanoseconds(a: EpochNanoseconds, b: EpochNanoseconds
 }
 
 export function epochMilliseconds(epoch: EpochNanoseconds): number {
-	return epoch[0];
+	return epoch[0] * millisecondsPerDay + divFloor(epoch[1], nanosecondsPerMilliseconds);
 }
 
 export function epochSeconds(epoch: EpochNanoseconds): number {
-	return divFloor(epoch[0], 1000);
+	return divFloor(epochMilliseconds(epoch), 1e3);
 }
 
 export function epochDaysAndRemainderNanoseconds(
 	epoch: EpochNanoseconds,
 ): [epochDays: number, remainderNanoseconds: number] {
-	return [
-		divFloor(epoch[0], millisecondsPerDay),
-		modFloor(epoch[0], millisecondsPerDay) * nanosecondsPerMilliseconds + epoch[1],
-	];
+	return epoch;
 }
 
 export function addNanosecondsToEpochSeconds(
