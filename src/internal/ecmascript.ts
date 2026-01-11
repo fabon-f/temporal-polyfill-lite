@@ -76,7 +76,7 @@ export function toIntegerWithTruncation(arg: unknown): number {
 	if (isNaN(num) || !isFinite(num)) {
 		throw new RangeError();
 	}
-	return Math.trunc(num + 0);
+	return Math.trunc(num) + 0;
 }
 
 /** `ToPositiveIntegerWithTruncation` */
