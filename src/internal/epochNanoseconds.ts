@@ -64,3 +64,7 @@ export function addNanosecondsToEpochSeconds(
 ): EpochNanoseconds {
 	return normalizeEpochNanoseconds(epoch[0], epoch[1] + delta);
 }
+
+export function differenceInNanosecondsNumber(epoch1: EpochNanoseconds, epoch2: EpochNanoseconds) {
+	return (epoch1[0] - epoch2[0]) * nanosecondsPerDay + epoch1[1] - epoch2[1];
+}

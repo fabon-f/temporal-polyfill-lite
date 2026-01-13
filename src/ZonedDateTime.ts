@@ -2,10 +2,17 @@ import { createTemporalInstant, isValidEpochNanoseconds } from "./Instant.ts";
 import {
 	epochDaysToIsoDate,
 	getDirectionOption,
+	getRoundingIncrementOption,
+	getRoundingModeOption,
 	getTemporalDisambiguationOption,
 	getTemporalOffsetOption,
 	getTemporalOverflowOption,
+	getTemporalUnitValuedOption,
 	getUtcEpochNanoseconds,
+	maximumTemporalDurationRoundingIncrement,
+	roundNumberToIncrement,
+	validateTemporalRoundingIncrement,
+	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
 import {
 	calendarEquals,
@@ -17,31 +24,37 @@ import {
 	type CalendarDateRecord,
 	type SupportedCalendars,
 } from "./internal/calendars.ts";
+import { nanosecondsPerHour } from "./internal/constants.ts";
 import {
 	hasUtcOffsetSubMinuteParts,
 	parseDateTimeUtcOffset,
 	parseIsoDateTime,
 	temporalZonedDateTimeStringRegExp,
 } from "./internal/dateTimeParser.ts";
-import { getOptionsObject, toBigInt } from "./internal/ecmascript.ts";
+import { getOptionsObject, getRoundToOptionsObject, toBigInt } from "./internal/ecmascript.ts";
 import {
 	disambiguationCompatible,
 	offsetBehaviourExact,
 	offsetBehaviourOption,
 	offsetBehaviourWall,
 	offsetIgnore,
+	offsetPrefer,
 	offsetReject,
 	offsetUse,
 	overflowReject,
+	required,
 	startOfDay,
+	time,
 	type Disambiguation,
 	type Offset,
 	type OffsetBehaviour,
 } from "./internal/enum.ts";
 import {
+	addNanosecondsToEpochSeconds,
 	compareEpochNanoseconds,
 	convertEpochNanosecondsToBigInt,
 	createEpochNanosecondsFromBigInt,
+	differenceInNanosecondsNumber,
 	epochDaysAndRemainderNanoseconds,
 	epochMilliseconds,
 	epochSeconds,
@@ -62,12 +75,19 @@ import {
 	timeZoneEquals,
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
-import { createIsoDateRecord, createTemporalDate, type IsoDateRecord } from "./PlainDate.ts";
+import type { SingularUnitKey } from "./internal/unit.ts";
+import {
+	addDaysToIsoDate,
+	createIsoDateRecord,
+	createTemporalDate,
+	type IsoDateRecord,
+} from "./PlainDate.ts";
 import {
 	balanceIsoDateTime,
 	combineIsoDateAndTimeRecord,
 	createTemporalDateTime,
 	interpretTemporalDateTimeFields,
+	roundIsoDateTime,
 	type IsoDateTimeRecord,
 } from "./PlainDateTime.ts";
 import {
@@ -280,13 +300,17 @@ export function createZonedDateTimeSlot(
 }
 
 /** `GetOffsetNanosecondsFor` with caching */
-function getOffsetNanosecondsForZonedDateTimeSlot(slot: ZonedDateTimeSlot): number {
+function getOffsetNanosecondsForZonedDateTimeSlot(
+	slot: ZonedDateTimeSlot,
+	cacheMap?: Map<number, number>,
+): number {
 	if (slot.$offsetNanoseconds !== undefined) {
 		return slot.$offsetNanoseconds;
 	}
 	return (slot.$offsetNanoseconds = getOffsetNanosecondsFor(
 		slot.$timeZone,
 		slot.$epochNanoseconds,
+		cacheMap,
 	));
 }
 
@@ -366,7 +390,12 @@ export class ZonedDateTime {
 	static from(item: unknown, options: unknown = undefined) {
 		return toTemporalZonedDateTime(item, options);
 	}
-	static compare() {}
+	static compare(one: unknown, two: unknown) {
+		return compareEpochNanoseconds(
+			getInternalSlotOrThrowForZonedDateTime(toTemporalZonedDateTime(one)).$epochNanoseconds,
+			getInternalSlotOrThrowForZonedDateTime(toTemporalZonedDateTime(two)).$epochNanoseconds,
+		);
+	}
 	get calendarId() {
 		return getInternalSlotOrThrowForZonedDateTime(this).$calendar;
 	}
@@ -444,7 +473,15 @@ export class ZonedDateTime {
 			.$weekOfYear.$year;
 	}
 	get hoursInDay() {
-		return undefined;
+		const cache = new Map<number, number>();
+		const slot = getInternalSlotOrThrowForZonedDateTime(this);
+		const today = getIsoDateTimeForZonedDateTimeSlot(slot).$isoDate;
+		return (
+			differenceInNanosecondsNumber(
+				getStartOfDay(slot.$timeZone, addDaysToIsoDate(today, 1), cache),
+				getStartOfDay(slot.$timeZone, today, cache),
+			) / nanosecondsPerHour
+		);
 	}
 	get daysInWeek() {
 		return calendarIsoToDateForZonedDateTimeSlot(getInternalSlotOrThrowForZonedDateTime(this))
@@ -522,7 +559,68 @@ export class ZonedDateTime {
 	subtract() {}
 	until() {}
 	since() {}
-	round() {}
+	round(roundTo: unknown) {
+		const slot = getInternalSlotOrThrowForZonedDateTime(this);
+		const roundToOptions = getRoundToOptionsObject(roundTo);
+		const roundingIncrement = getRoundingIncrementOption(roundToOptions);
+		const roundingMode = getRoundingModeOption(roundToOptions, "halfExpand");
+		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", required);
+		validateTemporalUnitValue(smallestUnit, time, ["day"]);
+		const maximum =
+			smallestUnit === "day"
+				? 1
+				: maximumTemporalDurationRoundingIncrement(smallestUnit as SingularUnitKey)!;
+		validateTemporalRoundingIncrement(roundingIncrement, maximum, smallestUnit === "day");
+		const isoDateTime = getIsoDateTimeForZonedDateTimeSlot(slot);
+
+		const cache = new Map<number, number>();
+		if (smallestUnit === "day") {
+			const startOfDay = getStartOfDay(slot.$timeZone, isoDateTime.$isoDate, cache);
+			const startOfNextDay = getStartOfDay(
+				slot.$timeZone,
+				addDaysToIsoDate(isoDateTime.$isoDate, 1),
+				cache,
+			);
+			return createTemporalZonedDateTime(
+				addNanosecondsToEpochSeconds(
+					startOfDay,
+					roundNumberToIncrement(
+						differenceInNanosecondsNumber(slot.$epochNanoseconds, startOfDay),
+						differenceInNanosecondsNumber(startOfNextDay, startOfDay),
+						roundingMode,
+					),
+				),
+				slot.$timeZone,
+				slot.$calendar,
+				undefined,
+				cache,
+			);
+		}
+		const roundResult = roundIsoDateTime(
+			isoDateTime,
+			roundingIncrement,
+			smallestUnit as SingularUnitKey,
+			roundingMode,
+		);
+		const offsetNanoseconds = getOffsetNanosecondsForZonedDateTimeSlot(slot);
+		return createTemporalZonedDateTime(
+			interpretISODateTimeOffset(
+				roundResult.$isoDate,
+				roundResult.$time,
+				offsetBehaviourOption,
+				offsetNanoseconds,
+				slot.$timeZone,
+				disambiguationCompatible,
+				offsetPrefer,
+				true,
+				cache,
+			),
+			slot.$timeZone,
+			slot.$calendar,
+			undefined,
+			cache,
+		);
+	}
 	equals(other: unknown) {
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
 		const otherSlot = getInternalSlotOrThrowForZonedDateTime(toTemporalZonedDateTime(other));

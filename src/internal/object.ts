@@ -11,3 +11,7 @@ export function pickObject(object: object, keys: string[]) {
 	}
 	return result;
 }
+
+export function createNullPrototypeObject<O>(obj: O): O {
+	return Object.assign(Object.create(null), obj);
+}

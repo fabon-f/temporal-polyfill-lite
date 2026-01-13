@@ -146,9 +146,11 @@ export function isValidIsoDate(year: number, month: number, day: number): boolea
 	return isWithin(month, 1, 12) && isWithin(day, 1, isoDaysInMonth(year, month));
 }
 
-/** `BalanceISODate` */
-export function balanceIsoDate(year: number, month: number, day: number): IsoDateRecord {
-	return epochDaysToIsoDate(isoDateToEpochDays(year, month - 1, day));
+/** `AddDaysToISODate` */
+export function addDaysToIsoDate(isoDate: IsoDateRecord, days: number): IsoDateRecord {
+	return epochDaysToIsoDate(
+		isoDateToEpochDays(isoDate.$year, isoDate.$month - 1, isoDate.$day + days),
+	);
 }
 
 /** `ISODateWithinLimits` */

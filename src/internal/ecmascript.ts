@@ -1,5 +1,5 @@
 import { required } from "./enum.ts";
-import { isObject } from "./object.ts";
+import { createNullPrototypeObject, isObject } from "./object.ts";
 
 /** `ToPrimitive` when `preferredType` is string */
 export function ToPrimitive(input: unknown) {
@@ -115,4 +115,13 @@ export function getOption<V extends string | undefined>(
 		throw new RangeError();
 	}
 	return value as V;
+}
+
+export function getRoundToOptionsObject(roundTo: unknown) {
+	if (roundTo === undefined) {
+		throw new TypeError();
+	}
+	return typeof roundTo === "string"
+		? createNullPrototypeObject({ smallestUnit: roundTo })
+		: getOptionsObject(roundTo);
 }

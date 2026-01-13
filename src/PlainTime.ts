@@ -15,6 +15,7 @@ import {
 } from "./internal/dateTimeParser.ts";
 import {
 	getOptionsObject,
+	getRoundToOptionsObject,
 	toIntegerIfIntegral,
 	toIntegerWithTruncation,
 } from "./internal/ecmascript.ts";
@@ -33,7 +34,7 @@ import {
 	type SingularUnitKey,
 } from "./internal/unit.ts";
 import { clamp, compare, divFloor, isWithin, modFloor, type NumberSign } from "./internal/math.ts";
-import { isObject } from "./internal/object.ts";
+import { createNullPrototypeObject, isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { getInternalSlotOrThrowForPlainDateTime, isPlainDateTime } from "./PlainDateTime.ts";
 import {
@@ -270,12 +271,12 @@ export function compareTimeRecord(time1: TimeRecord, time2: TimeRecord): NumberS
 }
 
 /** `RoundTime` */
-function roundTime(
+export function roundTime(
 	time: TimeRecord,
 	increment: number,
 	unit: SingularUnitKey,
 	roundingMode: RoundingMode,
-) {
+): TimeRecord {
 	const unitIndex = singularUnitKeys.indexOf(unit);
 	const values = [
 		time.$hour,
@@ -383,11 +384,7 @@ export class PlainTime {
 	since() {}
 	round(roundTo: unknown) {
 		const slot = getInternalSlotOrThrowForPlainTime(this);
-		if (roundTo === undefined) {
-			throw new TypeError();
-		}
-		const roundToOptions =
-			typeof roundTo === "string" ? { smallestUnit: roundTo } : getOptionsObject(roundTo);
+		const roundToOptions = getRoundToOptionsObject(roundTo);
 		const roundingIncrement = getRoundingIncrementOption(roundToOptions);
 		const roundingMode = getRoundingModeOption(roundToOptions, roundingModeHalfExpand);
 		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", required);

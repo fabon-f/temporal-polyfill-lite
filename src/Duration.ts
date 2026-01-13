@@ -10,7 +10,12 @@ import {
 	createTimeDurationFromSeconds,
 	sumTimeDuration,
 } from "./internal/timeDuration.ts";
-import { pluralUnitKeys, unitIndices } from "./internal/unit.ts";
+import {
+	pluralUnitKeys,
+	singularUnitKeys,
+	unitIndices,
+	type SingularUnitKey,
+} from "./internal/unit.ts";
 import { mapUnlessUndefined } from "./internal/utils.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
@@ -103,6 +108,11 @@ function isValidDuration(...units: DurationTuple): boolean {
 			createTimeDurationFromSeconds(Number.MAX_SAFE_INTEGER),
 		) <= 0
 	);
+}
+
+/** `DefaultTemporalLargestUnit` */
+function defaultTemporalLargestUnit(duration: DurationSlot): SingularUnitKey {
+	return singularUnitKeys[(duration.findIndex((v) => v !== 0) + 10) % 10]!;
 }
 
 /** `ToTemporalPartialDurationRecord` */

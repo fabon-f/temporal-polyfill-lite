@@ -1,7 +1,13 @@
 import {
+	getRoundingIncrementOption,
+	getRoundingModeOption,
 	getTemporalDisambiguationOption,
 	getTemporalOverflowOption,
+	getTemporalUnitValuedOption,
 	isoDateRecordToEpochDays,
+	maximumTemporalDurationRoundingIncrement,
+	validateTemporalRoundingIncrement,
+	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
 import {
 	calendarDateFromFields,
@@ -15,14 +21,19 @@ import {
 	type SupportedCalendars,
 } from "./internal/calendars.ts";
 import { parseIsoDateTime, temporalDateTimeStringRegExp } from "./internal/dateTimeParser.ts";
-import { getOptionsObject, toIntegerWithTruncation } from "./internal/ecmascript.ts";
-import { startOfDay, type Overflow } from "./internal/enum.ts";
+import {
+	getOptionsObject,
+	getRoundToOptionsObject,
+	toIntegerWithTruncation,
+} from "./internal/ecmascript.ts";
+import { required, startOfDay, time, type Overflow, type RoundingMode } from "./internal/enum.ts";
 import type { NumberSign } from "./internal/math.ts";
-import { isObject } from "./internal/object.ts";
+import { createNullPrototypeObject, isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { getEpochNanosecondsFor, toTemporalTimeZoneIdentifier } from "./internal/timeZones.ts";
+import type { SingularUnitKey } from "./internal/unit.ts";
 import {
-	balanceIsoDate,
+	addDaysToIsoDate,
 	compareIsoDate,
 	createIsoDateRecord,
 	createTemporalDate,
@@ -39,6 +50,7 @@ import {
 	isValidTime,
 	midnightTimeRecord,
 	regulateTime,
+	roundTime,
 	toTimeRecordOrMidnight,
 	type TimeRecord,
 } from "./PlainTime.ts";
@@ -176,10 +188,13 @@ export function balanceIsoDateTime(
 	nanosecond: number,
 ): IsoDateTimeRecord {
 	const balancedTime = balanceTime(hour, minute, second, milliseond, microsecond, nanosecond);
-	return combineIsoDateAndTimeRecord(balanceIsoDate(year, month, day + balancedTime.$days), {
-		...balancedTime,
-		$days: 0,
-	});
+	return combineIsoDateAndTimeRecord(
+		addDaysToIsoDate(createIsoDateRecord(year, month, day), balancedTime.$days),
+		{
+			...balancedTime,
+			$days: 0,
+		},
+	);
 }
 
 /** `CreateTemporalDateTime` */
@@ -205,6 +220,20 @@ function compareIsoDateTime(
 		compareIsoDate(isoDateTime1.$isoDate, isoDateTime2.$isoDate) ||
 		compareTimeRecord(isoDateTime1.$time, isoDateTime2.$time)
 	);
+}
+
+/** `RoundISODateTime` */
+export function roundIsoDateTime(
+	isoDateTime: IsoDateTimeRecord,
+	increment: number,
+	unit: SingularUnitKey,
+	roundingMode: RoundingMode,
+): IsoDateTimeRecord {
+	const time = roundTime(isoDateTime.$time, increment, unit, roundingMode);
+	return combineIsoDateAndTimeRecord(addDaysToIsoDate(isoDateTime.$isoDate, time.$days), {
+		...time,
+		$days: 0,
+	});
 }
 
 function createPlainDateTimeSlot(
@@ -386,7 +415,28 @@ export class PlainDateTime {
 	subtract() {}
 	until() {}
 	since() {}
-	round() {}
+	round(roundTo: unknown) {
+		const slot = getInternalSlotOrThrowForPlainDateTime(this);
+		const roundToOptions = getRoundToOptionsObject(roundTo);
+		const roundingIncrement = getRoundingIncrementOption(roundToOptions);
+		const roundingMode = getRoundingModeOption(roundToOptions, "halfExpand");
+		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", required);
+		validateTemporalUnitValue(smallestUnit, time, ["day"]);
+		const maximum =
+			smallestUnit === "day"
+				? 1
+				: maximumTemporalDurationRoundingIncrement(smallestUnit as SingularUnitKey)!;
+		validateTemporalRoundingIncrement(roundingIncrement, maximum, smallestUnit === "day");
+		return createTemporalDateTime(
+			roundIsoDateTime(
+				slot.$isoDateTime,
+				roundingIncrement,
+				smallestUnit as SingularUnitKey,
+				roundingMode,
+			),
+			slot.$calendar,
+		);
+	}
 	equals(other: unknown) {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);
 		const otherSlot = getInternalSlotOrThrowForPlainDateTime(toTemporalDateTime(other));
