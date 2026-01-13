@@ -4,16 +4,18 @@ import {
 	nanosecondsPerMinute,
 } from "./constants.ts";
 
-export const unitYear = 0;
-export const unitMonth = 1;
-export const unitWeek = 2;
-export const unitDay = 3;
-export const unitHour = 4;
-export const unitMinute = 5;
-export const unitSecond = 6;
-export const unitMillisecond = 7;
-export const unitMicrosecond = 8;
-export const unitNanosecond = 9;
+export const unitIndices = {
+	$year: 0,
+	$month: 1,
+	$week: 2,
+	$day: 3,
+	$hour: 4,
+	$minute: 5,
+	$second: 6,
+	$millisecond: 7,
+	$microsecond: 8,
+	$nanosecond: 9,
+} as const;
 export type Unit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 export const singularUnitKeys = [

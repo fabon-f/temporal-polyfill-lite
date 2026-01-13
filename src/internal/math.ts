@@ -1,3 +1,5 @@
+import { toIntegerWithTruncation } from "./ecmascript.ts";
+
 // without `-0` quirks
 export type NumberSign = -1 | 0 | 1;
 
@@ -25,4 +27,17 @@ export function clamp(num: number, min: number, max: number) {
 
 export function isWithin(num: number, min: number, max: number) {
 	return num >= min && num <= max;
+}
+
+export function truncateDigits(num: number, digits: number): number {
+	return (
+		(Number.isSafeInteger(num)
+			? Math.trunc(num / Math.pow(10, digits))
+			: (num < 0 ? -1 : 1) *
+				toIntegerWithTruncation(
+					Math.abs(num)
+						.toPrecision(50)
+						.replace(/^\d+/, (d) => d.slice(0, -digits)),
+				)) + 0
+	);
 }

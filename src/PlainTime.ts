@@ -29,9 +29,7 @@ import {
 import {
 	singularUnitKeys,
 	timeUnitLengths,
-	unitDay,
-	unitHour,
-	unitNanosecond,
+	unitIndices,
 	type SingularUnitKey,
 } from "./internal/unit.ts";
 import { clamp, compare, divFloor, isWithin, modFloor, type NumberSign } from "./internal/math.ts";
@@ -288,20 +286,24 @@ function roundTime(
 		time.$nanosecond,
 	];
 	let quantity = 0;
-	for (let i = unitIndex === unitDay ? unitHour : unitIndex; i <= unitNanosecond; i++) {
+	for (
+		let i = unitIndex === unitIndices.$day ? unitIndices.$hour : unitIndex;
+		i <= unitIndices.$nanosecond;
+		i++
+	) {
 		quantity += timeUnitLengths[i - 3]! * values[i - 4]!;
 	}
 	const unitLength = timeUnitLengths[unitIndex - 3]!;
 	const result =
 		roundNumberToIncrement(quantity, increment * unitLength, roundingMode) / unitLength;
-	if (unitIndex === unitDay) {
+	if (unitIndex === unitIndices.$day) {
 		return createTimeRecord(0, 0, 0, 0, 0, 0, result);
 	}
 	return balanceTime(
 		// @ts-expect-error
-		...values.slice(0, unitIndex - unitHour),
+		...values.slice(0, unitIndex - unitIndices.$hour),
 		result,
-		...Array.from({ length: unitNanosecond - unitIndex }, () => 0),
+		...Array.from({ length: unitIndices.$nanosecond - unitIndex }, () => 0),
 	);
 }
 
