@@ -84,6 +84,7 @@ import {
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
 import type { SingularUnitKey } from "./internal/unit.ts";
+import { notImplementedYet } from "./internal/utils.ts";
 import {
 	addDaysToIsoDate,
 	createIsoDateRecord,
@@ -627,10 +628,18 @@ export class ZonedDateTime {
 			toTemporalCalendarIdentifier(calendarLike),
 		);
 	}
-	add() {}
-	subtract() {}
-	until() {}
-	since() {}
+	add() {
+		notImplementedYet();
+	}
+	subtract() {
+		notImplementedYet();
+	}
+	until() {
+		notImplementedYet();
+	}
+	since() {
+		notImplementedYet();
+	}
 	round(roundTo: unknown) {
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
 		const roundToOptions = getRoundToOptionsObject(roundTo);
@@ -702,13 +711,17 @@ export class ZonedDateTime {
 			calendarEquals(slot.$calendar, otherSlot.$calendar)
 		);
 	}
-	toString() {}
+	toString() {
+		notImplementedYet();
+	}
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
 		// TODO
 		return "";
 	}
-	toJSON() {}
+	toJSON() {
+		notImplementedYet();
+	}
 	valueOf() {
 		throw new TypeError();
 	}

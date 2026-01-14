@@ -41,6 +41,7 @@ import {
 	getStartOfDay,
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
+import { notImplementedYet } from "./internal/utils.ts";
 import {
 	combineIsoDateAndTimeRecord,
 	createTemporalDateTime,
@@ -328,8 +329,12 @@ export class PlainDate {
 			slot.$calendar,
 		);
 	}
-	add() {}
-	subtract() {}
+	add() {
+		notImplementedYet();
+	}
+	subtract() {
+		notImplementedYet();
+	}
 	with(temporalDateLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainDate(this);
 		if (!isPartialTemporalObject(temporalDateLike)) {
@@ -357,8 +362,12 @@ export class PlainDate {
 			toTemporalCalendarIdentifier(calendarLike),
 		);
 	}
-	until() {}
-	since() {}
+	until() {
+		notImplementedYet();
+	}
+	since() {
+		notImplementedYet();
+	}
 	equals(other: unknown) {
 		return !compareIsoDate(
 			getInternalSlotOrThrowForPlainDate(this).$isoDate,

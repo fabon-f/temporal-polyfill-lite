@@ -8,3 +8,7 @@ export function mapUnlessUndefined<T, R>(
 export function unreachable(_: never): never {
 	throw new Error();
 }
+
+export function notImplementedYet() {
+	throw new Error();
+}

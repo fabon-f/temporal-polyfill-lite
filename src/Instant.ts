@@ -49,6 +49,7 @@ import {
 	timeUnitLengths,
 	type SingularUnitKey,
 } from "./internal/unit.ts";
+import { notImplementedYet } from "./internal/utils.ts";
 import { balanceIsoDateTime, isoDateTimeToString } from "./PlainDateTime.ts";
 import { midnightTimeRecord } from "./PlainTime.ts";
 import {
@@ -224,10 +225,18 @@ export class Instant {
 			getInternalSlotOrThrowForInstant(this).$epochNanoseconds,
 		);
 	}
-	add() {}
-	subtract() {}
-	until() {}
-	since() {}
+	add() {
+		notImplementedYet();
+	}
+	subtract() {
+		notImplementedYet();
+	}
+	until() {
+		notImplementedYet();
+	}
+	since() {
+		notImplementedYet();
+	}
 	round(roundTo: unknown) {
 		const slot = getInternalSlotOrThrowForInstant(this);
 		const roundToOptions = getRoundToOptionsObject(roundTo);

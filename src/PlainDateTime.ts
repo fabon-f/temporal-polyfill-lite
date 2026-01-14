@@ -53,6 +53,7 @@ import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { ToZeroPaddedDecimalString } from "./internal/string.ts";
 import { getEpochNanosecondsFor, toTemporalTimeZoneIdentifier } from "./internal/timeZones.ts";
 import type { SingularUnitKey } from "./internal/unit.ts";
+import { notImplementedYet } from "./internal/utils.ts";
 import {
 	addDaysToIsoDate,
 	compareIsoDate,
@@ -489,10 +490,18 @@ export class PlainDateTime {
 			toTemporalCalendarIdentifier(calendarLike),
 		);
 	}
-	add() {}
-	subtract() {}
-	until() {}
-	since() {}
+	add() {
+		notImplementedYet();
+	}
+	subtract() {
+		notImplementedYet();
+	}
+	until() {
+		notImplementedYet();
+	}
+	since() {
+		notImplementedYet();
+	}
 	round(roundTo: unknown) {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);
 		const roundToOptions = getRoundToOptionsObject(roundTo);

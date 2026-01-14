@@ -49,6 +49,7 @@ import {
 	isZonedDateTime,
 } from "./ZonedDateTime.ts";
 import { calendarFieldKeys } from "./internal/calendars.ts";
+import { notImplementedYet } from "./internal/utils.ts";
 
 export interface TimeRecord {
 	$hour: number;
@@ -402,8 +403,12 @@ export class PlainTime {
 		const slot = getInternalSlotOrThrowForPlainTime(this);
 		return slot.$nanosecond;
 	}
-	add() {}
-	subtract() {}
+	add() {
+		notImplementedYet();
+	}
+	subtract() {
+		notImplementedYet();
+	}
 	with(temporalTimeLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainTime(this);
 		if (!isPartialTemporalObject(temporalTimeLike)) {
@@ -423,8 +428,12 @@ export class PlainTime {
 			),
 		);
 	}
-	until() {}
-	since() {}
+	until() {
+		notImplementedYet();
+	}
+	since() {
+		notImplementedYet();
+	}
 	round(roundTo: unknown) {
 		const slot = getInternalSlotOrThrowForPlainTime(this);
 		const roundToOptions = getRoundToOptionsObject(roundTo);

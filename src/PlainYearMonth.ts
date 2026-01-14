@@ -28,6 +28,7 @@ import { isWithin } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { ToZeroPaddedDecimalString } from "./internal/string.ts";
+import { notImplementedYet } from "./internal/utils.ts";
 import {
 	compareIsoDate,
 	createIsoDateRecord,
@@ -249,10 +250,18 @@ export class PlainYearMonth {
 			slot.$calendar,
 		);
 	}
-	add() {}
-	subtract() {}
-	until() {}
-	since() {}
+	add() {
+		notImplementedYet();
+	}
+	subtract() {
+		notImplementedYet();
+	}
+	until() {
+		notImplementedYet();
+	}
+	since() {
+		notImplementedYet();
+	}
 	equals(other: unknown) {
 		const slot = getInternalSlotOrThrowForPlainYearMonth(this);
 		const otherSlot = getInternalSlotOrThrowForPlainYearMonth(toTemporalYearMonth(other));

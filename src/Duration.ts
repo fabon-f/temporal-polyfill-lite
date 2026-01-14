@@ -16,7 +16,7 @@ import {
 	unitIndices,
 	type SingularUnitKey,
 } from "./internal/unit.ts";
-import { mapUnlessUndefined } from "./internal/utils.ts";
+import { mapUnlessUndefined, notImplementedYet } from "./internal/utils.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 
@@ -261,7 +261,9 @@ export class Duration {
 	static from(item: unknown) {
 		return createTemporalDuration(toTemporalDuration(item));
 	}
-	static compare() {}
+	static compare() {
+		notImplementedYet();
+	}
 	get years() {
 		return getInternalSlotOrThrowForDuration(this)[unitIndices.$year];
 	}
@@ -320,12 +322,24 @@ export class Duration {
 			),
 		);
 	}
-	add() {}
-	subtract() {}
-	round() {}
-	total() {}
-	toString() {}
-	toJSON() {}
+	add() {
+		notImplementedYet();
+	}
+	subtract() {
+		notImplementedYet();
+	}
+	round() {
+		notImplementedYet();
+	}
+	total() {
+		notImplementedYet();
+	}
+	toString() {
+		notImplementedYet();
+	}
+	toJSON() {
+		notImplementedYet();
+	}
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForDuration(this);
 		// TODO
