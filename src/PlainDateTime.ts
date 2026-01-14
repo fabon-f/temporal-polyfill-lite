@@ -28,7 +28,7 @@ import {
 } from "./internal/ecmascript.ts";
 import { required, startOfDay, time, type Overflow, type RoundingMode } from "./internal/enum.ts";
 import type { NumberSign } from "./internal/math.ts";
-import { createNullPrototypeObject, isObject } from "./internal/object.ts";
+import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { getEpochNanosecondsFor, toTemporalTimeZoneIdentifier } from "./internal/timeZones.ts";
 import type { SingularUnitKey } from "./internal/unit.ts";

@@ -1,5 +1,14 @@
-import type { IsoDateRecord } from "../PlainDate.ts";
-import type { IsoDateTimeRecord } from "../PlainDateTime.ts";
+import { isPlainDate, type IsoDateRecord } from "../PlainDate.ts";
+import { isPlainDateTime, type IsoDateTimeRecord } from "../PlainDateTime.ts";
+import { isPlainMonthDay } from "../PlainMonthDay.ts";
+import { isPlainTime } from "../PlainTime.ts";
+import { isPlainYearMonth } from "../PlainYearMonth.ts";
+import { isZonedDateTime } from "../ZonedDateTime.ts";
+import {
+	calendarIsoToDate,
+	type CalendarFieldsRecord,
+	type SupportedCalendars,
+} from "./calendars.ts";
 import { daysPer400Years, millisecondsPerDay } from "./constants.ts";
 import {
 	isTimeZoneIdentifier,
@@ -20,6 +29,7 @@ import {
 	disambiguationEarlier,
 	disambiguationLater,
 	disambiguationReject,
+	monthDay,
 	offsetIgnore,
 	offsetPrefer,
 	offsetReject,
@@ -37,6 +47,7 @@ import {
 	roundingModeHalfTrunc,
 	roundingModeTrunc,
 	time,
+	yearMonth,
 	type Disambiguation,
 	type Offset,
 	type Overflow,
@@ -48,6 +59,7 @@ import {
 	type EpochNanoseconds,
 } from "./epochNanoseconds.ts";
 import { divFloor, modFloor } from "./math.ts";
+import { isObject } from "./object.ts";
 import {
 	roundExpand,
 	roundHalfCeil,
@@ -192,6 +204,23 @@ export function maximumTemporalDurationRoundingIncrement(unit: SingularUnitKey) 
 	}[unit];
 }
 
+/** `IsPartialTemporalObject` */
+export function isPartialTemporalObject(value: unknown): boolean {
+	return (
+		isObject(value) &&
+		!(
+			isPlainDate(value) ||
+			isPlainDateTime(value) ||
+			isPlainMonthDay(value) ||
+			isPlainTime(value) ||
+			isPlainYearMonth(value) ||
+			isZonedDateTime(value)
+		) &&
+		(value as Record<string, unknown>)["calendar"] === undefined &&
+		(value as Record<string, unknown>)["timeZone"] === undefined
+	);
+}
+
 const roundingFunctions: Record<RoundingMode, (num: number) => number> = {
 	[roundingModeCeil]: Math.ceil,
 	[roundingModeFloor]: Math.floor,
@@ -204,9 +233,30 @@ const roundingFunctions: Record<RoundingMode, (num: number) => number> = {
 	[roundingModeHalfEven]: roundHalfEven,
 };
 
+const roundingFunctionsAsIfPositive: Record<RoundingMode, (num: number) => number> = {
+	[roundingModeCeil]: Math.ceil,
+	[roundingModeFloor]: Math.floor,
+	[roundingModeExpand]: Math.ceil,
+	[roundingModeTrunc]: Math.floor,
+	[roundingModeHalfCeil]: roundHalfCeil,
+	[roundingModeHalfFloor]: roundHalfFloor,
+	[roundingModeHalfExpand]: roundHalfCeil,
+	[roundingModeHalfTrunc]: roundHalfFloor,
+	[roundingModeHalfEven]: roundHalfEven,
+};
+
 /** `RoundNumberToIncrement` */
 export function roundNumberToIncrement(x: number, increment: number, roundingMode: RoundingMode) {
 	return roundingFunctions[roundingMode](x / increment) * increment;
+}
+
+/** `RoundNumberToIncrementAsIfPositive` */
+export function roundNumberToIncrementAsIfPositive(
+	x: number,
+	increment: number,
+	roundingMode: RoundingMode,
+): number {
+	return roundingFunctionsAsIfPositive[roundingMode](x / increment) * increment;
 }
 
 /** `GetRoundingModeOption` */
@@ -268,6 +318,20 @@ export function toOffsetString(arg: unknown): string {
 	}
 	parseDateTimeUtcOffset(offset);
 	return offset;
+}
+
+/** `ISODateToFields` */
+export function isoDateToFields(
+	calendar: SupportedCalendars,
+	isoDate: IsoDateRecord,
+	type: typeof date | typeof yearMonth | typeof monthDay,
+): CalendarFieldsRecord {
+	const date = calendarIsoToDate(calendar, isoDate);
+	return {
+		year: type === monthDay ? undefined : date.$year,
+		monthCode: date.$monthCode,
+		day: type === yearMonth ? undefined : date.$day,
+	};
 }
 
 /** `GetUTCEpochNanoseconds` */

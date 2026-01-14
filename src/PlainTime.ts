@@ -34,7 +34,7 @@ import {
 	type SingularUnitKey,
 } from "./internal/unit.ts";
 import { clamp, compare, divFloor, isWithin, modFloor, type NumberSign } from "./internal/math.ts";
-import { createNullPrototypeObject, isObject } from "./internal/object.ts";
+import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { getInternalSlotOrThrowForPlainDateTime, isPlainDateTime } from "./PlainDateTime.ts";
 import {
@@ -320,7 +320,7 @@ export function getInternalSlotOrThrowForPlainTime(plainTime: unknown): PlainTim
 	return slot;
 }
 
-function isPlainTime(item: unknown) {
+export function isPlainTime(item: unknown) {
 	return slots.has(item);
 }
 

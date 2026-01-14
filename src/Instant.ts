@@ -1,22 +1,47 @@
-import { getUtcEpochNanoseconds } from "./internal/abstractOperations.ts";
+import {
+	getRoundingIncrementOption,
+	getRoundingModeOption,
+	getTemporalUnitValuedOption,
+	getUtcEpochNanoseconds,
+	validateTemporalRoundingIncrement,
+	validateTemporalUnitValue,
+} from "./internal/abstractOperations.ts";
 import {
 	parseDateTimeUtcOffset,
 	parseIsoDateTime,
 	temporalInstantStringRegExp,
 } from "./internal/dateTimeParser.ts";
-import { toBigInt, toIntegerIfIntegral, ToPrimitive } from "./internal/ecmascript.ts";
-import { startOfDay } from "./internal/enum.ts";
+import {
+	getRoundToOptionsObject,
+	toBigInt,
+	toIntegerIfIntegral,
+	ToPrimitive,
+} from "./internal/ecmascript.ts";
+import {
+	required,
+	roundingModeHalfExpand,
+	startOfDay,
+	time,
+	type RoundingMode,
+} from "./internal/enum.ts";
 import {
 	compareEpochNanoseconds,
 	convertEpochNanosecondsToBigInt,
 	createEpochNanosecondsFromBigInt,
 	createEpochNanosecondsFromEpochMilliseconds,
 	epochMilliseconds,
+	roundEpochNanoseconds,
 	type EpochNanoseconds,
 } from "./internal/epochNanoseconds.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toTemporalTimeZoneIdentifier } from "./internal/timeZones.ts";
+import {
+	nanosecondsForTimeUnit,
+	singularUnitKeys,
+	timeUnitLengths,
+	type SingularUnitKey,
+} from "./internal/unit.ts";
 import { isoDateWithinLimits } from "./PlainDate.ts";
 import { balanceIsoDateTime } from "./PlainDateTime.ts";
 import { midnightTimeRecord } from "./PlainTime.ts";
@@ -94,6 +119,16 @@ function toTemporalInstant(item: unknown): Instant {
 	return createTemporalInstant(epoch);
 }
 
+/** `RoundTemporalInstant` */
+function roundTemporalInstant(
+	ns: EpochNanoseconds,
+	increment: number,
+	unit: SingularUnitKey,
+	roundingMode: RoundingMode,
+): EpochNanoseconds {
+	return roundEpochNanoseconds(ns, increment * nanosecondsForTimeUnit(unit), roundingMode);
+}
+
 function getInternalSlotForInstant(instant: unknown): InstantSlot | undefined {
 	return slots.get(instant);
 }
@@ -160,7 +195,25 @@ export class Instant {
 	subtract() {}
 	until() {}
 	since() {}
-	round() {}
+	round(roundTo: unknown) {
+		const slot = getInternalSlotOrThrowForInstant(this);
+		const roundToOptions = getRoundToOptionsObject(roundTo);
+		const roundingIncrement = getRoundingIncrementOption(roundToOptions);
+		const roundingMode = getRoundingModeOption(roundToOptions, roundingModeHalfExpand);
+		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", required);
+		validateTemporalUnitValue(smallestUnit, time);
+		singularUnitKeys.indexOf(smallestUnit as SingularUnitKey);
+		const maximum = timeUnitLengths[0] / nanosecondsForTimeUnit(smallestUnit as SingularUnitKey);
+		validateTemporalRoundingIncrement(roundingIncrement, maximum, true);
+		return createTemporalInstant(
+			roundTemporalInstant(
+				slot.$epochNanoseconds,
+				roundingIncrement,
+				smallestUnit as SingularUnitKey,
+				roundingMode,
+			),
+		);
+	}
 	equals(other: unknown) {
 		return !compareEpochNanoseconds(
 			getInternalSlotOrThrowForInstant(this).$epochNanoseconds,

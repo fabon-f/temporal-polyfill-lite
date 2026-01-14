@@ -24,7 +24,7 @@ import {
 	type CalendarDateRecord,
 	type SupportedCalendars,
 } from "./internal/calendars.ts";
-import { nanosecondsPerHour } from "./internal/constants.ts";
+import { nanosecondsPerHour, nanosecondsPerMinute } from "./internal/constants.ts";
 import {
 	hasUtcOffsetSubMinuteParts,
 	parseDateTimeUtcOffset,
@@ -43,6 +43,7 @@ import {
 	offsetUse,
 	overflowReject,
 	required,
+	roundingModeHalfExpand,
 	startOfDay,
 	time,
 	type Disambiguation,
@@ -160,8 +161,12 @@ function interpretISODateTimeOffset(
 		if (candidateOffset === offsetNanoseconds) {
 			return candidate;
 		}
-		if (!matchExactly) {
-			// TODO
+		if (
+			!matchExactly &&
+			roundNumberToIncrement(candidateOffset, nanosecondsPerMinute, roundingModeHalfExpand) ===
+				offsetNanoseconds
+		) {
+			return candidate;
 		}
 	}
 	if (offsetOption === offsetReject) {

@@ -54,3 +54,7 @@ export const timeUnitLengths = [
 	1e3,
 	1,
 ] as [number, number, number, number, number, number, number];
+
+export function nanosecondsForTimeUnit(unit: SingularUnitKey): number {
+	return timeUnitLengths[singularUnitKeys.indexOf(unit) - 3]!;
+}
