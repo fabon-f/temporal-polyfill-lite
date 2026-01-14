@@ -8,9 +8,15 @@ import {
 } from "../PlainDateTime.ts";
 import { midnightTimeRecord } from "../PlainTime.ts";
 import { getInternalSlotOrThrowForZonedDateTime, isZonedDateTime } from "../ZonedDateTime.ts";
-import { getUtcEpochNanoseconds, parseTemporalTimeZoneString } from "./abstractOperations.ts";
+import {
+	checkIsoDaysRange,
+	formatTimeString,
+	getUtcEpochNanoseconds,
+	parseTemporalTimeZoneString,
+} from "./abstractOperations.ts";
 import {
 	millisecondsPerDay,
+	nanosecondsPerHour,
 	nanosecondsPerMilliseconds,
 	nanosecondsPerMinute,
 	secondsPerDay,
@@ -21,6 +27,7 @@ import {
 	disambiguationCompatible,
 	disambiguationLater,
 	disambiguationReject,
+	MINUTE,
 	type Disambiguation,
 } from "./enum.ts";
 import {
@@ -31,12 +38,7 @@ import {
 	type EpochNanoseconds,
 } from "./epochNanoseconds.ts";
 import { clamp, divFloor, modFloor } from "./math.ts";
-import {
-	asciiCapitalize,
-	asciiLowerCase,
-	asciiUpperCase,
-	ToZeroPaddedDecimalString,
-} from "./string.ts";
+import { asciiCapitalize, asciiLowerCase, asciiUpperCase } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
 
 const intlCache = Object.create(null) as Record<string, Intl.DateTimeFormat>;
@@ -226,13 +228,27 @@ export function getAvailableNamedTimeZoneIdentifier(timeZone: string) {
 /** `FormatOffsetTimeZoneIdentifier` */
 export function formatOffsetTimeZoneIdentifier(offsetMinutes: number) {
 	const abs = Math.abs(offsetMinutes);
-	return `${offsetMinutes < 0 ? "-" : "+"}${ToZeroPaddedDecimalString(divFloor(abs, 60), 2)}:${ToZeroPaddedDecimalString(modFloor(abs, 60), 2)}`;
+	return (
+		(offsetMinutes < 0 ? "-" : "+") +
+		formatTimeString(divFloor(abs, 60), modFloor(abs, 60), 0, 0, MINUTE)
+	);
 }
 
 /** `FormatUTCOffsetNanoseconds` */
 export function formatUtcOffsetNanoseconds(offsetNanoseconds: number): string {
-	// TODO
-	return formatOffsetTimeZoneIdentifier(Math.trunc(offsetNanoseconds / nanosecondsPerMinute));
+	const abs = Math.abs(offsetNanoseconds);
+	const second = modFloor(divFloor(offsetNanoseconds, 1e9), 60);
+	const nanosecond = modFloor(offsetNanoseconds, 1e9);
+	return (
+		(offsetNanoseconds < 0 ? "-" : "+") +
+		formatTimeString(
+			divFloor(abs, nanosecondsPerHour),
+			modFloor(divFloor(abs, nanosecondsPerMinute), 60),
+			second,
+			nanosecond,
+			second === 0 && nanosecond === 0 ? MINUTE : undefined,
+		)
+	);
 }
 
 /** `ToTemporalTimeZoneIdentifier` */
@@ -324,22 +340,19 @@ export function getPossibleEpochNanoseconds(
 	let possibleEpochNanoseconds: EpochNanoseconds[];
 	const parsedTimeZone = parseTimeZoneIdentifier(timeZone);
 	if (parsedTimeZone.$offsetMinutes !== undefined) {
-		// skip `CheckISODaysRange`
-		possibleEpochNanoseconds = [
-			getUtcEpochNanoseconds(
-				balanceIsoDateTime(
-					isoDateTime.$isoDate.$year,
-					isoDateTime.$isoDate.$month,
-					isoDateTime.$isoDate.$day,
-					isoDateTime.$time.$hour,
-					isoDateTime.$time.$minute - parsedTimeZone.$offsetMinutes,
-					isoDateTime.$time.$second,
-					isoDateTime.$time.$millisecond,
-					isoDateTime.$time.$microsecond,
-					isoDateTime.$time.$nanosecond,
-				),
-			),
-		];
+		const balanced = balanceIsoDateTime(
+			isoDateTime.$isoDate.$year,
+			isoDateTime.$isoDate.$month,
+			isoDateTime.$isoDate.$day,
+			isoDateTime.$time.$hour,
+			isoDateTime.$time.$minute - parsedTimeZone.$offsetMinutes,
+			isoDateTime.$time.$second,
+			isoDateTime.$time.$millisecond,
+			isoDateTime.$time.$microsecond,
+			isoDateTime.$time.$nanosecond,
+		);
+		checkIsoDaysRange(balanced.$isoDate);
+		possibleEpochNanoseconds = [getUtcEpochNanoseconds(balanced)];
 	} else {
 		possibleEpochNanoseconds = getNamedTimeZoneEpochNanoseconds(
 			parsedTimeZone.$name,

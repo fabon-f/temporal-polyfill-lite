@@ -326,7 +326,11 @@ export class Duration {
 	total() {}
 	toString() {}
 	toJSON() {}
-	toLocaleString() {}
+	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
+		const slot = getInternalSlotOrThrowForDuration(this);
+		// TODO
+		return "";
+	}
 	valueOf() {
 		throw new TypeError();
 	}

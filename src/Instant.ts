@@ -1,8 +1,11 @@
 import {
+	checkIsoDaysRange,
 	getRoundingIncrementOption,
 	getRoundingModeOption,
+	getTemporalFractionalSecondDigitsOption,
 	getTemporalUnitValuedOption,
 	getUtcEpochNanoseconds,
+	toSecondsStringPrecisionRecord,
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
@@ -12,16 +15,20 @@ import {
 	temporalInstantStringRegExp,
 } from "./internal/dateTimeParser.ts";
 import {
+	getOptionsObject,
 	getRoundToOptionsObject,
 	toBigInt,
 	toIntegerIfIntegral,
 	ToPrimitive,
 } from "./internal/ecmascript.ts";
 import {
-	required,
+	MINUTE,
+	REQUIRED,
 	roundingModeHalfExpand,
-	startOfDay,
-	time,
+	roundingModeTrunc,
+	showCalendarName,
+	START_OF_DAY,
+	TIME,
 	type RoundingMode,
 } from "./internal/enum.ts";
 import {
@@ -35,17 +42,22 @@ import {
 } from "./internal/epochNanoseconds.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
-import { toTemporalTimeZoneIdentifier } from "./internal/timeZones.ts";
+import { formatUtcOffsetNanoseconds, toTemporalTimeZoneIdentifier } from "./internal/timeZones.ts";
 import {
 	nanosecondsForTimeUnit,
 	singularUnitKeys,
 	timeUnitLengths,
 	type SingularUnitKey,
 } from "./internal/unit.ts";
-import { isoDateWithinLimits } from "./PlainDate.ts";
-import { balanceIsoDateTime } from "./PlainDateTime.ts";
+import { balanceIsoDateTime, isoDateTimeToString } from "./PlainDateTime.ts";
 import { midnightTimeRecord } from "./PlainTime.ts";
-import { createTemporalZonedDateTime, getInternalSlotForZonedDateTime } from "./ZonedDateTime.ts";
+import {
+	createTemporalZonedDateTime,
+	createZonedDateTimeSlot,
+	getInternalSlotForZonedDateTime,
+	getIsoDateTimeForZonedDateTimeSlot,
+	getOffsetNanosecondsForZonedDateTimeSlot,
+} from "./ZonedDateTime.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 
@@ -97,7 +109,7 @@ function toTemporalInstant(item: unknown): Instant {
 	const offsetNanoseconds = parsed.$timeZone.$z
 		? 0
 		: parseDateTimeUtcOffset(parsed.$timeZone.$offsetString!);
-	const time = parsed.$time === startOfDay ? midnightTimeRecord() : parsed.$time;
+	const time = parsed.$time === START_OF_DAY ? midnightTimeRecord() : parsed.$time;
 	const balanced = balanceIsoDateTime(
 		parsed.$year!,
 		parsed.$month,
@@ -109,9 +121,7 @@ function toTemporalInstant(item: unknown): Instant {
 		time.$microsecond,
 		time.$nanosecond - offsetNanoseconds,
 	);
-	if (!isoDateWithinLimits(balanced.$isoDate)) {
-		throw new RangeError();
-	}
+	checkIsoDaysRange(balanced.$isoDate);
 	const epoch = getUtcEpochNanoseconds(balanced);
 	if (!isValidEpochNanoseconds(epoch)) {
 		throw new RangeError();
@@ -127,6 +137,29 @@ function roundTemporalInstant(
 	roundingMode: RoundingMode,
 ): EpochNanoseconds {
 	return roundEpochNanoseconds(ns, increment * nanosecondsForTimeUnit(unit), roundingMode);
+}
+
+/** `TemporalInstantToString` */
+function temporalInstantToString(
+	epoch: EpochNanoseconds,
+	timeZone: string | undefined,
+	precision?: number | typeof MINUTE,
+) {
+	const outputTimeZone = timeZone === undefined ? "UTC" : timeZone;
+	const temporaryZonedDateTimeSlot = createZonedDateTimeSlot(epoch, outputTimeZone, "iso8601");
+	return (
+		isoDateTimeToString(
+			getIsoDateTimeForZonedDateTimeSlot(temporaryZonedDateTimeSlot),
+			"iso8601",
+			precision,
+			showCalendarName.$never,
+		) +
+		(timeZone === undefined
+			? "Z"
+			: formatUtcOffsetNanoseconds(
+					getOffsetNanosecondsForZonedDateTimeSlot(temporaryZonedDateTimeSlot),
+				))
+	);
 }
 
 function getInternalSlotForInstant(instant: unknown): InstantSlot | undefined {
@@ -200,8 +233,8 @@ export class Instant {
 		const roundToOptions = getRoundToOptionsObject(roundTo);
 		const roundingIncrement = getRoundingIncrementOption(roundToOptions);
 		const roundingMode = getRoundingModeOption(roundToOptions, roundingModeHalfExpand);
-		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", required);
-		validateTemporalUnitValue(smallestUnit, time);
+		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", REQUIRED);
+		validateTemporalUnitValue(smallestUnit, TIME);
 		singularUnitKeys.indexOf(smallestUnit as SingularUnitKey);
 		const maximum = timeUnitLengths[0] / nanosecondsForTimeUnit(smallestUnit as SingularUnitKey);
 		validateTemporalRoundingIncrement(roundingIncrement, maximum, true);
@@ -220,9 +253,45 @@ export class Instant {
 			getInternalSlotOrThrowForInstant(toTemporalInstant(other)).$epochNanoseconds,
 		);
 	}
-	toString() {}
-	toLocaleString() {}
-	toJSON() {}
+	toString(options: unknown = undefined) {
+		let timeZone: string | undefined;
+		const slot = getInternalSlotOrThrowForInstant(this);
+		const resolvedOptions = getOptionsObject(options);
+		const digits = getTemporalFractionalSecondDigitsOption(resolvedOptions);
+		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
+		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
+		const rawTz = (resolvedOptions as Record<string, unknown>)["timeZone"];
+		validateTemporalUnitValue(smallestUnit, TIME);
+		if (smallestUnit === "hour") {
+			throw new RangeError();
+		}
+		if (rawTz !== undefined) {
+			timeZone = toTemporalTimeZoneIdentifier(rawTz);
+		}
+		const precisionRecord = toSecondsStringPrecisionRecord(smallestUnit as SingularUnitKey, digits);
+		// `createTemporalInstant` doesn't do any validations, so we can directly pass epoch to `TemporalInstantToString`
+		return temporalInstantToString(
+			roundTemporalInstant(
+				slot.$epochNanoseconds,
+				precisionRecord.$increment,
+				precisionRecord.$unit,
+				roundingMode,
+			),
+			timeZone,
+			precisionRecord.$precision,
+		);
+	}
+	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
+		const slot = getInternalSlotOrThrowForInstant(this);
+		// TODO
+		return "";
+	}
+	toJSON() {
+		return temporalInstantToString(
+			getInternalSlotOrThrowForInstant(this).$epochNanoseconds,
+			undefined,
+		);
+	}
 	valueOf() {
 		throw new TypeError();
 	}

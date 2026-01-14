@@ -24,7 +24,14 @@ import {
 	ToPrimitive,
 	toString,
 } from "./ecmascript.ts";
-import { monthDay, yearMonth, date, type Overflow } from "./enum.ts";
+import {
+	MONTH_DAY,
+	YEAR_MONTH,
+	DATE,
+	type Overflow,
+	type ShowCalendarName,
+	showCalendarName,
+} from "./enum.ts";
 import { divFloor, modFloor } from "./math.ts";
 import { asciiLowerCase, ToZeroPaddedDecimalString } from "./string.ts";
 import { toTemporalTimeZoneIdentifier } from "./timeZones.ts";
@@ -267,12 +274,37 @@ export function calendarYearMonthFromFields(
 	overflow: Overflow,
 ) {
 	fields.day = 1;
-	calendarResolveFields(calendar, fields, yearMonth);
+	calendarResolveFields(calendar, fields, YEAR_MONTH);
 	const result = calendarDateToISO(calendar, fields, overflow);
 	if (!isoYearMonthWithinLimits(result)) {
 		throw new RangeError();
 	}
 	return result;
+}
+
+/** `CalendarMonthDayFromFields` */
+export function calendarMonthDayFromFields(
+	calendar: SupportedCalendars,
+	fields: CalendarFieldsRecord,
+	overflow: Overflow,
+): IsoDateRecord {
+	calendarResolveFields(calendar, fields, MONTH_DAY);
+	const result = calendarMonthDayToIsoReferenceDate(calendar, fields, overflow);
+	if (!isoDateWithinLimits(result)) {
+		throw new RangeError();
+	}
+	return result;
+}
+
+/** `FormatCalendarAnnotation` */
+export function formatCalendarAnnotation(id: SupportedCalendars, showCalendar: ShowCalendarName) {
+	if (
+		showCalendar === showCalendarName.$never ||
+		(showCalendar === showCalendarName.$auto && id === "iso8601")
+	) {
+		return "";
+	}
+	return `[${showCalendar === showCalendarName.$critical ? "!" : ""}u-ca=${id}]`;
 }
 
 /** `CalendarEquals` */
@@ -390,6 +422,25 @@ function isoCalendarIsoToDate(isoDate: IsoDateRecord): CalendarDateRecord {
 	};
 }
 
+/** `CalendarMonthDayToISOReferenceDate` */
+function calendarMonthDayToIsoReferenceDate(
+	calendar: SupportedCalendars,
+	fields: CalendarFieldsRecord,
+	overflow: Overflow,
+) {
+	if (calendar === "iso8601" || calendar === "gregory") {
+		const y = fields[calendarFieldKeys.$year];
+		const result = regulateIsoDate(
+			y === undefined ? 1972 : y,
+			fields[calendarFieldKeys.$month]!,
+			fields[calendarFieldKeys.$day]!,
+			overflow,
+		);
+		return createIsoDateRecord(1972, result.$month, result.$day);
+	}
+	unreachable(calendar);
+}
+
 /** `CalendarISOToDate` */
 export function calendarIsoToDate(
 	calendar: SupportedCalendars,
@@ -441,12 +492,12 @@ function calendarFieldKeysToIgnore(calendar: SupportedCalendars, keys: CalendarF
 
 function isoResolveFields(
 	fields: CalendarFieldsRecord,
-	type: typeof date | typeof yearMonth | typeof monthDay,
+	type: typeof DATE | typeof YEAR_MONTH | typeof MONTH_DAY,
 ) {
-	if (type !== monthDay && fields[calendarFieldKeys.$year] === undefined) {
+	if (type !== MONTH_DAY && fields[calendarFieldKeys.$year] === undefined) {
 		throw new TypeError();
 	}
-	if (type !== yearMonth && fields[calendarFieldKeys.$day] === undefined) {
+	if (type !== YEAR_MONTH && fields[calendarFieldKeys.$day] === undefined) {
 		throw new TypeError();
 	}
 	if (
@@ -473,7 +524,7 @@ function isoResolveFields(
 function nonIsoResolveFields(
 	calendar: SupportedNonIsoCalendars,
 	fields: CalendarFieldsRecord,
-	type: typeof date | typeof yearMonth | typeof monthDay = date,
+	type: typeof DATE | typeof YEAR_MONTH | typeof MONTH_DAY = DATE,
 ): void {
 	if (
 		(fields[calendarFieldKeys.$era] === undefined) !==
@@ -509,7 +560,7 @@ function nonIsoResolveFields(
 function calendarResolveFields(
 	calendar: SupportedCalendars,
 	fields: CalendarFieldsRecord,
-	type: typeof date | typeof yearMonth | typeof monthDay = date,
+	type: typeof DATE | typeof YEAR_MONTH | typeof MONTH_DAY = DATE,
 ): void {
 	if (calendar === "iso8601") {
 		isoResolveFields(fields, type);

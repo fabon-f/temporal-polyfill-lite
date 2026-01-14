@@ -23,22 +23,23 @@ import {
 	temporalYearMonthStringRegExp,
 	temporalZonedDateTimeStringRegExp,
 } from "./dateTimeParser.ts";
-import { getOption, toIntegerWithTruncation, ToPrimitive } from "./ecmascript.ts";
+import { getOption, toIntegerWithTruncation, ToPrimitive, toString } from "./ecmascript.ts";
 import {
-	date,
-	dateTime,
+	DATE,
+	DATETIME,
 	disambiguationCompatible,
 	disambiguationEarlier,
 	disambiguationLater,
 	disambiguationReject,
-	monthDay,
+	MINUTE,
+	MONTH_DAY,
 	offsetIgnore,
 	offsetPrefer,
 	offsetReject,
 	offsetUse,
 	overflowConstrain,
 	overflowReject,
-	required,
+	REQUIRED,
 	roundingModeCeil,
 	roundingModeExpand,
 	roundingModeFloor,
@@ -48,19 +49,21 @@ import {
 	roundingModeHalfFloor,
 	roundingModeHalfTrunc,
 	roundingModeTrunc,
-	time,
-	yearMonth,
+	showCalendarName,
+	TIME,
+	YEAR_MONTH,
 	type Disambiguation,
 	type Offset,
 	type Overflow,
 	type RoundingMode,
+	type ShowCalendarName,
 } from "./enum.ts";
 import {
 	addNanosecondsToEpochSeconds,
 	createEpochNanosecondsFromEpochMilliseconds,
 	type EpochNanoseconds,
 } from "./epochNanoseconds.ts";
-import { divFloor, modFloor } from "./math.ts";
+import { divFloor, isWithin, modFloor } from "./math.ts";
 import { isObject } from "./object.ts";
 import {
 	roundExpand,
@@ -70,6 +73,7 @@ import {
 	roundHalfFloor,
 	roundHalfTrunc,
 } from "./rounding.ts";
+import { ToZeroPaddedDecimalString } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
 import { parseTimeZoneIdentifier, type TimeZoneIdentifierParseRecord } from "./timeZones.ts";
 import { pluralUnitKeys, singularUnitKeys, type SingularUnitKey } from "./unit.ts";
@@ -102,6 +106,13 @@ export function mathematicalInLeapYear(year: number): number {
 	return +!(year % (year % 25 ? 4 : 16));
 }
 
+/** `CheckISODaysRange` */
+export function checkIsoDaysRange(isoDate: IsoDateRecord) {
+	if (Math.abs(isoDateToEpochDays(isoDate.$year, isoDate.$month - 1, isoDate.$day)) > 1e8) {
+		throw new RangeError();
+	}
+}
+
 /** `GetTemporalOverflowOption` */
 export function getTemporalOverflowOption(options: object): Overflow {
 	return getOption(
@@ -132,9 +143,24 @@ export function getTemporalOffsetOption(options: object, fallback: Offset): Offs
 	);
 }
 
+/** `GetTemporalShowCalendarNameOption` */
+export function getTemporalShowCalendarNameOption(options: object): ShowCalendarName {
+	return getOption(
+		options,
+		"calendarName",
+		[
+			showCalendarName.$auto,
+			showCalendarName.$always,
+			showCalendarName.$never,
+			showCalendarName.$critical,
+		],
+		showCalendarName.$auto,
+	);
+}
+
 /** `GetDirectionOption` */
 export function getDirectionOption(options: object): "next" | "previous" {
-	return getOption(options, "direction", ["next", "previous"], required);
+	return getOption(options, "direction", ["next", "previous"], REQUIRED);
 }
 
 /** `ValidateTemporalRoundingIncrement` */
@@ -149,11 +175,95 @@ export function validateTemporalRoundingIncrement(
 	}
 }
 
+/** `GetTemporalFractionalSecondDigitsOption` */
+export function getTemporalFractionalSecondDigitsOption(options: object): number | undefined {
+	const digitsValue = (options as Record<string, unknown>)["fractionalSecondDigits"];
+	if (digitsValue === undefined) {
+		return undefined;
+	}
+	if (typeof digitsValue !== "number") {
+		if (toString(digitsValue) !== "auto") {
+			throw new RangeError();
+		}
+		return;
+	}
+	if (!Number.isFinite(digitsValue) || isNaN(digitsValue)) {
+		throw new RangeError();
+	}
+	const digitCount = Math.floor(digitsValue);
+	if (digitCount < 0 || digitCount > 9) {
+		throw new RangeError();
+	}
+	return digitCount;
+}
+
+interface PrecisionRecord {
+	$precision: number | typeof MINUTE | undefined;
+	$unit: SingularUnitKey;
+	$increment: number;
+}
+
+/** `ToSecondsStringPrecisionRecord` */
+export function toSecondsStringPrecisionRecord(
+	smallestUnit: SingularUnitKey | undefined,
+	fractionalDigitCount: number | undefined,
+): PrecisionRecord {
+	if (smallestUnit !== undefined) {
+		return {
+			$precision:
+				smallestUnit === "minute"
+					? MINUTE
+					: smallestUnit === "second"
+						? 0
+						: smallestUnit === "millisecond"
+							? 3
+							: smallestUnit === "microsecond"
+								? 6
+								: 9,
+			$unit: smallestUnit,
+			$increment: 1,
+		};
+	}
+	if (fractionalDigitCount === undefined) {
+		return {
+			$precision: undefined,
+			$unit: "nanosecond",
+			$increment: 1,
+		};
+	}
+	if (fractionalDigitCount === 0) {
+		return {
+			$precision: 0,
+			$unit: "second",
+			$increment: 1,
+		};
+	}
+	if (isWithin(fractionalDigitCount, 1, 3)) {
+		return {
+			$precision: fractionalDigitCount,
+			$unit: "millisecond",
+			$increment: Math.pow(10, 3 - fractionalDigitCount),
+		};
+	}
+	if (isWithin(fractionalDigitCount, 4, 6)) {
+		return {
+			$precision: fractionalDigitCount,
+			$unit: "microsecond",
+			$increment: Math.pow(10, 6 - fractionalDigitCount),
+		};
+	}
+	return {
+		$precision: fractionalDigitCount,
+		$unit: "nanosecond",
+		$increment: Math.pow(10, 9 - fractionalDigitCount),
+	};
+}
+
 /** `GetTemporalUnitValuedOption` */
 export function getTemporalUnitValuedOption(
 	options: object,
 	key: string,
-	defaultValue: typeof required,
+	defaultValue: typeof REQUIRED,
 ): SingularUnitKey | "auto";
 export function getTemporalUnitValuedOption(
 	options: object,
@@ -163,7 +273,7 @@ export function getTemporalUnitValuedOption(
 export function getTemporalUnitValuedOption(
 	options: object,
 	key: string,
-	defaultValue: typeof required | undefined,
+	defaultValue: typeof REQUIRED | undefined,
 ) {
 	const allowedStrings = [...singularUnitKeys, ...pluralUnitKeys, "auto"];
 	return mapUnlessUndefined(getOption(options, key, allowedStrings, defaultValue), (s) =>
@@ -174,7 +284,7 @@ export function getTemporalUnitValuedOption(
 /** `ValidateTemporalUnitValue` */
 export function validateTemporalUnitValue(
 	value: SingularUnitKey | "auto" | undefined,
-	unitGroup: typeof date | typeof time | typeof dateTime,
+	unitGroup: typeof DATE | typeof TIME | typeof DATETIME,
 	extraValues: string[] = [],
 ) {
 	if (value === undefined || extraValues.includes(value)) {
@@ -185,7 +295,7 @@ export function validateTemporalUnitValue(
 	}
 	const index = singularUnitKeys.indexOf(value);
 	const dayIndex = singularUnitKeys.indexOf("day");
-	if ((index <= dayIndex && unitGroup === time) || (index > dayIndex && unitGroup === date)) {
+	if ((index <= dayIndex && unitGroup === TIME) || (index > dayIndex && unitGroup === DATE)) {
 		throw new RangeError();
 	}
 }
@@ -221,6 +331,37 @@ export function isPartialTemporalObject(value: unknown): boolean {
 		(value as Record<string, unknown>)["calendar"] === undefined &&
 		(value as Record<string, unknown>)["timeZone"] === undefined
 	);
+}
+
+/** `FormatFractionalSeconds` */
+function formatFractionalSeconds(subSecondNanoseconds: number, precision?: number): string {
+	const fractionalDigits = ToZeroPaddedDecimalString(subSecondNanoseconds, 9);
+	if (precision === undefined) {
+		if (subSecondNanoseconds === 0) {
+			return "";
+		}
+		return `.${fractionalDigits.replace(/0*$/, "")}`;
+	}
+	if (precision === 0) {
+		return "";
+	}
+	return `.${fractionalDigits.slice(0, precision)}`;
+}
+
+/** `FormatTimeString` */
+export function formatTimeString(
+	hour: number,
+	minute: number,
+	second: number,
+	subSecondNanoseconds: number,
+	precision?: typeof MINUTE | number,
+) {
+	const hh = ToZeroPaddedDecimalString(hour, 2);
+	const mm = ToZeroPaddedDecimalString(minute, 2);
+	if (precision === MINUTE) {
+		return `${hh}:${mm}`;
+	}
+	return `${hh}:${mm}:${ToZeroPaddedDecimalString(second, 2)}${formatFractionalSeconds(subSecondNanoseconds, precision)}`;
 }
 
 const roundingFunctions: Record<RoundingMode, (num: number) => number> = {
@@ -326,14 +467,14 @@ export function toOffsetString(arg: unknown): string {
 export function isoDateToFields(
 	calendar: SupportedCalendars,
 	isoDate: IsoDateRecord,
-	type: typeof date | typeof yearMonth | typeof monthDay,
+	type: typeof DATE | typeof YEAR_MONTH | typeof MONTH_DAY,
 ): CalendarFieldsRecord {
 	const date = calendarIsoToDate(calendar, isoDate);
 	return {
 		...createEmptyCalendarFieldsRecord(),
-		[calendarFieldKeys.$year]: type === monthDay ? undefined : date.$year,
+		[calendarFieldKeys.$year]: type === MONTH_DAY ? undefined : date.$year,
 		[calendarFieldKeys.$monthCode]: date.$monthCode,
-		[calendarFieldKeys.$day]: type === yearMonth ? undefined : date.$day,
+		[calendarFieldKeys.$day]: type === YEAR_MONTH ? undefined : date.$day,
 	};
 }
 

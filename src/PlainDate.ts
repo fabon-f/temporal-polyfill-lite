@@ -1,6 +1,7 @@
 import {
 	epochDaysToIsoDate,
 	getTemporalOverflowOption,
+	getTemporalShowCalendarNameOption,
 	isoDateRecordToEpochDays,
 	isoDateToEpochDays,
 	isoDateToFields,
@@ -11,8 +12,10 @@ import {
 	calendarFieldKeys,
 	calendarIsoToDate,
 	calendarMergeFields,
+	calendarMonthDayFromFields,
 	calendarYearMonthFromFields,
 	canonicalizeCalendar,
+	formatCalendarAnnotation,
 	getTemporalCalendarIdentifierWithIsoDefault,
 	isoDaysInMonth,
 	prepareCalendarFields,
@@ -22,14 +25,17 @@ import {
 import { parseIsoDateTime, temporalDateTimeStringRegExp } from "./internal/dateTimeParser.ts";
 import { getOptionsObject, toIntegerWithTruncation } from "./internal/ecmascript.ts";
 import {
-	date,
+	DATE,
 	disambiguationCompatible,
 	overflowConstrain,
+	showCalendarName,
 	type Overflow,
+	type ShowCalendarName,
 } from "./internal/enum.ts";
 import { clamp, compare, isWithin, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
+import { ToZeroPaddedDecimalString } from "./internal/string.ts";
 import {
 	getEpochNanosecondsFor,
 	getStartOfDay,
@@ -42,6 +48,7 @@ import {
 	isoDateTimeWithinLimits,
 	isPlainDateTime,
 } from "./PlainDateTime.ts";
+import { createTemporalMonthDay } from "./PlainMonthDay.ts";
 import {
 	getInternalSlotOrThrowForPlainTime,
 	noonTimeRecord,
@@ -162,6 +169,19 @@ export function addDaysToIsoDate(isoDate: IsoDateRecord, days: number): IsoDateR
 	return epochDaysToIsoDate(
 		isoDateToEpochDays(isoDate.$year, isoDate.$month - 1, isoDate.$day + days),
 	);
+}
+
+/** `PadISOYear` */
+export function padIsoYear(year: number) {
+	if (isWithin(year, 0, 9999)) {
+		return ToZeroPaddedDecimalString(year, 4);
+	}
+	return `${year < 0 ? "-" : "+"}${ToZeroPaddedDecimalString(Math.abs(year), 6)}`;
+}
+
+/** `TemporalDateToString` */
+function temporalDateToString(slot: PlainDateSlot, showCalendar: ShowCalendarName) {
+	return `${padIsoYear(slot.$isoDate.$year)}-${ToZeroPaddedDecimalString(slot.$isoDate.$month, 2)}-${ToZeroPaddedDecimalString(slot.$isoDate.$day, 2)}${formatCalendarAnnotation(slot.$calendar, showCalendar)}`;
 }
 
 /** `ISODateWithinLimits` */
@@ -291,13 +311,23 @@ export class PlainDate {
 		return createTemporalYearMonth(
 			calendarYearMonthFromFields(
 				slot.$calendar,
-				isoDateToFields(slot.$calendar, slot.$isoDate, date),
+				isoDateToFields(slot.$calendar, slot.$isoDate, DATE),
 				overflowConstrain,
 			),
 			slot.$calendar,
 		);
 	}
-	toPlainMonthDay() {}
+	toPlainMonthDay() {
+		const slot = getInternalSlotOrThrowForPlainDate(this);
+		return createTemporalMonthDay(
+			calendarMonthDayFromFields(
+				slot.$calendar,
+				isoDateToFields(slot.$calendar, slot.$isoDate, DATE),
+				overflowConstrain,
+			),
+			slot.$calendar,
+		);
+	}
 	add() {}
 	subtract() {}
 	with(temporalDateLike: unknown, options: unknown = undefined) {
@@ -307,7 +337,7 @@ export class PlainDate {
 		}
 		const fields = calendarMergeFields(
 			slot.$calendar,
-			isoDateToFields(slot.$calendar, slot.$isoDate, date),
+			isoDateToFields(slot.$calendar, slot.$isoDate, DATE),
 			prepareCalendarFields(slot.$calendar, temporalDateLike as Record<string, unknown>, [
 				calendarFieldKeys.$year,
 				calendarFieldKeys.$month,
@@ -384,9 +414,20 @@ export class PlainDate {
 			cache,
 		);
 	}
-	toString() {}
-	toLocaleString() {}
-	toJSON() {}
+	toString(options: unknown = undefined) {
+		return temporalDateToString(
+			getInternalSlotOrThrowForPlainDate(this),
+			getTemporalShowCalendarNameOption(getOptionsObject(options)),
+		);
+	}
+	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
+		const slot = getInternalSlotOrThrowForPlainDate(this);
+		// TODO
+		return "";
+	}
+	toJSON() {
+		return temporalDateToString(getInternalSlotOrThrowForPlainDate(this), showCalendarName.$auto);
+	}
 	valueOf() {
 		throw new TypeError();
 	}

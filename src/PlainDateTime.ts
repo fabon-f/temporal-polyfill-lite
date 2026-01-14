@@ -1,13 +1,17 @@
 import {
+	formatTimeString,
 	getRoundingIncrementOption,
 	getRoundingModeOption,
 	getTemporalDisambiguationOption,
+	getTemporalFractionalSecondDigitsOption,
 	getTemporalOverflowOption,
+	getTemporalShowCalendarNameOption,
 	getTemporalUnitValuedOption,
 	isoDateRecordToEpochDays,
 	isoDateToFields,
 	isPartialTemporalObject,
 	maximumTemporalDurationRoundingIncrement,
+	toSecondsStringPrecisionRecord,
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
@@ -18,6 +22,7 @@ import {
 	calendarIsoToDate,
 	calendarMergeFields,
 	canonicalizeCalendar,
+	formatCalendarAnnotation,
 	getTemporalCalendarIdentifierWithIsoDefault,
 	prepareCalendarFields,
 	toTemporalCalendarIdentifier,
@@ -31,16 +36,21 @@ import {
 	toIntegerWithTruncation,
 } from "./internal/ecmascript.ts";
 import {
-	date,
-	required,
-	startOfDay,
-	time,
+	DATE,
+	MINUTE,
+	REQUIRED,
+	roundingModeTrunc,
+	showCalendarName,
+	START_OF_DAY,
+	TIME,
 	type Overflow,
 	type RoundingMode,
+	type ShowCalendarName,
 } from "./internal/enum.ts";
 import type { NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
+import { ToZeroPaddedDecimalString } from "./internal/string.ts";
 import { getEpochNanosecondsFor, toTemporalTimeZoneIdentifier } from "./internal/timeZones.ts";
 import type { SingularUnitKey } from "./internal/unit.ts";
 import {
@@ -51,6 +61,7 @@ import {
 	getInternalSlotOrThrowForPlainDate,
 	isPlainDate,
 	isValidIsoDate,
+	padIsoYear,
 	type IsoDateRecord,
 } from "./PlainDate.ts";
 import {
@@ -180,7 +191,7 @@ function toTemporalDateTime(item: unknown, options?: unknown) {
 	return createTemporalDateTime(
 		combineIsoDateAndTimeRecord(
 			createIsoDateRecord(result.$year!, result.$month, result.$day),
-			result.$time === startOfDay ? midnightTimeRecord() : result.$time,
+			result.$time === START_OF_DAY ? midnightTimeRecord() : result.$time,
 		),
 		calendar,
 	);
@@ -220,6 +231,24 @@ export function createTemporalDateTime(
 	const slot = createPlainDateTimeSlot(isoDateTime, calendar);
 	slots.set(instance, slot);
 	return instance;
+}
+
+/** `ISODateTimeToString` */
+export function isoDateTimeToString(
+	isoDateTime: IsoDateTimeRecord,
+	calendar: SupportedCalendars,
+	precision: number | typeof MINUTE | undefined,
+	showCalendar: ShowCalendarName,
+) {
+	return `${padIsoYear(isoDateTime.$isoDate.$year)}-${ToZeroPaddedDecimalString(isoDateTime.$isoDate.$month, 2)}-${ToZeroPaddedDecimalString(isoDateTime.$isoDate.$day, 2)}T${formatTimeString(
+		isoDateTime.$time.$hour,
+		isoDateTime.$time.$minute,
+		isoDateTime.$time.$second,
+		isoDateTime.$time.$millisecond * 1e6 +
+			isoDateTime.$time.$microsecond * 1e3 +
+			isoDateTime.$time.$nanosecond,
+		precision,
+	)}${formatCalendarAnnotation(calendar, showCalendar)}`;
 }
 
 /** `CompareISODateTime` */
@@ -414,7 +443,7 @@ export class PlainDateTime {
 		const fields = calendarMergeFields(
 			slot.$calendar,
 			{
-				...isoDateToFields(slot.$calendar, slot.$isoDateTime.$isoDate, date),
+				...isoDateToFields(slot.$calendar, slot.$isoDateTime.$isoDate, DATE),
 				hour: slot.$isoDateTime.$time.$hour,
 				minute: slot.$isoDateTime.$time.$minute,
 				second: slot.$isoDateTime.$time.$second,
@@ -469,8 +498,8 @@ export class PlainDateTime {
 		const roundToOptions = getRoundToOptionsObject(roundTo);
 		const roundingIncrement = getRoundingIncrementOption(roundToOptions);
 		const roundingMode = getRoundingModeOption(roundToOptions, "halfExpand");
-		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", required);
-		validateTemporalUnitValue(smallestUnit, time, ["day"]);
+		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", REQUIRED);
+		validateTemporalUnitValue(smallestUnit, TIME, ["day"]);
 		const maximum =
 			smallestUnit === "day"
 				? 1
@@ -494,9 +523,43 @@ export class PlainDateTime {
 			calendarEquals(slot.$calendar, otherSlot.$calendar)
 		);
 	}
-	toString() {}
-	toLocaleString() {}
-	toJSON() {}
+	toString(options: unknown = undefined) {
+		const slot = getInternalSlotOrThrowForPlainDateTime(this);
+		const resolvedOptions = getOptionsObject(options);
+		const showCalendar = getTemporalShowCalendarNameOption(resolvedOptions);
+		const digits = getTemporalFractionalSecondDigitsOption(resolvedOptions);
+		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
+		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
+		validateTemporalUnitValue(smallestUnit, TIME);
+		if (smallestUnit === "hour") {
+			throw new RangeError();
+		}
+		const record = toSecondsStringPrecisionRecord(smallestUnit as SingularUnitKey, digits);
+		const result = roundIsoDateTime(
+			slot.$isoDateTime,
+			record.$increment,
+			record.$unit,
+			roundingMode,
+		);
+		if (!isoDateTimeWithinLimits(result)) {
+			throw new RangeError();
+		}
+		return isoDateTimeToString(result, slot.$calendar, record.$precision, showCalendar);
+	}
+	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
+		const slot = getInternalSlotOrThrowForPlainDateTime(this);
+		// TODO
+		return "";
+	}
+	toJSON() {
+		const slot = getInternalSlotOrThrowForPlainDateTime(this);
+		return isoDateTimeToString(
+			slot.$isoDateTime,
+			slot.$calendar,
+			undefined,
+			showCalendarName.$auto,
+		);
+	}
 	valueOf() {
 		throw new TypeError();
 	}

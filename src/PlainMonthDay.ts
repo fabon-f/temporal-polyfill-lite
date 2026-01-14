@@ -1,14 +1,40 @@
 import {
+	getTemporalOverflowOption,
+	getTemporalShowCalendarNameOption,
+	isoDateToFields,
+	isPartialTemporalObject,
+} from "./internal/abstractOperations.ts";
+import {
+	calendarDateFromFields,
+	calendarEquals,
+	calendarFieldKeys,
 	calendarIsoToDate,
+	calendarMergeFields,
+	calendarMonthDayFromFields,
 	canonicalizeCalendar,
+	formatCalendarAnnotation,
+	getTemporalCalendarIdentifierWithIsoDefault,
+	prepareCalendarFields,
 	type SupportedCalendars,
 } from "./internal/calendars.ts";
-import { toIntegerWithTruncation } from "./internal/ecmascript.ts";
-import { defineStringTag, renameFunction } from "./internal/property.ts";
+import { parseIsoDateTime, temporalMonthDayStringRegExp } from "./internal/dateTimeParser.ts";
+import { getOptionsObject, toIntegerWithTruncation } from "./internal/ecmascript.ts";
 import {
+	MONTH_DAY,
+	overflowConstrain,
+	showCalendarName,
+	type ShowCalendarName,
+} from "./internal/enum.ts";
+import { isObject } from "./internal/object.ts";
+import { defineStringTag, renameFunction } from "./internal/property.ts";
+import { ToZeroPaddedDecimalString } from "./internal/string.ts";
+import {
+	compareIsoDate,
 	createIsoDateRecord,
+	createTemporalDate,
 	isoDateWithinLimits,
 	isValidIsoDate,
+	padIsoYear,
 	type IsoDateRecord,
 } from "./PlainDate.ts";
 
@@ -21,8 +47,54 @@ interface PlainMonthDaySlot {
 
 const slots = new WeakMap<any, PlainMonthDaySlot>();
 
+/** `ToTemporalMonthDay` */
+function toTemporalMonthDay(item: unknown, options: unknown = undefined): PlainMonthDay {
+	if (isObject(item)) {
+		const slot = getInternalSlotForPlainMonthDay(item);
+		if (slot) {
+			getTemporalOverflowOption(getOptionsObject(options));
+			return createTemporalMonthDay(slot.$isoDate, slot.$calendar);
+		}
+		const calendar = getTemporalCalendarIdentifierWithIsoDefault(item);
+		const fields = prepareCalendarFields(
+			calendar,
+			item as Record<string, unknown>,
+			[
+				calendarFieldKeys.$year,
+				calendarFieldKeys.$month,
+				calendarFieldKeys.$monthCode,
+				calendarFieldKeys.$day,
+			],
+			[],
+		);
+		const overflow = getTemporalOverflowOption(getOptionsObject(options));
+		return createTemporalMonthDay(calendarMonthDayFromFields(calendar, fields, overflow), calendar);
+	}
+	if (typeof item !== "string") {
+		throw new TypeError();
+	}
+	const result = parseIsoDateTime(item, [temporalMonthDayStringRegExp]);
+	const calendar = canonicalizeCalendar(result.$calendar || "iso8601");
+	getTemporalOverflowOption(getOptionsObject(options));
+	if (calendar === "iso8601") {
+		return createTemporalMonthDay(createIsoDateRecord(1972, result.$month, result.$day!), calendar);
+	}
+	const isoDate = createIsoDateRecord(result.$year!, result.$month, result.$day);
+	if (!isoDateWithinLimits(isoDate)) {
+		throw new RangeError();
+	}
+	return createTemporalMonthDay(
+		calendarMonthDayFromFields(
+			calendar,
+			isoDateToFields(calendar, isoDate, MONTH_DAY),
+			overflowConstrain,
+		),
+		calendar,
+	);
+}
+
 /** `CreateTemporalMonthDay` */
-function createTemporalMonthDay(
+export function createTemporalMonthDay(
 	isoDate: IsoDateRecord,
 	calendar: SupportedCalendars,
 	instance = Object.create(PlainMonthDay.prototype) as PlainMonthDay,
@@ -31,6 +103,23 @@ function createTemporalMonthDay(
 		throw new RangeError();
 	}
 	slots.set(instance, createPlainMonthDaySlot(isoDate, calendar));
+	return instance;
+}
+
+/** `TemporalMonthDayToString` */
+function temporalMonthDayToString(
+	monthDaySlot: PlainMonthDaySlot,
+	showCalendar: ShowCalendarName,
+): string {
+	let result = `${ToZeroPaddedDecimalString(monthDaySlot.$isoDate.$month, 2)}-${ToZeroPaddedDecimalString(monthDaySlot.$isoDate.$day, 2)}`;
+	if (
+		showCalendar === showCalendarName.$always ||
+		showCalendar === showCalendarName.$critical ||
+		monthDaySlot.$calendar !== "iso8601"
+	) {
+		result = `${padIsoYear(monthDaySlot.$isoDate.$year)}-${result}`;
+	}
+	return result + formatCalendarAnnotation(monthDaySlot.$calendar, showCalendar);
 }
 
 function createPlainMonthDaySlot(
@@ -83,7 +172,9 @@ export class PlainMonthDay {
 		}
 		createTemporalMonthDay(createIsoDateRecord(y, m, d), canonicalizedCalendar, this);
 	}
-	static from() {}
+	static from(item: unknown, options: unknown = undefined) {
+		return toTemporalMonthDay(item, options);
+	}
 	get calendarId() {
 		return getInternalSlotOrThrowForPlainMonthDay(this).$calendar;
 	}
@@ -95,15 +186,80 @@ export class PlainMonthDay {
 		const slot = getInternalSlotOrThrowForPlainMonthDay(this);
 		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$day;
 	}
-	with() {}
-	equals() {}
-	toString() {}
-	toLocaleString() {}
-	toJSON() {}
+	with(temporalMonthDayLike: unknown, options: unknown = undefined) {
+		const slot = getInternalSlotOrThrowForPlainMonthDay(this);
+		if (!isPartialTemporalObject(temporalMonthDayLike)) {
+			throw new TypeError();
+		}
+		return createTemporalMonthDay(
+			calendarMonthDayFromFields(
+				slot.$calendar,
+				calendarMergeFields(
+					slot.$calendar,
+					isoDateToFields(slot.$calendar, slot.$isoDate, MONTH_DAY),
+					prepareCalendarFields(slot.$calendar, temporalMonthDayLike as Record<string, unknown>, [
+						calendarFieldKeys.$year,
+						calendarFieldKeys.$month,
+						calendarFieldKeys.$monthCode,
+						calendarFieldKeys.$day,
+					]),
+				),
+				getTemporalOverflowOption(getOptionsObject(options)),
+			),
+			slot.$calendar,
+		);
+	}
+	equals(other: unknown) {
+		const slot = getInternalSlotOrThrowForPlainMonthDay(this);
+		const otherSlot = getInternalSlotOrThrowForPlainMonthDay(toTemporalMonthDay(other));
+		return (
+			compareIsoDate(slot.$isoDate, otherSlot.$isoDate) === 0 &&
+			calendarEquals(slot.$calendar, otherSlot.$calendar)
+		);
+	}
+	toString(options: unknown = undefined) {
+		return temporalMonthDayToString(
+			getInternalSlotOrThrowForPlainMonthDay(this),
+			getTemporalShowCalendarNameOption(getOptionsObject(options)),
+		);
+	}
+	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
+		getInternalSlotOrThrowForPlainMonthDay(this);
+		// TODO:
+		return "";
+	}
+	toJSON() {
+		return temporalMonthDayToString(
+			getInternalSlotOrThrowForPlainMonthDay(this),
+			showCalendarName.$auto,
+		);
+	}
 	valueOf() {
 		throw new TypeError();
 	}
-	toPlainDate() {}
+	toPlainDate(item: unknown) {
+		const slot = getInternalSlotOrThrowForPlainMonthDay(this);
+		if (!isObject(item)) {
+			throw new TypeError();
+		}
+		return createTemporalDate(
+			calendarDateFromFields(
+				slot.$calendar,
+				calendarMergeFields(
+					slot.$calendar,
+					isoDateToFields(slot.$calendar, slot.$isoDate, MONTH_DAY),
+					prepareCalendarFields(
+						slot.$calendar,
+						item as Record<string, unknown>,
+						[calendarFieldKeys.$year],
+						[],
+					),
+				),
+				overflowConstrain,
+			),
+			slot.$calendar,
+		);
+	}
 }
 
 defineStringTag(PlainMonthDay.prototype, "Temporal.PlainMonthDay");

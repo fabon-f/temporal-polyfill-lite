@@ -1,5 +1,6 @@
 import { createTemporalInstant, isValidEpochNanoseconds } from "./Instant.ts";
 import {
+	checkIsoDaysRange,
 	epochDaysToIsoDate,
 	getDirectionOption,
 	getRoundingIncrementOption,
@@ -37,7 +38,7 @@ import {
 } from "./internal/dateTimeParser.ts";
 import { getOptionsObject, getRoundToOptionsObject, toBigInt } from "./internal/ecmascript.ts";
 import {
-	date,
+	DATE,
 	disambiguationCompatible,
 	offsetBehaviourExact,
 	offsetBehaviourOption,
@@ -47,10 +48,10 @@ import {
 	offsetReject,
 	offsetUse,
 	overflowReject,
-	required,
+	REQUIRED,
 	roundingModeHalfExpand,
-	startOfDay,
-	time,
+	START_OF_DAY,
+	TIME,
 	type Disambiguation,
 	type Offset,
 	type OffsetBehaviour,
@@ -120,7 +121,7 @@ const slots = new WeakMap<any, ZonedDateTimeSlot>();
 /** `InterpretISODateTimeOffset` */
 function interpretISODateTimeOffset(
 	isoDate: IsoDateRecord,
-	time: typeof startOfDay | TimeRecord,
+	time: typeof START_OF_DAY | TimeRecord,
 	offsetBehaviour: OffsetBehaviour,
 	offsetNanoseconds: number,
 	timeZone: string,
@@ -129,7 +130,7 @@ function interpretISODateTimeOffset(
 	matchExactly: boolean,
 	offsetCacheMap: Map<number, number>,
 ): EpochNanoseconds {
-	if (time === startOfDay) {
+	if (time === START_OF_DAY) {
 		return getStartOfDay(timeZone, isoDate, offsetCacheMap);
 	}
 	const isoDateTime = combineIsoDateAndTimeRecord(isoDate, time);
@@ -143,24 +144,25 @@ function interpretISODateTimeOffset(
 		offsetBehaviour === offsetBehaviourExact ||
 		(offsetBehaviour === offsetBehaviourOption && offsetOption == offsetUse)
 	) {
-		const epoch = getUtcEpochNanoseconds(
-			balanceIsoDateTime(
-				isoDateTime.$isoDate.$year,
-				isoDateTime.$isoDate.$month,
-				isoDateTime.$isoDate.$day,
-				isoDateTime.$time.$hour,
-				isoDateTime.$time.$minute,
-				isoDateTime.$time.$second,
-				isoDateTime.$time.$millisecond,
-				isoDateTime.$time.$microsecond,
-				isoDateTime.$time.$nanosecond - offsetNanoseconds,
-			),
+		const balanced = balanceIsoDateTime(
+			isoDateTime.$isoDate.$year,
+			isoDateTime.$isoDate.$month,
+			isoDateTime.$isoDate.$day,
+			isoDateTime.$time.$hour,
+			isoDateTime.$time.$minute,
+			isoDateTime.$time.$second,
+			isoDateTime.$time.$millisecond,
+			isoDateTime.$time.$microsecond,
+			isoDateTime.$time.$nanosecond - offsetNanoseconds,
 		);
+		checkIsoDaysRange(balanced.$isoDate);
+		const epoch = getUtcEpochNanoseconds(balanced);
 		if (!isValidEpochNanoseconds(epoch)) {
 			throw new RangeError();
 		}
 		return epoch;
 	}
+	checkIsoDaysRange(isoDate);
 	const possibleEpochNs = getPossibleEpochNanoseconds(timeZone, isoDateTime, offsetCacheMap);
 	for (const candidate of possibleEpochNs) {
 		const candidateOffset = getOffsetNanosecondsFor(timeZone, candidate, offsetCacheMap);
@@ -197,7 +199,7 @@ function toTemporalZonedDateTime(item: unknown, options?: unknown) {
 	let calendar: SupportedCalendars;
 	let matchExactly = true;
 	let isoDate: IsoDateRecord;
-	let time: typeof startOfDay | TimeRecord;
+	let time: typeof START_OF_DAY | TimeRecord;
 	if (isObject(item)) {
 		if (isZonedDateTime(item)) {
 			const resolvedOptions = getOptionsObject(options);
@@ -311,7 +313,7 @@ export function createZonedDateTimeSlot(
 }
 
 /** `GetOffsetNanosecondsFor` with caching */
-function getOffsetNanosecondsForZonedDateTimeSlot(
+export function getOffsetNanosecondsForZonedDateTimeSlot(
 	slot: ZonedDateTimeSlot,
 	cacheMap?: Map<number, number>,
 ): number {
@@ -518,7 +520,9 @@ export class ZonedDateTime {
 		return getOffsetNanosecondsForZonedDateTimeSlot(getInternalSlotOrThrowForZonedDateTime(this));
 	}
 	get offset() {
-		return undefined;
+		return formatUtcOffsetNanoseconds(
+			getOffsetNanosecondsForZonedDateTimeSlot(getInternalSlotOrThrowForZonedDateTime(this)),
+		);
 	}
 	with(temporalZonedDateTimeLike: unknown, options: unknown = undefined) {
 		const cache = new Map<number, number>();
@@ -532,7 +536,7 @@ export class ZonedDateTime {
 		const fields = calendarMergeFields(
 			slot.$calendar,
 			{
-				...isoDateToFields(slot.$calendar, isoDateTime.$isoDate, date),
+				...isoDateToFields(slot.$calendar, isoDateTime.$isoDate, DATE),
 				[calendarFieldKeys.$hour]: isoDateTime.$time.$hour,
 				[calendarFieldKeys.$minute]: isoDateTime.$time.$minute,
 				[calendarFieldKeys.$second]: isoDateTime.$time.$second,
@@ -632,8 +636,8 @@ export class ZonedDateTime {
 		const roundToOptions = getRoundToOptionsObject(roundTo);
 		const roundingIncrement = getRoundingIncrementOption(roundToOptions);
 		const roundingMode = getRoundingModeOption(roundToOptions, "halfExpand");
-		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", required);
-		validateTemporalUnitValue(smallestUnit, time, ["day"]);
+		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", REQUIRED);
+		validateTemporalUnitValue(smallestUnit, TIME, ["day"]);
 		const maximum =
 			smallestUnit === "day"
 				? 1
@@ -699,7 +703,11 @@ export class ZonedDateTime {
 		);
 	}
 	toString() {}
-	toLocaleString() {}
+	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
+		const slot = getInternalSlotOrThrowForZonedDateTime(this);
+		// TODO
+		return "";
+	}
 	toJSON() {}
 	valueOf() {
 		throw new TypeError();

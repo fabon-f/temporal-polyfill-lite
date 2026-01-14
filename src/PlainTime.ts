@@ -1,11 +1,14 @@
 import {
+	formatTimeString,
 	getRoundingIncrementOption,
 	getRoundingModeOption,
+	getTemporalFractionalSecondDigitsOption,
 	getTemporalOverflowOption,
 	getTemporalUnitValuedOption,
 	isPartialTemporalObject,
 	maximumTemporalDurationRoundingIncrement,
 	roundNumberToIncrement,
+	toSecondsStringPrecisionRecord,
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
@@ -21,10 +24,12 @@ import {
 	toIntegerWithTruncation,
 } from "./internal/ecmascript.ts";
 import {
+	MINUTE,
 	overflowConstrain,
-	required,
+	REQUIRED,
 	roundingModeHalfExpand,
-	time,
+	roundingModeTrunc,
+	TIME,
 	type Overflow,
 	type RoundingMode,
 } from "./internal/enum.ts";
@@ -267,6 +272,17 @@ function toTemporalTimeRecord(item: object, partial = false) {
 	return record;
 }
 
+/** `TimeRecordToString` */
+function timeRecordToString(time: TimeRecord, precision?: number | typeof MINUTE): string {
+	return formatTimeString(
+		time.$hour,
+		time.$minute,
+		time.$second,
+		time.$millisecond * 1e6 + time.$microsecond * 1e3 + time.$nanosecond,
+		precision,
+	);
+}
+
 /** `CompareTimeRecord` */
 export function compareTimeRecord(time1: TimeRecord, time2: TimeRecord): NumberSign {
 	return (
@@ -414,8 +430,8 @@ export class PlainTime {
 		const roundToOptions = getRoundToOptionsObject(roundTo);
 		const roundingIncrement = getRoundingIncrementOption(roundToOptions);
 		const roundingMode = getRoundingModeOption(roundToOptions, roundingModeHalfExpand);
-		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", required);
-		validateTemporalUnitValue(smallestUnit, time);
+		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", REQUIRED);
+		validateTemporalUnitValue(smallestUnit, TIME);
 		const maximum = maximumTemporalDurationRoundingIncrement(smallestUnit as SingularUnitKey)!;
 		validateTemporalRoundingIncrement(roundingIncrement, maximum, false);
 		return createTemporalTime(
@@ -428,9 +444,30 @@ export class PlainTime {
 			getInternalSlotOrThrowForPlainTime(toTemporalTime(other)),
 		);
 	}
-	toString() {}
-	toLocaleString() {}
-	toJSON() {}
+	toString(options: unknown = undefined) {
+		const slot = getInternalSlotOrThrowForPlainTime(this);
+		const resolvedOptions = getOptionsObject(options);
+		const digits = getTemporalFractionalSecondDigitsOption(resolvedOptions);
+		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
+		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
+		validateTemporalUnitValue(smallestUnit, TIME);
+		if (smallestUnit === "hour") {
+			throw new RangeError();
+		}
+		const record = toSecondsStringPrecisionRecord(smallestUnit as SingularUnitKey, digits);
+		return timeRecordToString(
+			roundTime(slot, record.$increment, record.$unit, roundingMode),
+			record.$precision,
+		);
+	}
+	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
+		const slot = getInternalSlotOrThrowForPlainTime(this);
+		// TODO
+		return "";
+	}
+	toJSON() {
+		return timeRecordToString(getInternalSlotOrThrowForPlainTime(this), undefined);
+	}
 	valueOf() {
 		throw new TypeError();
 	}

@@ -2,7 +2,7 @@ import { isValidIsoDate } from "../PlainDate.ts";
 import { createTimeRecord, type TimeRecord } from "../PlainTime.ts";
 import { nanosecondsPerMinute } from "./constants.ts";
 import { toNumber } from "./ecmascript.ts";
-import { startOfDay } from "./enum.ts";
+import { START_OF_DAY } from "./enum.ts";
 import { clamp } from "./math.ts";
 import { asciiLowerCase } from "./string.ts";
 import { mapUnlessUndefined } from "./utils.ts";
@@ -112,7 +112,7 @@ interface IsoDateTimeParseRecord {
 	$year: number | undefined;
 	$month: number;
 	$day: number;
-	$time: TimeRecord | typeof startOfDay;
+	$time: TimeRecord | typeof START_OF_DAY;
 	$timeZone: IsoStringTimeZoneParseRecord;
 	$calendar: string | undefined;
 }
@@ -201,7 +201,7 @@ export function parseIsoDateTime(
 		$year: mapUnlessUndefined(matchedGroups["a"] || matchedGroups["l"], toNumber),
 		$month: toNumber(matchedGroups["b"] || matchedGroups["m"] || 1),
 		$day: toNumber(matchedGroups["c"] || matchedGroups["n"] || 1),
-		$time: matchedGroups["d"] ? getTimeRecordFromMatchedGroups(matchedGroups) : startOfDay,
+		$time: matchedGroups["d"] ? getTimeRecordFromMatchedGroups(matchedGroups) : START_OF_DAY,
 		$timeZone: {
 			$z: !!matchedGroups["i"],
 			$offsetString: matchedGroups["h"],

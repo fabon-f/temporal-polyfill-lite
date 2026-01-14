@@ -1,19 +1,21 @@
 // enum specification types
 
 /** `START-OF-DAY` */
-export const startOfDay = Symbol();
+export const START_OF_DAY = Symbol();
 /** `DATE` */
-export const date = Symbol();
+export const DATE = Symbol();
 /** `TIME` */
-export const time = Symbol();
+export const TIME = Symbol();
 /** `DATETIME` */
-export const dateTime = Symbol();
+export const DATETIME = Symbol();
 /** `YEAR-MONTH` */
-export const yearMonth = Symbol();
+export const YEAR_MONTH = Symbol();
 /** `MONTH-DAY` */
-export const monthDay = Symbol();
+export const MONTH_DAY = Symbol();
 /** `REQUIRED` */
-export const required = Symbol();
+export const REQUIRED = Symbol();
+/** `MINUTE` (for time precision) */
+export const MINUTE = Symbol();
 
 export const overflowConstrain = "constrain";
 export const overflowReject = "reject";
@@ -66,3 +68,11 @@ export type RoundingMode =
 	| typeof roundingModeHalfExpand
 	| typeof roundingModeHalfTrunc
 	| typeof roundingModeHalfEven;
+
+export const showCalendarName = {
+	$auto: "auto",
+	$always: "always",
+	$never: "never",
+	$critical: "critical",
+} as const;
+export type ShowCalendarName = (typeof showCalendarName)[keyof typeof showCalendarName];
