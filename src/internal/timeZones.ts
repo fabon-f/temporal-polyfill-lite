@@ -6,13 +6,15 @@ import {
 	combineIsoDateAndTimeRecord,
 	type IsoDateTimeRecord,
 } from "../PlainDateTime.ts";
-import { midnightTimeRecord } from "../PlainTime.ts";
+import { balanceTime, midnightTimeRecord } from "../PlainTime.ts";
 import { getInternalSlotOrThrowForZonedDateTime, isZonedDateTime } from "../ZonedDateTime.ts";
 import {
 	checkIsoDaysRange,
+	epochDaysToIsoDate,
 	formatTimeString,
 	getUtcEpochNanoseconds,
 	parseTemporalTimeZoneString,
+	roundNumberToIncrement,
 } from "./abstractOperations.ts";
 import {
 	millisecondsPerDay,
@@ -28,12 +30,14 @@ import {
 	disambiguationLater,
 	disambiguationReject,
 	MINUTE,
+	roundingModeHalfExpand,
 	type Disambiguation,
 } from "./enum.ts";
 import {
 	addNanosecondsToEpochSeconds,
 	compareEpochNanoseconds,
 	createEpochNanosecondsFromEpochSeconds,
+	epochDaysAndRemainderNanoseconds,
 	epochSeconds,
 	type EpochNanoseconds,
 } from "./epochNanoseconds.ts";
@@ -225,6 +229,15 @@ export function getAvailableNamedTimeZoneIdentifier(timeZone: string) {
 	return timeZone;
 }
 
+/** `GetISOPartsFromEpoch` */
+export function getIsoPartsFromEpoch(epochNanoseconds: EpochNanoseconds): IsoDateTimeRecord {
+	const [epochDays, remainderNanoseconds] = epochDaysAndRemainderNanoseconds(epochNanoseconds);
+	return combineIsoDateAndTimeRecord(
+		epochDaysToIsoDate(epochDays),
+		balanceTime(0, 0, 0, 0, 0, remainderNanoseconds),
+	);
+}
+
 /** `FormatOffsetTimeZoneIdentifier` */
 export function formatOffsetTimeZoneIdentifier(offsetMinutes: number) {
 	const abs = Math.abs(offsetMinutes);
@@ -248,6 +261,14 @@ export function formatUtcOffsetNanoseconds(offsetNanoseconds: number): string {
 			nanosecond,
 			second === 0 && nanosecond === 0 ? MINUTE : undefined,
 		)
+	);
+}
+
+/** `FormatDateTimeUTCOffsetRounded` */
+export function formatDateTimeUtcOffsetRounded(offsetNanoseconds: number): string {
+	return formatOffsetTimeZoneIdentifier(
+		roundNumberToIncrement(offsetNanoseconds, nanosecondsPerMinute, roundingModeHalfExpand) /
+			nanosecondsPerMinute,
 	);
 }
 
@@ -469,4 +490,11 @@ function getNamedTimeZoneEpochCandidates(
 		return [epoch1];
 	}
 	return [epoch1, epoch2].sort(compareEpochNanoseconds);
+}
+
+export function getIsoDateTimeFromOffsetNanoseconds(
+	epoch: EpochNanoseconds,
+	offsetNanoseconds: number,
+): IsoDateTimeRecord {
+	return getIsoPartsFromEpoch(addNanosecondsToEpochSeconds(epoch, offsetNanoseconds));
 }

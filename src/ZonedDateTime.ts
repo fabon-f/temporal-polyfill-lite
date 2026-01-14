@@ -1,19 +1,23 @@
-import { createTemporalInstant, isValidEpochNanoseconds } from "./Instant.ts";
+import { createTemporalInstant, isValidEpochNanoseconds, roundTemporalInstant } from "./Instant.ts";
 import {
 	checkIsoDaysRange,
-	epochDaysToIsoDate,
 	getDirectionOption,
 	getRoundingIncrementOption,
 	getRoundingModeOption,
 	getTemporalDisambiguationOption,
+	getTemporalFractionalSecondDigitsOption,
 	getTemporalOffsetOption,
 	getTemporalOverflowOption,
+	getTemporalShowCalendarNameOption,
+	getTemporalShowOffsetOption,
+	getTemporalShowTimeZoneNameOption,
 	getTemporalUnitValuedOption,
 	getUtcEpochNanoseconds,
 	isoDateToFields,
 	isPartialTemporalObject,
 	maximumTemporalDurationRoundingIncrement,
 	roundNumberToIncrement,
+	toSecondsStringPrecisionRecord,
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
@@ -23,6 +27,7 @@ import {
 	calendarIsoToDate,
 	calendarMergeFields,
 	canonicalizeCalendar,
+	formatCalendarAnnotation,
 	getTemporalCalendarIdentifierWithIsoDefault,
 	prepareCalendarFields,
 	toTemporalCalendarIdentifier,
@@ -40,6 +45,7 @@ import { getOptionsObject, getRoundToOptionsObject, toBigInt } from "./internal/
 import {
 	DATE,
 	disambiguationCompatible,
+	MINUTE,
 	offsetBehaviourExact,
 	offsetBehaviourOption,
 	offsetBehaviourWall,
@@ -50,11 +56,19 @@ import {
 	overflowReject,
 	REQUIRED,
 	roundingModeHalfExpand,
+	roundingModeTrunc,
+	showCalendarName,
+	showOffsetOptions,
 	START_OF_DAY,
 	TIME,
+	timeZoneNameOptions,
 	type Disambiguation,
 	type Offset,
 	type OffsetBehaviour,
+	type RoundingMode,
+	type ShowCalendarName,
+	type ShowOffsetOptions,
+	type TimeZoneNameOptions,
 } from "./internal/enum.ts";
 import {
 	addNanosecondsToEpochSeconds,
@@ -62,7 +76,6 @@ import {
 	convertEpochNanosecondsToBigInt,
 	createEpochNanosecondsFromBigInt,
 	differenceInNanosecondsNumber,
-	epochDaysAndRemainderNanoseconds,
 	epochMilliseconds,
 	epochSeconds,
 	type EpochNanoseconds,
@@ -71,10 +84,13 @@ import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import {
 	disambiguatePossibleEpochNanoseconds,
+	formatDateTimeUtcOffsetRounded,
 	formatOffsetTimeZoneIdentifier,
 	formatUtcOffsetNanoseconds,
 	getAvailableNamedTimeZoneIdentifier,
 	getEpochNanosecondsFor,
+	getIsoDateTimeFromOffsetNanoseconds,
+	getIsoPartsFromEpoch,
 	getOffsetNanosecondsFor,
 	getPossibleEpochNanoseconds,
 	getStartOfDay,
@@ -96,6 +112,7 @@ import {
 	combineIsoDateAndTimeRecord,
 	createTemporalDateTime,
 	interpretTemporalDateTimeFields,
+	isoDateTimeToString,
 	roundIsoDateTime,
 	type IsoDateTimeRecord,
 } from "./PlainDateTime.ts";
@@ -313,6 +330,36 @@ export function createZonedDateTimeSlot(
 	} as ZonedDateTimeSlot;
 }
 
+/** `TemporalZonedDateTimeToString` */
+function temporalZonedDateTimeToString(
+	slot: ZonedDateTimeSlot,
+	precision: number | typeof MINUTE | undefined,
+	showCalendar: ShowCalendarName,
+	showTimeZone: TimeZoneNameOptions,
+	showOffset: ShowOffsetOptions,
+	increment = 1,
+	unit: SingularUnitKey = "nanosecond",
+	roundingMode: RoundingMode = roundingModeTrunc,
+) {
+	const epoch = roundTemporalInstant(slot.$epochNanoseconds, increment, unit, roundingMode);
+	const offsetNanoseconds = getOffsetNanosecondsFor(slot.$timeZone, epoch);
+	return (
+		isoDateTimeToString(
+			getIsoDateTimeFromOffsetNanoseconds(epoch, offsetNanoseconds),
+			"iso8601",
+			precision,
+			showCalendarName.$never,
+		) +
+		(showOffset === showOffsetOptions.$never
+			? ""
+			: formatDateTimeUtcOffsetRounded(offsetNanoseconds)) +
+		(showTimeZone === timeZoneNameOptions.$never
+			? ""
+			: `[${showTimeZone === timeZoneNameOptions.$critical ? "!" : ""}${slot.$timeZone}]`) +
+		formatCalendarAnnotation(slot.$calendar, showCalendar)
+	);
+}
+
 /** `GetOffsetNanosecondsFor` with caching */
 export function getOffsetNanosecondsForZonedDateTimeSlot(
 	slot: ZonedDateTimeSlot,
@@ -330,22 +377,9 @@ export function getOffsetNanosecondsForZonedDateTimeSlot(
 
 /** `GetISODateTimeFor` with caching */
 export function getIsoDateTimeForZonedDateTimeSlot(slot: ZonedDateTimeSlot): IsoDateTimeRecord {
-	const offsetNanoseconds = getOffsetNanosecondsForZonedDateTimeSlot(slot);
-	// `GetISOPartsFromEpoch`
-	const [epochDays, remainderNanoseconds] = epochDaysAndRemainderNanoseconds(
+	return getIsoDateTimeFromOffsetNanoseconds(
 		slot.$epochNanoseconds,
-	);
-	const date = epochDaysToIsoDate(epochDays);
-	return balanceIsoDateTime(
-		date.$year,
-		date.$month,
-		date.$day,
-		0,
-		0,
-		0,
-		0,
-		0,
-		remainderNanoseconds + offsetNanoseconds,
+		getOffsetNanosecondsForZonedDateTimeSlot(slot),
 	);
 }
 
@@ -711,8 +745,34 @@ export class ZonedDateTime {
 			calendarEquals(slot.$calendar, otherSlot.$calendar)
 		);
 	}
-	toString() {
-		notImplementedYet();
+	toString(options: unknown = undefined) {
+		const slot = getInternalSlotOrThrowForZonedDateTime(this);
+		const resolvedOptions = getOptionsObject(options);
+		const showCalendar = getTemporalShowCalendarNameOption(resolvedOptions);
+		const digits = getTemporalFractionalSecondDigitsOption(resolvedOptions);
+		const showOffset = getTemporalShowOffsetOption(resolvedOptions);
+		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
+		const smallestUnit = getTemporalUnitValuedOption(
+			resolvedOptions,
+			"smallestUnit",
+			undefined,
+		) as SingularUnitKey;
+		const showTimeZone = getTemporalShowTimeZoneNameOption(resolvedOptions);
+		validateTemporalUnitValue(smallestUnit, TIME);
+		if (smallestUnit === "hour") {
+			throw new RangeError();
+		}
+		const precisionRecord = toSecondsStringPrecisionRecord(smallestUnit, digits);
+		return temporalZonedDateTimeToString(
+			slot,
+			precisionRecord.$precision,
+			showCalendar,
+			showTimeZone,
+			showOffset,
+			precisionRecord.$increment,
+			precisionRecord.$unit,
+			roundingMode,
+		);
 	}
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
@@ -720,7 +780,13 @@ export class ZonedDateTime {
 		return "";
 	}
 	toJSON() {
-		notImplementedYet();
+		return temporalZonedDateTimeToString(
+			getInternalSlotOrThrowForZonedDateTime(this),
+			undefined,
+			showCalendarName.$auto,
+			timeZoneNameOptions.$auto,
+			showOffsetOptions.$auto,
+		);
 	}
 	valueOf() {
 		throw new TypeError();

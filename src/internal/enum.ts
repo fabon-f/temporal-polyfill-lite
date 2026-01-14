@@ -76,3 +76,16 @@ export const showCalendarName = {
 	$critical: "critical",
 } as const;
 export type ShowCalendarName = (typeof showCalendarName)[keyof typeof showCalendarName];
+
+export const showOffsetOptions = {
+	$auto: "auto",
+	$never: "never",
+} as const;
+export type ShowOffsetOptions = (typeof showOffsetOptions)[keyof typeof showOffsetOptions];
+
+export const timeZoneNameOptions = {
+	$auto: "auto",
+	$never: "never",
+	$critical: "critical",
+} as const;
+export type TimeZoneNameOptions = (typeof timeZoneNameOptions)[keyof typeof timeZoneNameOptions];

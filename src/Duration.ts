@@ -104,8 +104,8 @@ function isValidDuration(...units: DurationTuple): boolean {
 					createTimeDurationFromNanoseconds(units[9]),
 				]),
 			),
-			createTimeDurationFromSeconds(Number.MAX_SAFE_INTEGER),
-		) <= 0
+			createTimeDurationFromSeconds(Number.MAX_SAFE_INTEGER + 1),
+		) < 0
 	);
 }
 

@@ -50,13 +50,17 @@ import {
 	roundingModeHalfTrunc,
 	roundingModeTrunc,
 	showCalendarName,
+	showOffsetOptions,
 	TIME,
+	timeZoneNameOptions,
 	YEAR_MONTH,
 	type Disambiguation,
 	type Offset,
 	type Overflow,
 	type RoundingMode,
 	type ShowCalendarName,
+	type ShowOffsetOptions,
+	type TimeZoneNameOptions,
 } from "./enum.ts";
 import {
 	addNanosecondsToEpochSeconds,
@@ -155,6 +159,26 @@ export function getTemporalShowCalendarNameOption(options: object): ShowCalendar
 			showCalendarName.$critical,
 		],
 		showCalendarName.$auto,
+	);
+}
+
+/** `GetTemporalShowTimeZoneNameOption` */
+export function getTemporalShowTimeZoneNameOption(options: object): TimeZoneNameOptions {
+	return getOption(
+		options,
+		"timeZoneName",
+		[timeZoneNameOptions.$auto, timeZoneNameOptions.$never, timeZoneNameOptions.$critical],
+		timeZoneNameOptions.$auto,
+	);
+}
+
+/** `GetTemporalShowOffsetOption` */
+export function getTemporalShowOffsetOption(options: object): ShowOffsetOptions {
+	return getOption(
+		options,
+		"offset",
+		[showOffsetOptions.$auto, showOffsetOptions.$never],
+		showOffsetOptions.$auto,
 	);
 }
 

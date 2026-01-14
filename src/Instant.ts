@@ -131,7 +131,7 @@ function toTemporalInstant(item: unknown): Instant {
 }
 
 /** `RoundTemporalInstant` */
-function roundTemporalInstant(
+export function roundTemporalInstant(
 	ns: EpochNanoseconds,
 	increment: number,
 	unit: SingularUnitKey,
