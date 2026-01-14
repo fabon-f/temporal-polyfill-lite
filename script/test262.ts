@@ -25,7 +25,7 @@ const result = await runTest262({
 					"test262/test/built-ins/Date/prototype/toTemporalInstant/*.js",
 				]
 			: files,
-	expectedFailureFiles: ["expected-failures.txt"],
+	expectedFailureFiles: files.length === 0 ? ["expected-failures.txt"] : [],
 	updateExpectedFailureFiles: values.update,
 });
 
