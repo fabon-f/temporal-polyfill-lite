@@ -3,10 +3,15 @@ import {
 	getTemporalOverflowOption,
 	isoDateRecordToEpochDays,
 	isoDateToEpochDays,
+	isoDateToFields,
+	isPartialTemporalObject,
 } from "./internal/abstractOperations.ts";
 import {
 	calendarDateFromFields,
+	calendarFieldKeys,
 	calendarIsoToDate,
+	calendarMergeFields,
+	calendarYearMonthFromFields,
 	canonicalizeCalendar,
 	getTemporalCalendarIdentifierWithIsoDefault,
 	isoDaysInMonth,
@@ -16,7 +21,12 @@ import {
 } from "./internal/calendars.ts";
 import { parseIsoDateTime, temporalDateTimeStringRegExp } from "./internal/dateTimeParser.ts";
 import { getOptionsObject, toIntegerWithTruncation } from "./internal/ecmascript.ts";
-import { disambiguationCompatible, overflowConstrain, type Overflow } from "./internal/enum.ts";
+import {
+	date,
+	disambiguationCompatible,
+	overflowConstrain,
+	type Overflow,
+} from "./internal/enum.ts";
 import { clamp, compare, isWithin, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
@@ -38,6 +48,7 @@ import {
 	toTemporalTime,
 	toTimeRecordOrMidnight,
 } from "./PlainTime.ts";
+import { createTemporalYearMonth } from "./PlainYearMonth.ts";
 import {
 	createTemporalZonedDateTime,
 	getInternalSlotOrThrowForZonedDateTime,
@@ -275,11 +286,41 @@ export class PlainDate {
 		const slot = getInternalSlotOrThrowForPlainDate(this);
 		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$inLeapYear;
 	}
-	toPlainYearMonth() {}
+	toPlainYearMonth() {
+		const slot = getInternalSlotOrThrowForPlainDate(this);
+		return createTemporalYearMonth(
+			calendarYearMonthFromFields(
+				slot.$calendar,
+				isoDateToFields(slot.$calendar, slot.$isoDate, date),
+				overflowConstrain,
+			),
+			slot.$calendar,
+		);
+	}
 	toPlainMonthDay() {}
 	add() {}
 	subtract() {}
-	with() {}
+	with(temporalDateLike: unknown, options: unknown = undefined) {
+		const slot = getInternalSlotOrThrowForPlainDate(this);
+		if (!isPartialTemporalObject(temporalDateLike)) {
+			throw new TypeError();
+		}
+		const fields = calendarMergeFields(
+			slot.$calendar,
+			isoDateToFields(slot.$calendar, slot.$isoDate, date),
+			prepareCalendarFields(slot.$calendar, temporalDateLike as Record<string, unknown>, [
+				calendarFieldKeys.$year,
+				calendarFieldKeys.$month,
+				calendarFieldKeys.$monthCode,
+				calendarFieldKeys.$day,
+			]),
+		);
+		const overflow = getTemporalOverflowOption(getOptionsObject(options));
+		return createTemporalDate(
+			calendarDateFromFields(slot.$calendar, fields, overflow),
+			slot.$calendar,
+		);
+	}
 	withCalendar(calendarLike: unknown) {
 		return createTemporalDate(
 			getInternalSlotOrThrowForPlainDate(this).$isoDate,

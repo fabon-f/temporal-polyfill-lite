@@ -229,6 +229,12 @@ export function formatOffsetTimeZoneIdentifier(offsetMinutes: number) {
 	return `${offsetMinutes < 0 ? "-" : "+"}${ToZeroPaddedDecimalString(divFloor(abs, 60), 2)}:${ToZeroPaddedDecimalString(modFloor(abs, 60), 2)}`;
 }
 
+/** `FormatUTCOffsetNanoseconds` */
+export function formatUtcOffsetNanoseconds(offsetNanoseconds: number): string {
+	// TODO
+	return formatOffsetTimeZoneIdentifier(Math.trunc(offsetNanoseconds / nanosecondsPerMinute));
+}
+
 /** `ToTemporalTimeZoneIdentifier` */
 export function toTemporalTimeZoneIdentifier(temporalTimeZoneLike: unknown) {
 	if (isZonedDateTime(temporalTimeZoneLike)) {

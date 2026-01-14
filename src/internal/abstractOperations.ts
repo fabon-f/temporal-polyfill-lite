@@ -5,7 +5,9 @@ import { isPlainTime } from "../PlainTime.ts";
 import { isPlainYearMonth } from "../PlainYearMonth.ts";
 import { isZonedDateTime } from "../ZonedDateTime.ts";
 import {
+	calendarFieldKeys,
 	calendarIsoToDate,
+	createEmptyCalendarFieldsRecord,
 	type CalendarFieldsRecord,
 	type SupportedCalendars,
 } from "./calendars.ts";
@@ -328,9 +330,10 @@ export function isoDateToFields(
 ): CalendarFieldsRecord {
 	const date = calendarIsoToDate(calendar, isoDate);
 	return {
-		year: type === monthDay ? undefined : date.$year,
-		monthCode: date.$monthCode,
-		day: type === yearMonth ? undefined : date.$day,
+		...createEmptyCalendarFieldsRecord(),
+		[calendarFieldKeys.$year]: type === monthDay ? undefined : date.$year,
+		[calendarFieldKeys.$monthCode]: date.$monthCode,
+		[calendarFieldKeys.$day]: type === yearMonth ? undefined : date.$day,
 	};
 }
 

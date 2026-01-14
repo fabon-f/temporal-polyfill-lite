@@ -3,6 +3,7 @@ import {
 	getRoundingModeOption,
 	getTemporalOverflowOption,
 	getTemporalUnitValuedOption,
+	isPartialTemporalObject,
 	maximumTemporalDurationRoundingIncrement,
 	roundNumberToIncrement,
 	validateTemporalRoundingIncrement,
@@ -42,6 +43,7 @@ import {
 	getIsoDateTimeForZonedDateTimeSlot,
 	isZonedDateTime,
 } from "./ZonedDateTime.ts";
+import { calendarFieldKeys } from "./internal/calendars.ts";
 
 export interface TimeRecord {
 	$hour: number;
@@ -243,7 +245,14 @@ function toTemporalTimeRecord(item: object, partial?: false): TemporalTimeLikeRe
 function toTemporalTimeRecord(item: object, partial = false) {
 	const record = Object.create(null);
 	let any = false;
-	for (const property of ["hour", "microsecond", "millisecond", "minute", "nanosecond", "second"]) {
+	for (const property of [
+		calendarFieldKeys.$hour,
+		calendarFieldKeys.$microsecond,
+		calendarFieldKeys.$millisecond,
+		calendarFieldKeys.$minute,
+		calendarFieldKeys.$nanosecond,
+		calendarFieldKeys.$second,
+	] as const) {
 		const value = (item as Record<string, unknown>)[property];
 		if (value !== undefined) {
 			any = true;
@@ -379,7 +388,25 @@ export class PlainTime {
 	}
 	add() {}
 	subtract() {}
-	with() {}
+	with(temporalTimeLike: unknown, options: unknown = undefined) {
+		const slot = getInternalSlotOrThrowForPlainTime(this);
+		if (!isPartialTemporalObject(temporalTimeLike)) {
+			throw new TypeError();
+		}
+		const time = toTemporalTimeRecord(temporalTimeLike as Record<string, unknown>, true);
+		const overflow = getTemporalOverflowOption(getOptionsObject(options));
+		return createTemporalTime(
+			regulateTime(
+				time.hour === undefined ? slot.$hour : time.hour,
+				time.minute === undefined ? slot.$minute : time.minute,
+				time.second === undefined ? slot.$second : time.second,
+				time.millisecond === undefined ? slot.$millisecond : time.millisecond,
+				time.microsecond === undefined ? slot.$microsecond : time.microsecond,
+				time.nanosecond === undefined ? slot.$nanosecond : time.nanosecond,
+				overflow,
+			),
+		);
+	}
 	until() {}
 	since() {}
 	round(roundTo: unknown) {

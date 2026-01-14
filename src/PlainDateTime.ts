@@ -5,6 +5,8 @@ import {
 	getTemporalOverflowOption,
 	getTemporalUnitValuedOption,
 	isoDateRecordToEpochDays,
+	isoDateToFields,
+	isPartialTemporalObject,
 	maximumTemporalDurationRoundingIncrement,
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
@@ -12,7 +14,9 @@ import {
 import {
 	calendarDateFromFields,
 	calendarEquals,
+	calendarFieldKeys,
 	calendarIsoToDate,
+	calendarMergeFields,
 	canonicalizeCalendar,
 	getTemporalCalendarIdentifierWithIsoDefault,
 	prepareCalendarFields,
@@ -26,7 +30,14 @@ import {
 	getRoundToOptionsObject,
 	toIntegerWithTruncation,
 } from "./internal/ecmascript.ts";
-import { required, startOfDay, time, type Overflow, type RoundingMode } from "./internal/enum.ts";
+import {
+	date,
+	required,
+	startOfDay,
+	time,
+	type Overflow,
+	type RoundingMode,
+} from "./internal/enum.ts";
 import type { NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
@@ -104,12 +115,12 @@ export function interpretTemporalDateTimeFields(
 	return combineIsoDateAndTimeRecord(
 		calendarDateFromFields(calendar, fields, overflow),
 		regulateTime(
-			fields.hour!,
-			fields.minute!,
-			fields.second!,
-			fields.millisecond!,
-			fields.microsecond!,
-			fields.nanosecond!,
+			fields[calendarFieldKeys.$hour]!,
+			fields[calendarFieldKeys.$minute]!,
+			fields[calendarFieldKeys.$second]!,
+			fields[calendarFieldKeys.$millisecond]!,
+			fields[calendarFieldKeys.$microsecond]!,
+			fields[calendarFieldKeys.$nanosecond]!,
 			overflow,
 		),
 	);
@@ -394,7 +405,45 @@ export class PlainDateTime {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);
 		return calendarIsoToDate(slot.$calendar, slot.$isoDateTime.$isoDate).$inLeapYear;
 	}
-	with() {}
+	with(temporalDateTimeLike: unknown, options: unknown = undefined) {
+		const slot = getInternalSlotOrThrowForPlainDateTime(this);
+		if (!isPartialTemporalObject(temporalDateTimeLike)) {
+			throw new TypeError();
+		}
+		// « year, month, month-code, day », « hour, minute, second, millisecond, microsecond, nanosecond »
+		const fields = calendarMergeFields(
+			slot.$calendar,
+			{
+				...isoDateToFields(slot.$calendar, slot.$isoDateTime.$isoDate, date),
+				hour: slot.$isoDateTime.$time.$hour,
+				minute: slot.$isoDateTime.$time.$minute,
+				second: slot.$isoDateTime.$time.$second,
+				millisecond: slot.$isoDateTime.$time.$millisecond,
+				microsecond: slot.$isoDateTime.$time.$microsecond,
+				nanosecond: slot.$isoDateTime.$time.$nanosecond,
+			},
+			prepareCalendarFields(slot.$calendar, temporalDateTimeLike as Record<string, unknown>, [
+				calendarFieldKeys.$year,
+				calendarFieldKeys.$month,
+				calendarFieldKeys.$monthCode,
+				calendarFieldKeys.$day,
+				calendarFieldKeys.$hour,
+				calendarFieldKeys.$minute,
+				calendarFieldKeys.$second,
+				calendarFieldKeys.$millisecond,
+				calendarFieldKeys.$microsecond,
+				calendarFieldKeys.$nanosecond,
+			]),
+		);
+		return createTemporalDateTime(
+			interpretTemporalDateTimeFields(
+				slot.$calendar,
+				fields,
+				getTemporalOverflowOption(getOptionsObject(options)),
+			),
+			slot.$calendar,
+		);
+	}
 	withPlainTime(plainTimeLike: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);
 		return createTemporalDateTime(

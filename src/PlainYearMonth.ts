@@ -1,12 +1,23 @@
+import { getTemporalOverflowOption } from "./internal/abstractOperations.ts";
 import {
+	calendarFieldKeys,
 	calendarIsoToDate,
+	calendarYearMonthFromFields,
 	canonicalizeCalendar,
+	getTemporalCalendarIdentifierWithIsoDefault,
+	prepareCalendarFields,
 	type SupportedCalendars,
 } from "./internal/calendars.ts";
-import { toIntegerWithTruncation } from "./internal/ecmascript.ts";
+import { getOptionsObject, toIntegerWithTruncation } from "./internal/ecmascript.ts";
 import { isWithin } from "./internal/math.ts";
+import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
-import { createIsoDateRecord, isValidIsoDate, type IsoDateRecord } from "./PlainDate.ts";
+import {
+	compareIsoDate,
+	createIsoDateRecord,
+	isValidIsoDate,
+	type IsoDateRecord,
+} from "./PlainDate.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 interface PlainYearMonthSlot {
@@ -17,8 +28,39 @@ interface PlainYearMonthSlot {
 
 const slots = new WeakMap<any, PlainYearMonthSlot>();
 
+/** `ToTemporalYearMonth` */
+function toTemporalYearMonth(item: unknown, options?: unknown) {
+	if (isObject(item)) {
+		const slot = getInternalSlotForPlainYearMonth(item);
+		if (slot) {
+			getTemporalOverflowOption(getOptionsObject(options));
+			return createTemporalYearMonth(slot.$isoDate, slot.$calendar);
+		}
+		const calendar = getTemporalCalendarIdentifierWithIsoDefault(item);
+		const fields = prepareCalendarFields(
+			calendar,
+			item as Record<string, unknown>,
+			[calendarFieldKeys.$year, calendarFieldKeys.$month, calendarFieldKeys.$monthCode],
+			[],
+		);
+		return createTemporalYearMonth(
+			calendarYearMonthFromFields(
+				calendar,
+				fields,
+				getTemporalOverflowOption(getOptionsObject(options)),
+			),
+			calendar,
+		);
+	}
+	if (typeof item !== "string") {
+		throw new TypeError();
+	}
+	// TODO
+	throw new Error();
+}
+
 /** `ISOYearMonthWithinLimits` */
-function isoYearMonthWithinLimits(isoDate: IsoDateRecord): boolean {
+export function isoYearMonthWithinLimits(isoDate: IsoDateRecord): boolean {
 	return (
 		isWithin(isoDate.$year, -271821, 275760) &&
 		(isoDate.$year !== -271821 || isoDate.$month >= 4) &&
@@ -27,7 +69,7 @@ function isoYearMonthWithinLimits(isoDate: IsoDateRecord): boolean {
 }
 
 /** `CreateTemporalYearMonth` */
-function createTemporalYearMonth(
+export function createTemporalYearMonth(
 	isoDate: IsoDateRecord,
 	calendar: SupportedCalendars,
 	instance = Object.create(PlainYearMonth.prototype) as PlainYearMonth,
@@ -135,7 +177,14 @@ export class PlainYearMonth {
 	subtract() {}
 	until() {}
 	since() {}
-	equals() {}
+	equals(other: unknown) {
+		const slot = getInternalSlotOrThrowForPlainYearMonth(this);
+		const otherSlot = getInternalSlotOrThrowForPlainYearMonth(toTemporalYearMonth(other));
+		return (
+			compareIsoDate(slot.$isoDate, otherSlot.$isoDate) === 0 &&
+			slot.$calendar === otherSlot.$calendar
+		);
+	}
 	toString() {}
 	toLocaleString() {}
 	toJSON() {}

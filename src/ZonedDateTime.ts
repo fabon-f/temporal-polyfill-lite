@@ -9,6 +9,8 @@ import {
 	getTemporalOverflowOption,
 	getTemporalUnitValuedOption,
 	getUtcEpochNanoseconds,
+	isoDateToFields,
+	isPartialTemporalObject,
 	maximumTemporalDurationRoundingIncrement,
 	roundNumberToIncrement,
 	validateTemporalRoundingIncrement,
@@ -16,7 +18,9 @@ import {
 } from "./internal/abstractOperations.ts";
 import {
 	calendarEquals,
+	calendarFieldKeys,
 	calendarIsoToDate,
+	calendarMergeFields,
 	canonicalizeCalendar,
 	getTemporalCalendarIdentifierWithIsoDefault,
 	prepareCalendarFields,
@@ -33,6 +37,7 @@ import {
 } from "./internal/dateTimeParser.ts";
 import { getOptionsObject, getRoundToOptionsObject, toBigInt } from "./internal/ecmascript.ts";
 import {
+	date,
 	disambiguationCompatible,
 	offsetBehaviourExact,
 	offsetBehaviourOption,
@@ -66,6 +71,7 @@ import { defineStringTag, renameFunction } from "./internal/property.ts";
 import {
 	disambiguatePossibleEpochNanoseconds,
 	formatOffsetTimeZoneIdentifier,
+	formatUtcOffsetNanoseconds,
 	getAvailableNamedTimeZoneIdentifier,
 	getEpochNanosecondsFor,
 	getOffsetNanosecondsFor,
@@ -514,7 +520,64 @@ export class ZonedDateTime {
 	get offset() {
 		return undefined;
 	}
-	with() {}
+	with(temporalZonedDateTimeLike: unknown, options: unknown = undefined) {
+		const cache = new Map<number, number>();
+
+		const slot = getInternalSlotOrThrowForZonedDateTime(this);
+		if (!isPartialTemporalObject(temporalZonedDateTimeLike)) {
+			throw new TypeError();
+		}
+		const offsetNanoseconds = getOffsetNanosecondsForZonedDateTimeSlot(slot);
+		const isoDateTime = getIsoDateTimeForZonedDateTimeSlot(slot);
+		const fields = calendarMergeFields(
+			slot.$calendar,
+			{
+				...isoDateToFields(slot.$calendar, isoDateTime.$isoDate, date),
+				[calendarFieldKeys.$hour]: isoDateTime.$time.$hour,
+				[calendarFieldKeys.$minute]: isoDateTime.$time.$minute,
+				[calendarFieldKeys.$second]: isoDateTime.$time.$second,
+				[calendarFieldKeys.$millisecond]: isoDateTime.$time.$millisecond,
+				[calendarFieldKeys.$microsecond]: isoDateTime.$time.$microsecond,
+				[calendarFieldKeys.$nanosecond]: isoDateTime.$time.$nanosecond,
+				[calendarFieldKeys.$offset]: formatUtcOffsetNanoseconds(offsetNanoseconds),
+			},
+			prepareCalendarFields(slot.$calendar, temporalZonedDateTimeLike as Record<string, unknown>, [
+				calendarFieldKeys.$year,
+				calendarFieldKeys.$month,
+				calendarFieldKeys.$monthCode,
+				calendarFieldKeys.$day,
+				calendarFieldKeys.$hour,
+				calendarFieldKeys.$minute,
+				calendarFieldKeys.$second,
+				calendarFieldKeys.$millisecond,
+				calendarFieldKeys.$microsecond,
+				calendarFieldKeys.$nanosecond,
+				calendarFieldKeys.$offset,
+			]),
+		);
+		const resolvedOptions = getOptionsObject(options);
+		const disambiguation = getTemporalDisambiguationOption(resolvedOptions);
+		const offset = getTemporalOffsetOption(resolvedOptions, offsetPrefer);
+		const overflow = getTemporalOverflowOption(resolvedOptions);
+		const dateTimeResult = interpretTemporalDateTimeFields(slot.$calendar, fields, overflow);
+		return createTemporalZonedDateTime(
+			interpretISODateTimeOffset(
+				dateTimeResult.$isoDate,
+				dateTimeResult.$time,
+				offsetBehaviourOption,
+				parseDateTimeUtcOffset(fields[calendarFieldKeys.$offset]!),
+				slot.$timeZone,
+				disambiguation,
+				offset,
+				true,
+				cache,
+			),
+			slot.$timeZone,
+			slot.$calendar,
+			undefined,
+			cache,
+		);
+	}
 	withPlainTime(plainTimeLike: unknown = undefined) {
 		const cache = new Map<number, number>();
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);

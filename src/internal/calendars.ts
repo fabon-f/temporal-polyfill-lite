@@ -7,7 +7,7 @@ import {
 } from "../PlainDate.ts";
 import { getInternalSlotForPlainDateTime } from "../PlainDateTime.ts";
 import { getInternalSlotForPlainMonthDay } from "../PlainMonthDay.ts";
-import { getInternalSlotForPlainYearMonth } from "../PlainYearMonth.ts";
+import { getInternalSlotForPlainYearMonth, isoYearMonthWithinLimits } from "../PlainYearMonth.ts";
 import { getInternalSlotForZonedDateTime } from "../ZonedDateTime.ts";
 import {
 	isoDateRecordToEpochDays,
@@ -60,6 +60,40 @@ export interface CalendarDateRecord {
 export type SupportedNonIsoCalendars = "gregory";
 export type SupportedCalendars = "iso8601" | SupportedNonIsoCalendars;
 
+export const calendarFieldKeys = {
+	$era: "era",
+	$eraYear: "eraYear",
+	$year: "year",
+	$month: "month",
+	$monthCode: "monthCode",
+	$day: "day",
+	$hour: "hour",
+	$minute: "minute",
+	$second: "second",
+	$millisecond: "millisecond",
+	$microsecond: "microsecond",
+	$nanosecond: "nanosecond",
+	$offset: "offset",
+	$timeZone: "timeZone",
+} as const;
+const calendarFieldKeyList = [
+	calendarFieldKeys.$era,
+	calendarFieldKeys.$eraYear,
+	calendarFieldKeys.$year,
+	calendarFieldKeys.$month,
+	calendarFieldKeys.$monthCode,
+	calendarFieldKeys.$day,
+	calendarFieldKeys.$hour,
+	calendarFieldKeys.$minute,
+	calendarFieldKeys.$second,
+	calendarFieldKeys.$millisecond,
+	calendarFieldKeys.$microsecond,
+	calendarFieldKeys.$nanosecond,
+	calendarFieldKeys.$offset,
+	calendarFieldKeys.$timeZone,
+];
+export type CalendarFieldKey = (typeof calendarFieldKeys)[keyof typeof calendarFieldKeys];
+
 export interface CalendarFieldsRecord {
 	era?: string | undefined;
 	eraYear?: number | undefined;
@@ -105,48 +139,76 @@ function createMonthCode(monthNumber: number, isLeapMonth = false) {
 }
 
 const fieldValues = {
-	era: [toString],
-	eraYear: [toIntegerWithTruncation],
-	year: [toIntegerWithTruncation],
-	month: [toPositiveIntegerWithTruncation],
-	monthCode: [(arg: unknown) => createMonthCode(...parseMonthCode(arg))],
-	day: [toPositiveIntegerWithTruncation],
-	hour: [toIntegerWithTruncation, 0],
-	minute: [toIntegerWithTruncation, 0],
-	second: [toIntegerWithTruncation, 0],
-	millisecond: [toIntegerWithTruncation, 0],
-	microsecond: [toIntegerWithTruncation, 0],
-	nanosecond: [toIntegerWithTruncation, 0],
-	offset: [toOffsetString],
-	timeZone: [toTemporalTimeZoneIdentifier],
+	[calendarFieldKeys.$era]: [toString],
+	[calendarFieldKeys.$eraYear]: [toIntegerWithTruncation],
+	[calendarFieldKeys.$year]: [toIntegerWithTruncation],
+	[calendarFieldKeys.$month]: [toPositiveIntegerWithTruncation],
+	[calendarFieldKeys.$monthCode]: [(arg: unknown) => createMonthCode(...parseMonthCode(arg))],
+	[calendarFieldKeys.$day]: [toPositiveIntegerWithTruncation],
+	[calendarFieldKeys.$hour]: [toIntegerWithTruncation, 0],
+	[calendarFieldKeys.$minute]: [toIntegerWithTruncation, 0],
+	[calendarFieldKeys.$second]: [toIntegerWithTruncation, 0],
+	[calendarFieldKeys.$millisecond]: [toIntegerWithTruncation, 0],
+	[calendarFieldKeys.$microsecond]: [toIntegerWithTruncation, 0],
+	[calendarFieldKeys.$nanosecond]: [toIntegerWithTruncation, 0],
+	[calendarFieldKeys.$offset]: [toOffsetString],
+	[calendarFieldKeys.$timeZone]: [toTemporalTimeZoneIdentifier],
 } as Record<string, [conversion: (value: any) => any, defaultValue?: any]>;
 
 /** `PrepareCalendarFields` */
 export function prepareCalendarFields(
 	calendar: SupportedCalendars,
 	fields: Record<string, unknown>,
-	fieldNames: string[],
-	requiredFieldNames: string[],
+	fieldNames: CalendarFieldKey[],
+	requiredFieldNames?: string[],
 ): CalendarFieldsRecord {
 	fieldNames = [...fieldNames, ...calendarExtraFields(calendar, fieldNames)].sort();
-	const result: any = Object.create(null);
+	const result = createEmptyCalendarFieldsRecord();
 	let hasAnyField = false;
 	for (const property of fieldNames) {
 		const value = fields[property];
 		if (value !== undefined) {
 			hasAnyField = true;
 			result[property] = fieldValues[property]![0](value);
-		} else {
+		} else if (requiredFieldNames) {
 			if (requiredFieldNames.includes(property)) {
 				throw new TypeError();
 			}
 			result[property] = fieldValues[property]![1];
 		}
 	}
-	if (requiredFieldNames.length === 0 && !hasAnyField) {
+	if (!requiredFieldNames && !hasAnyField) {
 		throw new TypeError();
 	}
 	return result;
+}
+
+/** `CalendarFieldKeysPresent` */
+function calendarFieldKeysPresent(additionalFields: CalendarFieldsRecord) {
+	return calendarFieldKeyList.filter((k) => additionalFields[k] !== undefined);
+}
+
+/** `CalendarMergeFields` */
+export function calendarMergeFields(
+	calendar: SupportedCalendars,
+	fields: CalendarFieldsRecord,
+	additionalFields: CalendarFieldsRecord,
+) {
+	const additionalKeys = calendarFieldKeysPresent(additionalFields);
+	const overriddenKeys = calendarFieldKeysToIgnore(calendar, additionalKeys);
+	const merged = createEmptyCalendarFieldsRecord();
+	const fieldsKeys = calendarFieldKeysPresent(fields);
+	for (const k of calendarFieldKeyList) {
+		if (fieldsKeys.includes(k) && !overriddenKeys.includes(k)) {
+			// @ts-expect-error
+			merged[k] = fields[k];
+		}
+		if (additionalKeys.includes(k)) {
+			// @ts-expect-error
+			merged[k] = additionalFields[k];
+		}
+	}
+	return merged;
 }
 
 /** `ToTemporalCalendarIdentifier` */
@@ -193,6 +255,21 @@ export function calendarDateFromFields(
 	calendarResolveFields(calendar, fields);
 	const result = calendarDateToISO(calendar, fields, overflow);
 	if (!isoDateWithinLimits(result)) {
+		throw new RangeError();
+	}
+	return result;
+}
+
+/** `CalendarYearMonthFromFields` */
+export function calendarYearMonthFromFields(
+	calendar: SupportedCalendars,
+	fields: CalendarFieldsRecord,
+	overflow: Overflow,
+) {
+	fields.day = 1;
+	calendarResolveFields(calendar, fields, yearMonth);
+	const result = calendarDateToISO(calendar, fields, overflow);
+	if (!isoYearMonthWithinLimits(result)) {
 		throw new RangeError();
 	}
 	return result;
@@ -258,11 +335,21 @@ function calendarDateToISO(
 	overflow: Overflow,
 ): IsoDateRecord {
 	if (calendar === "iso8601") {
-		return regulateIsoDate(fields.year!, fields.month!, fields.day!, overflow);
+		return regulateIsoDate(
+			fields[calendarFieldKeys.$year]!,
+			fields[calendarFieldKeys.$month]!,
+			fields[calendarFieldKeys.$day]!,
+			overflow,
+		);
 	}
 	/** `NonISOCalendarDateToISO` */
 	if (calendar === "gregory") {
-		return regulateIsoDate(fields.year!, fields.month!, fields.day!, overflow);
+		return regulateIsoDate(
+			fields[calendarFieldKeys.$year]!,
+			fields[calendarFieldKeys.$month]!,
+			fields[calendarFieldKeys.$day]!,
+			overflow,
+		);
 	}
 	unreachable(calendar);
 }
@@ -316,36 +403,69 @@ export function calendarIsoToDate(
 }
 
 /** `CalendarExtraFields` */
-function calendarExtraFields(calendar: SupportedCalendars, fields: string[]): string[] {
+function calendarExtraFields(
+	calendar: SupportedCalendars,
+	fields: CalendarFieldKey[],
+): CalendarFieldKey[] {
 	if (calendarSupportsEra(calendar) && fields.includes("year")) {
 		return ["era", "eraYear"];
 	}
 	return [];
 }
 
+/** `CalendarFieldKeysToIgnore` */
+function calendarFieldKeysToIgnore(calendar: SupportedCalendars, keys: CalendarFieldKey[]) {
+	const ignoredKeys: CalendarFieldKey[] = [];
+	for (const k of keys) {
+		if (k === calendarFieldKeys.$month) {
+			ignoredKeys.push(calendarFieldKeys.$monthCode);
+		}
+		if (k === calendarFieldKeys.$monthCode) {
+			ignoredKeys.push(calendarFieldKeys.$month);
+		}
+		if (
+			calendarSupportsEra(calendar) &&
+			(
+				[
+					calendarFieldKeys.$era,
+					calendarFieldKeys.$eraYear,
+					calendarFieldKeys.$year,
+				] as CalendarFieldKey[]
+			).includes(k)
+		) {
+			ignoredKeys.push(calendarFieldKeys.$era, calendarFieldKeys.$eraYear, calendarFieldKeys.$year);
+		}
+	}
+	return ignoredKeys;
+}
+
 function isoResolveFields(
 	fields: CalendarFieldsRecord,
 	type: typeof date | typeof yearMonth | typeof monthDay,
 ) {
-	if (type !== monthDay && fields.year === undefined) {
+	if (type !== monthDay && fields[calendarFieldKeys.$year] === undefined) {
 		throw new TypeError();
 	}
-	if (type !== yearMonth && fields.day === undefined) {
+	if (type !== yearMonth && fields[calendarFieldKeys.$day] === undefined) {
 		throw new TypeError();
 	}
-	if (fields.monthCode === undefined && fields.month === undefined) {
+	if (
+		fields[calendarFieldKeys.$monthCode] === undefined &&
+		fields[calendarFieldKeys.$month] === undefined
+	) {
 		throw new TypeError();
 	}
-	const monthCode = mapUnlessUndefined(fields.monthCode, parseMonthCode);
+	const monthCode = mapUnlessUndefined(fields[calendarFieldKeys.$monthCode], parseMonthCode);
 	if (monthCode) {
 		if (
 			monthCode[0] > 12 ||
 			monthCode[1] ||
-			(fields.month !== undefined && monthCode[0] !== fields.month)
+			(fields[calendarFieldKeys.$month] !== undefined &&
+				monthCode[0] !== fields[calendarFieldKeys.$month])
 		) {
 			throw new RangeError();
 		}
-		fields.month = monthCode[0];
+		fields[calendarFieldKeys.$month] = monthCode[0];
 	}
 }
 
@@ -355,19 +475,29 @@ function nonIsoResolveFields(
 	fields: CalendarFieldsRecord,
 	type: typeof date | typeof yearMonth | typeof monthDay = date,
 ): void {
-	if ((fields.era === undefined) !== (fields.eraYear === undefined)) {
+	if (
+		(fields[calendarFieldKeys.$era] === undefined) !==
+		(fields[calendarFieldKeys.$eraYear] === undefined)
+	) {
 		throw new TypeError();
 	}
 	if (calendar === "gregory") {
-		if (fields.era !== undefined) {
-			if (!["ce", "ad", "bce", "bc"].includes(fields.era)) {
+		if (fields[calendarFieldKeys.$era] !== undefined) {
+			if (!["ce", "ad", "bce", "bc"].includes(fields[calendarFieldKeys.$era]!)) {
 				throw new RangeError();
 			}
-			const year = calendarDateArithmeticYearForEraYear(calendar, fields.era, fields.eraYear!);
-			if (fields.year !== undefined && fields.year !== year) {
+			const year = calendarDateArithmeticYearForEraYear(
+				calendar,
+				fields[calendarFieldKeys.$era]!,
+				fields[calendarFieldKeys.$eraYear]!,
+			);
+			if (
+				fields[calendarFieldKeys.$year] !== undefined &&
+				fields[calendarFieldKeys.$year] !== year
+			) {
 				throw new RangeError();
 			}
-			fields.year = year;
+			fields[calendarFieldKeys.$year] = year;
 		}
 		isoResolveFields(fields, type);
 		return;
@@ -421,4 +551,12 @@ function calendarDateArithmeticYearForEraYear(
 	}
 	// assertion
 	throw new Error();
+}
+
+export function createEmptyCalendarFieldsRecord(): CalendarFieldsRecord {
+	const obj = Object.create(null) as CalendarFieldsRecord;
+	for (const k of calendarFieldKeyList) {
+		obj[k] = undefined;
+	}
+	return obj;
 }

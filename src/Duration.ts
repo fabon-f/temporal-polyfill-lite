@@ -91,7 +91,6 @@ function isValidDuration(...units: DurationTuple): boolean {
 		units[unitIndices.$second];
 	return (
 		(units.every((n) => n <= 0) || units.every((n) => n >= 0)) &&
-		units.every(isFinite) &&
 		Math.abs(units[unitIndices.$year]) < Math.pow(2, 32) &&
 		Math.abs(units[unitIndices.$month]) < Math.pow(2, 32) &&
 		Math.abs(units[unitIndices.$week]) < Math.pow(2, 32) &&
