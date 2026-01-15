@@ -427,8 +427,9 @@ export class PlainDate {
 			getTemporalShowCalendarNameOption(getOptionsObject(options)),
 		);
 	}
+	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
-		const slot = getInternalSlotOrThrowForPlainDate(this);
+		getInternalSlotOrThrowForPlainDate(this);
 		// TODO
 		return "";
 	}

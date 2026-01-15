@@ -304,7 +304,7 @@ export function compareTimeRecord(time1: TimeRecord, time2: TimeRecord): NumberS
 	);
 }
 
-function addTime(time: TimeRecord, timeDuration: TimeDuration): TimeRecord {
+export function addTime(time: TimeRecord, timeDuration: TimeDuration): TimeRecord {
 	const daysAndNanoseconds = timeDurationDaysAndRemainderNanoseconds(timeDuration);
 	const result = balanceTime(
 		time.$hour,
@@ -491,8 +491,9 @@ export class PlainTime {
 			record.$precision,
 		);
 	}
+	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
-		const slot = getInternalSlotOrThrowForPlainTime(this);
+		getInternalSlotOrThrowForPlainTime(this);
 		// TODO
 		return "";
 	}

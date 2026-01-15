@@ -278,8 +278,9 @@ export class PlainYearMonth {
 			getTemporalShowCalendarNameOption(getOptionsObject(options)),
 		);
 	}
+	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locale: unknown = undefined, options: unknown = undefined) {
-		const slot = getInternalSlotOrThrowForPlainYearMonth(this);
+		getInternalSlotOrThrowForPlainYearMonth(this);
 		// TODO
 		return "";
 	}

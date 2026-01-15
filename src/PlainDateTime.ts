@@ -552,8 +552,9 @@ export class PlainDateTime {
 		}
 		return isoDateTimeToString(result, slot.$calendar, record.$precision, showCalendar);
 	}
+	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
-		const slot = getInternalSlotOrThrowForPlainDateTime(this);
+		getInternalSlotOrThrowForPlainDateTime(this);
 		// TODO
 		return "";
 	}

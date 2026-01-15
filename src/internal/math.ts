@@ -36,7 +36,7 @@ export function truncateDigits(num: number, digits: number): number {
 			: (num < 0 ? -1 : 1) *
 				toIntegerWithTruncation(
 					Math.abs(num)
-						.toPrecision(50)
+						.toPrecision(50) // oxlint-disable-line oxc/number-arg-out-of-range
 						.replace(/^\d+/, (d) => d.slice(0, -digits)),
 				)) + 0
 	);

@@ -43,22 +43,16 @@ import {
 } from "./internal/epochNanoseconds.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
-import { formatUtcOffsetNanoseconds, toTemporalTimeZoneIdentifier } from "./internal/timeZones.ts";
 import {
-	nanosecondsForTimeUnit,
-	singularUnitKeys,
-	timeUnitLengths,
-	type SingularUnitKey,
-} from "./internal/unit.ts";
+	formatUtcOffsetNanoseconds,
+	getIsoDateTimeFromOffsetNanoseconds,
+	getOffsetNanosecondsFor,
+	toTemporalTimeZoneIdentifier,
+} from "./internal/timeZones.ts";
+import { nanosecondsForTimeUnit, timeUnitLengths, type SingularUnitKey } from "./internal/unit.ts";
 import { notImplementedYet } from "./internal/utils.ts";
 import { balanceIsoDateTime, isoDateTimeToString } from "./PlainDateTime.ts";
-import {
-	createTemporalZonedDateTime,
-	createZonedDateTimeSlot,
-	getInternalSlotForZonedDateTime,
-	getIsoDateTimeForZonedDateTimeSlot,
-	getOffsetNanosecondsForZonedDateTimeSlot,
-} from "./ZonedDateTime.ts";
+import { createTemporalZonedDateTime, getInternalSlotForZonedDateTime } from "./ZonedDateTime.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 
@@ -152,19 +146,14 @@ function temporalInstantToString(
 	precision?: number | typeof MINUTE,
 ) {
 	const outputTimeZone = timeZone === undefined ? "UTC" : timeZone;
-	const temporaryZonedDateTimeSlot = createZonedDateTimeSlot(epoch, outputTimeZone, "iso8601");
+	const offsetNanoseconds = getOffsetNanosecondsFor(outputTimeZone, epoch);
 	return (
 		isoDateTimeToString(
-			getIsoDateTimeForZonedDateTimeSlot(temporaryZonedDateTimeSlot),
+			getIsoDateTimeFromOffsetNanoseconds(epoch, offsetNanoseconds),
 			"iso8601",
 			precision,
 			showCalendarName.$never,
-		) +
-		(timeZone === undefined
-			? "Z"
-			: formatUtcOffsetNanoseconds(
-					getOffsetNanosecondsForZonedDateTimeSlot(temporaryZonedDateTimeSlot),
-				))
+		) + (timeZone === undefined ? "Z" : formatUtcOffsetNanoseconds(offsetNanoseconds))
 	);
 }
 
@@ -289,8 +278,9 @@ export class Instant {
 			precisionRecord.$precision,
 		);
 	}
+	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
-		const slot = getInternalSlotOrThrowForInstant(this);
+		getInternalSlotOrThrowForInstant(this);
 		// TODO
 		return "";
 	}

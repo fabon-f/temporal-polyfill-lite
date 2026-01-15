@@ -116,7 +116,7 @@ function isValidDuration(...units: DurationTuple): boolean {
 }
 
 /** `DefaultTemporalLargestUnit` */
-function defaultTemporalLargestUnit(duration: DurationSlot): SingularUnitKey {
+export function defaultTemporalLargestUnit(duration: DurationSlot): SingularUnitKey {
 	const unit = singularUnitKeys[(duration.findIndex((v) => v !== 0) + 10) % 10];
 	assertNotUndefined(unit);
 	return unit;
@@ -364,8 +364,9 @@ export class Duration {
 	toJSON() {
 		notImplementedYet();
 	}
+	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
-		const slot = getInternalSlotOrThrowForDuration(this);
+		getInternalSlotOrThrowForDuration(this);
 		// TODO
 		return "";
 	}
