@@ -12,13 +12,13 @@
 		"@js-temporal/temporal-test262-runner": "github:js-temporal/temporal-test262-runner#main",
 		"@rollup/plugin-terser": "^0.4.4",
 		"@tsconfig/strictest": "^2.0.8",
-		"@types/node": "^25.0.3",
-		"@typescript/native-preview": "7.0.0-dev.20260109.1",
-		"oxfmt": "0.23.0",
-		"oxlint": "^1.38.0",
-		"rolldown": "1.0.0-beta.59",
+		"@types/node": "^25.0.8",
+		"@typescript/native-preview": "7.0.0-dev.20260115.1",
+		"oxfmt": "0.24.0",
+		"oxlint": "^1.39.0",
+		"rolldown": "1.0.0-beta.60",
 		"tzdata": "^1.0.47",
-		"vitest": "^4.0.16"
+		"vitest": "^4.0.17"
 	},
 	"scripts": {
 		"test": "vitest",
@@ -31,5 +31,5 @@
 			"vite": "beta"
 		}
 	},
-	"packageManager": "pnpm@10.27.0"
+	"packageManager": "pnpm@10.28.0"
 }
