@@ -223,7 +223,7 @@ export function getTemporalFractionalSecondDigitsOption(options: object): number
 
 interface PrecisionRecord {
 	$precision: number | typeof MINUTE | undefined;
-	$unit: SingularTimeUnitKey;
+	$unit: Exclude<SingularTimeUnitKey, "hour">;
 	$increment: number;
 }
 

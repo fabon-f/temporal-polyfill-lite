@@ -5,10 +5,6 @@ export function mapUnlessUndefined<T, R>(
 	return value === undefined ? undefined : func(value);
 }
 
-export function unreachable(_: never): never {
-	throw new Error();
-}
-
 export function notImplementedYet() {
 	throw new Error();
 }

@@ -100,7 +100,7 @@ import {
 	timeZoneEquals,
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
-import type { SingularUnitKey } from "./internal/unit.ts";
+import type { SingularTimeUnitKey } from "./internal/unit.ts";
 import { notImplementedYet } from "./internal/utils.ts";
 import {
 	addDaysToIsoDate,
@@ -345,7 +345,7 @@ function temporalZonedDateTimeToString(
 	showTimeZone: TimeZoneNameOptions,
 	showOffset: ShowOffsetOptions,
 	increment = 1,
-	unit: SingularUnitKey = "nanosecond",
+	unit: Exclude<SingularTimeUnitKey, "hour"> = "nanosecond",
 	roundingMode: RoundingMode = roundingModeTrunc,
 ) {
 	const epoch = roundTemporalInstant(slot.$epochNanoseconds, increment, unit, roundingMode);

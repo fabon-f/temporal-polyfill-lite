@@ -16,7 +16,7 @@ import {
 	mathematicalInLeapYear,
 	toOffsetString,
 } from "./abstractOperations.ts";
-import { assert } from "./assertion.ts";
+import { assert, assertUnreachable } from "./assertion.ts";
 import { parseTemporalCalendarString } from "./dateTimeParser.ts";
 import {
 	toIntegerWithTruncation,
@@ -36,7 +36,7 @@ import {
 import { divFloor, modFloor } from "./math.ts";
 import { asciiLowerCase, ToZeroPaddedDecimalString } from "./string.ts";
 import { toTemporalTimeZoneIdentifier } from "./timeZones.ts";
-import { mapUnlessUndefined, unreachable } from "./utils.ts";
+import { mapUnlessUndefined } from "./utils.ts";
 
 type YearWeekRecord =
 	| {
@@ -67,6 +67,7 @@ export interface CalendarDateRecord {
 
 export type SupportedNonIsoCalendars = "gregory";
 export type SupportedCalendars = "iso8601" | SupportedNonIsoCalendars;
+export type SupportedNonIsoCalendarsWithEras = "gregory";
 
 export const calendarFieldKeys = {
 	$era: "era",
@@ -386,7 +387,7 @@ function calendarDateToISO(
 			overflow,
 		);
 	}
-	unreachable(calendar);
+	assertUnreachable(calendar);
 }
 
 /** `NonISOCalendarISOToDate` */
@@ -405,7 +406,7 @@ function nonIsoCalendarIsoToDate(
 			},
 		};
 	}
-	unreachable(calendar);
+	assertUnreachable(calendar);
 }
 
 function isoCalendarIsoToDate(isoDate: IsoDateRecord): CalendarDateRecord {
@@ -441,7 +442,7 @@ function calendarMonthDayToIsoReferenceDate(
 		);
 		return createIsoDateRecord(1972, result.$month, result.$day);
 	}
-	unreachable(calendar);
+	assertUnreachable(calendar);
 }
 
 /** `CalendarISOToDate` */
@@ -556,7 +557,7 @@ function nonIsoResolveFields(
 		isoResolveFields(fields, type);
 		return;
 	}
-	unreachable(calendar);
+	assertUnreachable(calendar);
 }
 
 /** `CalendarResolveFields` */
@@ -588,12 +589,12 @@ function canonicalizeEraInCalendar(calendar: SupportedNonIsoCalendars, era: stri
 		}
 		return era;
 	}
-	unreachable(calendar);
+	assertUnreachable(calendar);
 }
 
 /** `CalendarDateArithmeticYearForEraYear` */
 function calendarDateArithmeticYearForEraYear(
-	calendar: SupportedNonIsoCalendars,
+	calendar: SupportedNonIsoCalendarsWithEras,
 	era: string,
 	eraYear: number,
 ): number {
@@ -603,8 +604,7 @@ function calendarDateArithmeticYearForEraYear(
 		}
 		return 1 - eraYear;
 	}
-	// assertion
-	throw new Error();
+	assertUnreachable(calendar);
 }
 
 export function createEmptyCalendarFieldsRecord(): CalendarFieldsRecord {
