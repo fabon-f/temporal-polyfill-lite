@@ -9,6 +9,7 @@ import {
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
+import { assert } from "./internal/assertion.ts";
 import {
 	parseDateTimeUtcOffset,
 	parseIsoDateTime,
@@ -51,7 +52,6 @@ import {
 } from "./internal/unit.ts";
 import { notImplementedYet } from "./internal/utils.ts";
 import { balanceIsoDateTime, isoDateTimeToString } from "./PlainDateTime.ts";
-import { midnightTimeRecord } from "./PlainTime.ts";
 import {
 	createTemporalZonedDateTime,
 	createZonedDateTimeSlot,
@@ -110,7 +110,8 @@ function toTemporalInstant(item: unknown): Instant {
 	const offsetNanoseconds = parsed.$timeZone.$z
 		? 0
 		: parseDateTimeUtcOffset(parsed.$timeZone.$offsetString!);
-	const time = parsed.$time === START_OF_DAY ? midnightTimeRecord() : parsed.$time;
+	assert(parsed.$time !== START_OF_DAY);
+	const time = parsed.$time;
 	const balanced = balanceIsoDateTime(
 		parsed.$year!,
 		parsed.$month,

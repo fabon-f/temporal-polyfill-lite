@@ -10,6 +10,7 @@
 	"license": "MIT",
 	"devDependencies": {
 		"@js-temporal/temporal-test262-runner": "github:js-temporal/temporal-test262-runner#main",
+		"@rollup/plugin-strip": "^3.0.4",
 		"@rollup/plugin-terser": "^0.4.4",
 		"@tsconfig/strictest": "^2.0.8",
 		"@types/node": "^25.0.8",
