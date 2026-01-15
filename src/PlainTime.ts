@@ -29,6 +29,7 @@ import {
 	REQUIRED,
 	roundingModeHalfExpand,
 	roundingModeTrunc,
+	START_OF_DAY,
 	TIME,
 	type Overflow,
 	type RoundingMode,
@@ -50,6 +51,11 @@ import {
 } from "./ZonedDateTime.ts";
 import { calendarFieldKeys } from "./internal/calendars.ts";
 import { notImplementedYet } from "./internal/utils.ts";
+import {
+	timeDurationDaysAndRemainderNanoseconds,
+	type TimeDuration,
+} from "./internal/timeDuration.ts";
+import { assert, assertNotUndefined } from "./internal/assertion.ts";
 
 export interface TimeRecord {
 	$hour: number;
@@ -88,6 +94,7 @@ export function createTimeRecord(
 	nanosecond: number,
 	deltaDays = 0,
 ): TimeRecord {
+	assert(isValidTime(hour, minute, second, millisecond, microsecond, nanosecond));
 	return {
 		$hour: hour,
 		$minute: minute,
@@ -144,11 +151,12 @@ export function toTemporalTime(item: unknown, options?: unknown) {
 		throw new TypeError();
 	}
 	const result = parseIsoDateTime(item, [temporalTimeStringRegExp]);
+	assert(result.$time !== START_OF_DAY);
 	if (isAmbiguousTemporalTimeString(item)) {
 		throw new RangeError();
 	}
 	getTemporalOverflowOption(getOptionsObject(options));
-	return createTemporalTime(result.$time as TimeRecord);
+	return createTemporalTime(result.$time);
 }
 
 /** `ToTimeRecordOrMidnight` */
@@ -296,6 +304,20 @@ export function compareTimeRecord(time1: TimeRecord, time2: TimeRecord): NumberS
 	);
 }
 
+function addTime(time: TimeRecord, timeDuration: TimeDuration): TimeRecord {
+	const daysAndNanoseconds = timeDurationDaysAndRemainderNanoseconds(timeDuration);
+	const result = balanceTime(
+		time.$hour,
+		time.$minute,
+		time.$second,
+		time.$millisecond,
+		time.$microsecond,
+		time.$nanosecond + daysAndNanoseconds[1],
+	);
+	result.$days += daysAndNanoseconds[0];
+	return result;
+}
+
 /** `RoundTime` */
 export function roundTime(
 	time: TimeRecord,
@@ -303,6 +325,7 @@ export function roundTime(
 	unit: SingularUnitKey,
 	roundingMode: RoundingMode,
 ): TimeRecord {
+	assert(unit !== "year" && unit !== "month" && unit !== "week");
 	const unitIndex = singularUnitKeys.indexOf(unit);
 	const values = [
 		time.$hour,
@@ -414,7 +437,7 @@ export class PlainTime {
 		if (!isPartialTemporalObject(temporalTimeLike)) {
 			throw new TypeError();
 		}
-		const time = toTemporalTimeRecord(temporalTimeLike as Record<string, unknown>, true);
+		const time = toTemporalTimeRecord(temporalTimeLike as object, true);
 		const overflow = getTemporalOverflowOption(getOptionsObject(options));
 		return createTemporalTime(
 			regulateTime(
@@ -440,12 +463,12 @@ export class PlainTime {
 		const roundingIncrement = getRoundingIncrementOption(roundToOptions);
 		const roundingMode = getRoundingModeOption(roundToOptions, roundingModeHalfExpand);
 		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", REQUIRED);
+		assert(smallestUnit !== "auto");
 		validateTemporalUnitValue(smallestUnit, TIME);
-		const maximum = maximumTemporalDurationRoundingIncrement(smallestUnit as SingularUnitKey)!;
+		const maximum = maximumTemporalDurationRoundingIncrement(smallestUnit);
+		assertNotUndefined(maximum);
 		validateTemporalRoundingIncrement(roundingIncrement, maximum, false);
-		return createTemporalTime(
-			roundTime(slot, roundingIncrement, smallestUnit as SingularUnitKey, roundingMode),
-		);
+		return createTemporalTime(roundTime(slot, roundingIncrement, smallestUnit, roundingMode));
 	}
 	equals(other: unknown) {
 		return !compareTimeRecord(
@@ -459,11 +482,12 @@ export class PlainTime {
 		const digits = getTemporalFractionalSecondDigitsOption(resolvedOptions);
 		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
 		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
+		assert(smallestUnit !== "auto");
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === "hour") {
 			throw new RangeError();
 		}
-		const record = toSecondsStringPrecisionRecord(smallestUnit as SingularUnitKey, digits);
+		const record = toSecondsStringPrecisionRecord(smallestUnit, digits);
 		return timeRecordToString(
 			roundTime(slot, record.$increment, record.$unit, roundingMode),
 			record.$precision,

@@ -1,3 +1,4 @@
+import { assert, assertNotUndefined } from "./internal/assertion.ts";
 import { toIntegerIfIntegral } from "./internal/ecmascript.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
@@ -9,6 +10,7 @@ import {
 	createTimeDurationFromNanoseconds,
 	createTimeDurationFromSeconds,
 	sumTimeDuration,
+	type TimeDuration,
 } from "./internal/timeDuration.ts";
 import {
 	pluralUnitKeys,
@@ -84,6 +86,7 @@ function durationSign(duration: DurationSlot) {
 
 /** `IsValidDuration` */
 function isValidDuration(...units: DurationTuple): boolean {
+	assert(units.every((v) => Number.isFinite(v)));
 	const timeDurationAboveSecond =
 		units[unitIndices.$day] * 86400 +
 		units[unitIndices.$hour] * 3600 +
@@ -94,15 +97,18 @@ function isValidDuration(...units: DurationTuple): boolean {
 		Math.abs(units[unitIndices.$year]) < Math.pow(2, 32) &&
 		Math.abs(units[unitIndices.$month]) < Math.pow(2, 32) &&
 		Math.abs(units[unitIndices.$week]) < Math.pow(2, 32) &&
+		// TODO: verify whether `isSafeInteger` guard is necessary or not
 		Number.isSafeInteger(timeDurationAboveSecond) &&
 		compareTimeDuration(
 			absTimeDuration(
-				sumTimeDuration([
-					createTimeDurationFromSeconds(timeDurationAboveSecond),
-					createTimeDurationFromMilliseconds(units[7]),
-					createTimeDurationFromMicroseconds(units[8]),
-					createTimeDurationFromNanoseconds(units[9]),
-				]),
+				timeDurationFromComponents(
+					units[unitIndices.$day] * 24 + units[unitIndices.$hour],
+					units[unitIndices.$minute],
+					units[unitIndices.$second],
+					units[unitIndices.$millisecond],
+					units[unitIndices.$microsecond],
+					units[unitIndices.$nanosecond],
+				),
 			),
 			createTimeDurationFromSeconds(Number.MAX_SAFE_INTEGER + 1),
 		) < 0
@@ -111,7 +117,9 @@ function isValidDuration(...units: DurationTuple): boolean {
 
 /** `DefaultTemporalLargestUnit` */
 function defaultTemporalLargestUnit(duration: DurationSlot): SingularUnitKey {
-	return singularUnitKeys[(duration.findIndex((v) => v !== 0) + 10) % 10]!;
+	const unit = singularUnitKeys[(duration.findIndex((v) => v !== 0) + 10) % 10];
+	assertNotUndefined(unit);
+	return unit;
 }
 
 /** `ToTemporalPartialDurationRecord` */
@@ -210,6 +218,22 @@ function createTemporalDuration(
 /** `CreateNegatedTemporalDuration` */
 function createNegatedTemporalDurationSlot(duration: DurationSlot): DurationSlot {
 	return createTemporalDurationSlot(...(duration.map((v) => 0 - v) as DurationTuple));
+}
+
+function timeDurationFromComponents(
+	hours: number,
+	minutes: number,
+	seconds: number,
+	milliseconds: number,
+	microseconds: number,
+	nanoseconds: number,
+): TimeDuration {
+	return sumTimeDuration([
+		createTimeDurationFromSeconds(hours * 3600 + minutes * 60 + seconds),
+		createTimeDurationFromMilliseconds(milliseconds),
+		createTimeDurationFromMicroseconds(microseconds),
+		createTimeDurationFromNanoseconds(nanoseconds),
+	]);
 }
 
 function isDuration(duration: unknown) {

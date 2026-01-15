@@ -4,6 +4,7 @@ import {
 	isoDateToFields,
 	isPartialTemporalObject,
 } from "./internal/abstractOperations.ts";
+import { assertNotUndefined } from "./internal/assertion.ts";
 import {
 	calendarDateFromFields,
 	calendarEquals,
@@ -58,7 +59,7 @@ function toTemporalMonthDay(item: unknown, options: unknown = undefined): PlainM
 		const calendar = getTemporalCalendarIdentifierWithIsoDefault(item);
 		const fields = prepareCalendarFields(
 			calendar,
-			item as Record<string, unknown>,
+			item,
 			[
 				calendarFieldKeys.$year,
 				calendarFieldKeys.$month,
@@ -77,9 +78,11 @@ function toTemporalMonthDay(item: unknown, options: unknown = undefined): PlainM
 	const calendar = canonicalizeCalendar(result.$calendar || "iso8601");
 	getTemporalOverflowOption(getOptionsObject(options));
 	if (calendar === "iso8601") {
-		return createTemporalMonthDay(createIsoDateRecord(1972, result.$month, result.$day!), calendar);
+		assertNotUndefined(result.$day);
+		return createTemporalMonthDay(createIsoDateRecord(1972, result.$month, result.$day), calendar);
 	}
-	const isoDate = createIsoDateRecord(result.$year!, result.$month, result.$day);
+	assertNotUndefined(result.$year);
+	const isoDate = createIsoDateRecord(result.$year, result.$month, result.$day);
 	if (!isoDateWithinLimits(isoDate)) {
 		throw new RangeError();
 	}
@@ -197,7 +200,7 @@ export class PlainMonthDay {
 				calendarMergeFields(
 					slot.$calendar,
 					isoDateToFields(slot.$calendar, slot.$isoDate, MONTH_DAY),
-					prepareCalendarFields(slot.$calendar, temporalMonthDayLike as Record<string, unknown>, [
+					prepareCalendarFields(slot.$calendar, temporalMonthDayLike as object, [
 						calendarFieldKeys.$year,
 						calendarFieldKeys.$month,
 						calendarFieldKeys.$monthCode,
@@ -248,12 +251,7 @@ export class PlainMonthDay {
 				calendarMergeFields(
 					slot.$calendar,
 					isoDateToFields(slot.$calendar, slot.$isoDate, MONTH_DAY),
-					prepareCalendarFields(
-						slot.$calendar,
-						item as Record<string, unknown>,
-						[calendarFieldKeys.$year],
-						[],
-					),
+					prepareCalendarFields(slot.$calendar, item, [calendarFieldKeys.$year], []),
 				),
 				overflowConstrain,
 			),

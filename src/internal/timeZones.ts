@@ -16,8 +16,10 @@ import {
 	parseTemporalTimeZoneString,
 	roundNumberToIncrement,
 } from "./abstractOperations.ts";
+import { assert, assertNotUndefined } from "./assertion.ts";
 import {
 	millisecondsPerDay,
+	nanosecondsPerDay,
 	nanosecondsPerHour,
 	nanosecondsPerMilliseconds,
 	nanosecondsPerMinute,
@@ -41,7 +43,7 @@ import {
 	epochSeconds,
 	type EpochNanoseconds,
 } from "./epochNanoseconds.ts";
-import { clamp, divFloor, modFloor } from "./math.ts";
+import { clamp, divFloor, isWithin, modFloor } from "./math.ts";
 import { asciiCapitalize, asciiLowerCase, asciiUpperCase } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
 
@@ -232,6 +234,7 @@ export function getAvailableNamedTimeZoneIdentifier(timeZone: string) {
 /** `GetISOPartsFromEpoch` */
 export function getIsoPartsFromEpoch(epochNanoseconds: EpochNanoseconds): IsoDateTimeRecord {
 	const [epochDays, remainderNanoseconds] = epochDaysAndRemainderNanoseconds(epochNanoseconds);
+	assert(isWithin(remainderNanoseconds, 0, nanosecondsPerDay - 1));
 	return combineIsoDateAndTimeRecord(
 		epochDaysToIsoDate(epochDays),
 		balanceTime(0, 0, 0, 0, 0, remainderNanoseconds),
@@ -328,7 +331,8 @@ export function disambiguatePossibleEpochNanoseconds(
 	offsetCacheMap: Map<number, number>,
 ): EpochNanoseconds {
 	if (possibleEpochNs.length === 1) {
-		return possibleEpochNs[0]!;
+		assertNotUndefined(possibleEpochNs[0]);
+		return possibleEpochNs[0];
 	}
 	if (disambiguation === disambiguationReject) {
 		throw new RangeError();

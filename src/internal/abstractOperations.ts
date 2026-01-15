@@ -119,12 +119,7 @@ export function checkIsoDaysRange(isoDate: IsoDateRecord) {
 
 /** `GetTemporalOverflowOption` */
 export function getTemporalOverflowOption(options: object): Overflow {
-	return getOption(
-		options as Record<string, unknown>,
-		"overflow",
-		[overflowConstrain, overflowReject],
-		overflowConstrain,
-	);
+	return getOption(options, "overflow", [overflowConstrain, overflowReject], overflowConstrain);
 }
 
 /** `GetTemporalDisambiguationOption` */
@@ -325,7 +320,9 @@ export function validateTemporalUnitValue(
 }
 
 /** `MaximumTemporalDurationRoundingIncrement` */
-export function maximumTemporalDurationRoundingIncrement(unit: SingularUnitKey) {
+export function maximumTemporalDurationRoundingIncrement(
+	unit: SingularUnitKey,
+): number | undefined {
 	return {
 		year: undefined,
 		month: undefined,

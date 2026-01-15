@@ -7,6 +7,7 @@ import {
 	isoDateToFields,
 	isPartialTemporalObject,
 } from "./internal/abstractOperations.ts";
+import { assert, assertNotUndefined } from "./internal/assertion.ts";
 import {
 	calendarDateFromFields,
 	calendarFieldKeys,
@@ -82,6 +83,7 @@ const slots = new WeakMap<any, PlainDateSlot>();
 
 /** `CreateISODateRecord` */
 export function createIsoDateRecord(year: number, month: number, day: number): IsoDateRecord {
+	assert(isValidIsoDate(year, month, day));
 	return {
 		$year: year,
 		$month: month,
@@ -122,12 +124,7 @@ function toTemporalDate(item: unknown, options?: unknown) {
 			return createTemporalDate(slot.$isoDateTime.$isoDate, slot.$calendar);
 		}
 		const calendar = getTemporalCalendarIdentifierWithIsoDefault(item);
-		const fields = prepareCalendarFields(
-			calendar,
-			item as Record<string, unknown>,
-			["year", "month", "monthCode", "day"],
-			[],
-		);
+		const fields = prepareCalendarFields(calendar, item, ["year", "month", "monthCode", "day"], []);
 		const oveflow = getTemporalOverflowOption(getOptionsObject(options));
 		return createTemporalDate(calendarDateFromFields(calendar, fields, oveflow), calendar);
 	}
@@ -135,10 +132,11 @@ function toTemporalDate(item: unknown, options?: unknown) {
 		throw new TypeError();
 	}
 	const result = parseIsoDateTime(item, [temporalDateTimeStringRegExp]);
+	assertNotUndefined(result.$year);
 	const calendar = canonicalizeCalendar(result.$calendar || "iso8601");
 	getTemporalOverflowOption(getOptionsObject(options));
 	return createTemporalDate(
-		createIsoDateRecord(result.$year!, result.$month, result.$day),
+		createIsoDateRecord(result.$year, result.$month, result.$day),
 		calendar,
 	);
 }
@@ -343,7 +341,7 @@ export class PlainDate {
 		const fields = calendarMergeFields(
 			slot.$calendar,
 			isoDateToFields(slot.$calendar, slot.$isoDate, DATE),
-			prepareCalendarFields(slot.$calendar, temporalDateLike as Record<string, unknown>, [
+			prepareCalendarFields(slot.$calendar, temporalDateLike as object, [
 				calendarFieldKeys.$year,
 				calendarFieldKeys.$month,
 				calendarFieldKeys.$monthCode,

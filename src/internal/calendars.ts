@@ -16,6 +16,7 @@ import {
 	mathematicalInLeapYear,
 	toOffsetString,
 } from "./abstractOperations.ts";
+import { assert } from "./assertion.ts";
 import { parseTemporalCalendarString } from "./dateTimeParser.ts";
 import {
 	toIntegerWithTruncation,
@@ -137,11 +138,13 @@ function parseMonthCode(arg: unknown): [monthNumber: number, isLeapMonth: boolea
 	if (!result || monthCode === "M00") {
 		throw new RangeError();
 	}
-	return [toNumber(result[1]!), monthCode.length === 4];
+	assert(result[1] !== undefined);
+	return [toNumber(result[1]), monthCode.length === 4];
 }
 
 /** `CreateMonthCode` */
 function createMonthCode(monthNumber: number, isLeapMonth = false) {
+	assert(isLeapMonth || monthNumber > 0);
 	return `M${ToZeroPaddedDecimalString(monthNumber, 2)}${isLeapMonth ? "L" : ""}`;
 }
 
@@ -160,12 +163,12 @@ const fieldValues = {
 	[calendarFieldKeys.$nanosecond]: [toIntegerWithTruncation, 0],
 	[calendarFieldKeys.$offset]: [toOffsetString],
 	[calendarFieldKeys.$timeZone]: [toTemporalTimeZoneIdentifier],
-} as Record<string, [conversion: (value: any) => any, defaultValue?: any]>;
+} as Record<CalendarFieldKey, [conversion: (value: any) => any, defaultValue?: any]>;
 
 /** `PrepareCalendarFields` */
 export function prepareCalendarFields(
 	calendar: SupportedCalendars,
-	fields: Record<string, unknown>,
+	fields: object,
 	fieldNames: CalendarFieldKey[],
 	requiredFieldNames?: string[],
 ): CalendarFieldsRecord {
@@ -173,15 +176,15 @@ export function prepareCalendarFields(
 	const result = createEmptyCalendarFieldsRecord();
 	let hasAnyField = false;
 	for (const property of fieldNames) {
-		const value = fields[property];
+		const value = (fields as Record<string, unknown>)[property];
 		if (value !== undefined) {
 			hasAnyField = true;
-			result[property] = fieldValues[property]![0](value);
+			result[property] = fieldValues[property][0](value);
 		} else if (requiredFieldNames) {
 			if (requiredFieldNames.includes(property)) {
 				throw new TypeError();
 			}
-			result[property] = fieldValues[property]![1];
+			result[property] = fieldValues[property][1];
 		}
 	}
 	if (!requiredFieldNames && !hasAnyField) {

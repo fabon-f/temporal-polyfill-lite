@@ -21,6 +21,7 @@ import {
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
+import { assert, assertNotUndefined } from "./internal/assertion.ts";
 import {
 	calendarEquals,
 	calendarFieldKeys,
@@ -75,13 +76,14 @@ import {
 	compareEpochNanoseconds,
 	convertEpochNanosecondsToBigInt,
 	createEpochNanosecondsFromBigInt,
-	differenceInNanosecondsNumber,
+	differenceEpochNanoseconds,
 	epochMilliseconds,
 	epochSeconds,
 	type EpochNanoseconds,
 } from "./internal/epochNanoseconds.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
+import { timeDurationToNanosecondsNumber } from "./internal/timeDuration.ts";
 import {
 	disambiguatePossibleEpochNanoseconds,
 	formatDateTimeUtcOffsetRounded,
@@ -90,7 +92,6 @@ import {
 	getAvailableNamedTimeZoneIdentifier,
 	getEpochNanosecondsFor,
 	getIsoDateTimeFromOffsetNanoseconds,
-	getIsoPartsFromEpoch,
 	getOffsetNanosecondsFor,
 	getPossibleEpochNanoseconds,
 	getStartOfDay,
@@ -149,6 +150,8 @@ function interpretISODateTimeOffset(
 	offsetCacheMap: Map<number, number>,
 ): EpochNanoseconds {
 	if (time === START_OF_DAY) {
+		assert(offsetBehaviour === offsetBehaviourWall);
+		assert(offsetNanoseconds === 0);
 		return getStartOfDay(timeZone, isoDate, offsetCacheMap);
 	}
 	const isoDateTime = combineIsoDateAndTimeRecord(isoDate, time);
@@ -180,6 +183,7 @@ function interpretISODateTimeOffset(
 		}
 		return epoch;
 	}
+	assert(offsetOption === offsetPrefer || offsetOption === offsetReject);
 	checkIsoDaysRange(isoDate);
 	const possibleEpochNs = getPossibleEpochNanoseconds(timeZone, isoDateTime, offsetCacheMap);
 	for (const candidate of possibleEpochNs) {
@@ -229,7 +233,7 @@ function toTemporalZonedDateTime(item: unknown, options?: unknown) {
 		calendar = getTemporalCalendarIdentifierWithIsoDefault(item);
 		const fields = prepareCalendarFields(
 			calendar,
-			item as Record<string, unknown>,
+			item,
 			[
 				"year",
 				"month",
@@ -246,7 +250,8 @@ function toTemporalZonedDateTime(item: unknown, options?: unknown) {
 			],
 			["timeZone"],
 		);
-		timeZone = fields.timeZone!;
+		assertNotUndefined(fields.timeZone);
+		timeZone = fields.timeZone;
 		offsetString = fields.offset;
 		const resolvedOptions = getOptionsObject(options);
 		disambiguation = getTemporalDisambiguationOption(resolvedOptions);
@@ -260,6 +265,7 @@ function toTemporalZonedDateTime(item: unknown, options?: unknown) {
 			throw new TypeError();
 		}
 		const result = parseIsoDateTime(item, [temporalZonedDateTimeStringRegExp]);
+		assertNotUndefined(result.$year);
 		timeZone = toTemporalTimeZoneIdentifier(result.$timeZone.$timeZoneAnnotation);
 		offsetString = result.$timeZone.$offsetString;
 		hasUtcDesignator = result.$timeZone.$z;
@@ -272,7 +278,7 @@ function toTemporalZonedDateTime(item: unknown, options?: unknown) {
 		disambiguation = getTemporalDisambiguationOption(resolvedOptions);
 		offsetOption = getTemporalOffsetOption(resolvedOptions, overflowReject);
 		getTemporalOverflowOption(resolvedOptions);
-		isoDate = createIsoDateRecord(result.$year!, result.$month, result.$day);
+		isoDate = createIsoDateRecord(result.$year, result.$month, result.$day);
 		time = result.$time;
 	}
 	const offsetBehaviour = hasUtcDesignator
@@ -305,6 +311,7 @@ export function createTemporalZonedDateTime(
 	instance = Object.create(ZonedDateTime.prototype) as ZonedDateTime,
 	offsetCacheMap?: Map<number, number>,
 ): ZonedDateTime {
+	assert(isValidEpochNanoseconds(epochNanoseconds));
 	return createTemporalZonedDateTimeFromSlot(
 		createZonedDateTimeSlot(
 			epochNanoseconds,
@@ -524,10 +531,13 @@ export class ZonedDateTime {
 		const cache = new Map<number, number>();
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
 		const today = getIsoDateTimeForZonedDateTimeSlot(slot).$isoDate;
+
 		return (
-			differenceInNanosecondsNumber(
-				getStartOfDay(slot.$timeZone, addDaysToIsoDate(today, 1), cache),
-				getStartOfDay(slot.$timeZone, today, cache),
+			timeDurationToNanosecondsNumber(
+				differenceEpochNanoseconds(
+					getStartOfDay(slot.$timeZone, today, cache),
+					getStartOfDay(slot.$timeZone, addDaysToIsoDate(today, 1), cache),
+				),
 			) / nanosecondsPerHour
 		);
 	}
@@ -580,7 +590,7 @@ export class ZonedDateTime {
 				[calendarFieldKeys.$nanosecond]: isoDateTime.$time.$nanosecond,
 				[calendarFieldKeys.$offset]: formatUtcOffsetNanoseconds(offsetNanoseconds),
 			},
-			prepareCalendarFields(slot.$calendar, temporalZonedDateTimeLike as Record<string, unknown>, [
+			prepareCalendarFields(slot.$calendar, temporalZonedDateTimeLike as object, [
 				calendarFieldKeys.$year,
 				calendarFieldKeys.$month,
 				calendarFieldKeys.$monthCode,
@@ -680,11 +690,11 @@ export class ZonedDateTime {
 		const roundingIncrement = getRoundingIncrementOption(roundToOptions);
 		const roundingMode = getRoundingModeOption(roundToOptions, "halfExpand");
 		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", REQUIRED);
+		assert(smallestUnit !== "auto");
 		validateTemporalUnitValue(smallestUnit, TIME, ["day"]);
 		const maximum =
-			smallestUnit === "day"
-				? 1
-				: maximumTemporalDurationRoundingIncrement(smallestUnit as SingularUnitKey)!;
+			smallestUnit === "day" ? 1 : maximumTemporalDurationRoundingIncrement(smallestUnit);
+		assertNotUndefined(maximum);
 		validateTemporalRoundingIncrement(roundingIncrement, maximum, smallestUnit === "day");
 		const isoDateTime = getIsoDateTimeForZonedDateTimeSlot(slot);
 
@@ -700,8 +710,10 @@ export class ZonedDateTime {
 				addNanosecondsToEpochSeconds(
 					startOfDay,
 					roundNumberToIncrement(
-						differenceInNanosecondsNumber(slot.$epochNanoseconds, startOfDay),
-						differenceInNanosecondsNumber(startOfNextDay, startOfDay),
+						timeDurationToNanosecondsNumber(
+							differenceEpochNanoseconds(startOfDay, slot.$epochNanoseconds),
+						),
+						timeDurationToNanosecondsNumber(differenceEpochNanoseconds(startOfDay, startOfNextDay)),
 						roundingMode,
 					),
 				),
@@ -714,7 +726,7 @@ export class ZonedDateTime {
 		const roundResult = roundIsoDateTime(
 			isoDateTime,
 			roundingIncrement,
-			smallestUnit as SingularUnitKey,
+			smallestUnit,
 			roundingMode,
 		);
 		const offsetNanoseconds = getOffsetNanosecondsForZonedDateTimeSlot(slot);
@@ -752,11 +764,8 @@ export class ZonedDateTime {
 		const digits = getTemporalFractionalSecondDigitsOption(resolvedOptions);
 		const showOffset = getTemporalShowOffsetOption(resolvedOptions);
 		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
-		const smallestUnit = getTemporalUnitValuedOption(
-			resolvedOptions,
-			"smallestUnit",
-			undefined,
-		) as SingularUnitKey;
+		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
+		assert(smallestUnit !== "auto");
 		const showTimeZone = getTemporalShowTimeZoneNameOption(resolvedOptions);
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === "hour") {

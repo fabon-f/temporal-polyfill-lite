@@ -61,3 +61,14 @@ export const compareTimeDuration = compareEpochNanoseconds as (
 	a: TimeDuration,
 	b: TimeDuration,
 ) => NumberSign;
+
+export function timeDurationDaysAndRemainderNanoseconds(
+	timeDuration: TimeDuration,
+): [days: number, nanoseconds: number] {
+	return timeDuration;
+}
+
+/** be careful with unsafe integers */
+export function timeDurationToNanosecondsNumber(timeDuration: TimeDuration) {
+	return timeDuration[0] * nanosecondsPerDay + timeDuration[1];
+}

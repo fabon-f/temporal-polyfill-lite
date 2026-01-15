@@ -9,7 +9,7 @@ import {
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
-import { assert } from "./internal/assertion.ts";
+import { assert, assertNotUndefined } from "./internal/assertion.ts";
 import {
 	parseDateTimeUtcOffset,
 	parseIsoDateTime,
@@ -89,6 +89,7 @@ export function createTemporalInstant(
 	epochNanoseconds: EpochNanoseconds,
 	instance = Object.create(Instant.prototype) as Instant,
 ) {
+	assert(isValidEpochNanoseconds(epochNanoseconds));
 	const slot = createInternalSlot(epochNanoseconds);
 	slots.set(instance, slot);
 	return instance;
@@ -107,13 +108,15 @@ function toTemporalInstant(item: unknown): Instant {
 		throw new TypeError();
 	}
 	const parsed = parseIsoDateTime(item, [temporalInstantStringRegExp]);
+	assert(parsed.$timeZone.$z || parsed.$timeZone.$offsetString !== undefined);
 	const offsetNanoseconds = parsed.$timeZone.$z
 		? 0
 		: parseDateTimeUtcOffset(parsed.$timeZone.$offsetString!);
 	assert(parsed.$time !== START_OF_DAY);
+	assertNotUndefined(parsed.$year);
 	const time = parsed.$time;
 	const balanced = balanceIsoDateTime(
-		parsed.$year!,
+		parsed.$year,
 		parsed.$month,
 		parsed.$day,
 		time.$hour,
@@ -138,6 +141,7 @@ export function roundTemporalInstant(
 	unit: SingularUnitKey,
 	roundingMode: RoundingMode,
 ): EpochNanoseconds {
+	assert(unit !== "year" && unit !== "month" && unit !== "week" && unit !== "day");
 	return roundEpochNanoseconds(ns, increment * nanosecondsForTimeUnit(unit), roundingMode);
 }
 
@@ -244,17 +248,12 @@ export class Instant {
 		const roundingIncrement = getRoundingIncrementOption(roundToOptions);
 		const roundingMode = getRoundingModeOption(roundToOptions, roundingModeHalfExpand);
 		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", REQUIRED);
+		assert(smallestUnit !== "auto");
 		validateTemporalUnitValue(smallestUnit, TIME);
-		singularUnitKeys.indexOf(smallestUnit as SingularUnitKey);
-		const maximum = timeUnitLengths[0] / nanosecondsForTimeUnit(smallestUnit as SingularUnitKey);
+		const maximum = timeUnitLengths[0] / nanosecondsForTimeUnit(smallestUnit);
 		validateTemporalRoundingIncrement(roundingIncrement, maximum, true);
 		return createTemporalInstant(
-			roundTemporalInstant(
-				slot.$epochNanoseconds,
-				roundingIncrement,
-				smallestUnit as SingularUnitKey,
-				roundingMode,
-			),
+			roundTemporalInstant(slot.$epochNanoseconds, roundingIncrement, smallestUnit, roundingMode),
 		);
 	}
 	equals(other: unknown) {
@@ -270,6 +269,7 @@ export class Instant {
 		const digits = getTemporalFractionalSecondDigitsOption(resolvedOptions);
 		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
 		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
+		assert(smallestUnit !== "auto");
 		const rawTz = (resolvedOptions as Record<string, unknown>)["timeZone"];
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === "hour") {
@@ -278,7 +278,7 @@ export class Instant {
 		if (rawTz !== undefined) {
 			timeZone = toTemporalTimeZoneIdentifier(rawTz);
 		}
-		const precisionRecord = toSecondsStringPrecisionRecord(smallestUnit as SingularUnitKey, digits);
+		const precisionRecord = toSecondsStringPrecisionRecord(smallestUnit, digits);
 		// `createTemporalInstant` doesn't do any validations, so we can directly pass epoch to `TemporalInstantToString`
 		return temporalInstantToString(
 			roundTemporalInstant(

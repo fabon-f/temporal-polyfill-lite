@@ -2,6 +2,7 @@ import { roundNumberToIncrementAsIfPositive } from "./abstractOperations.ts";
 import { millisecondsPerDay, nanosecondsPerDay, nanosecondsPerMilliseconds } from "./constants.ts";
 import type { RoundingMode } from "./enum.ts";
 import { compare, divFloor, modFloor, type NumberSign } from "./math.ts";
+import { normalize as normalizeTimeDuration, type TimeDuration } from "./timeDuration.ts";
 
 const epochNanosecondsBrand = /*#__PURE__*/ Symbol();
 
@@ -67,8 +68,18 @@ export function addNanosecondsToEpochSeconds(
 	return normalizeEpochNanoseconds(epoch[0], epoch[1] + delta);
 }
 
-export function differenceInNanosecondsNumber(epoch1: EpochNanoseconds, epoch2: EpochNanoseconds) {
-	return (epoch1[0] - epoch2[0]) * nanosecondsPerDay + epoch1[1] - epoch2[1];
+export function differenceEpochNanoseconds(
+	epoch1: EpochNanoseconds,
+	epoch2: EpochNanoseconds,
+): TimeDuration {
+	return normalizeTimeDuration(epoch2[0] - epoch1[0], epoch2[1] - epoch1[1]);
+}
+
+export function addTimeDurationToEpochNanoseconds(
+	epoch: EpochNanoseconds,
+	duration: TimeDuration,
+): EpochNanoseconds {
+	return normalizeEpochNanoseconds(epoch[0] + duration[0], epoch[1] + duration[1]);
 }
 
 export function roundEpochNanoseconds(

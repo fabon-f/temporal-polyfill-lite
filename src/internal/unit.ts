@@ -1,3 +1,4 @@
+import { assertNotUndefined } from "./assertion.ts";
 import {
 	millisecondsPerDay,
 	nanosecondsPerMilliseconds,
@@ -56,5 +57,7 @@ export const timeUnitLengths = [
 ] as [number, number, number, number, number, number, number];
 
 export function nanosecondsForTimeUnit(unit: SingularUnitKey): number {
-	return timeUnitLengths[singularUnitKeys.indexOf(unit) - 3]!;
+	const length = timeUnitLengths[singularUnitKeys.indexOf(unit) - 3];
+	assertNotUndefined(length);
+	return length;
 }

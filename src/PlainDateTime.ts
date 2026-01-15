@@ -15,6 +15,7 @@ import {
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
+import { assert, assertNotUndefined } from "./internal/assertion.ts";
 import {
 	calendarDateFromFields,
 	calendarEquals,
@@ -162,7 +163,7 @@ function toTemporalDateTime(item: unknown, options?: unknown) {
 		const calendar = getTemporalCalendarIdentifierWithIsoDefault(item);
 		const fields = prepareCalendarFields(
 			calendar,
-			item as Record<string, unknown>,
+			item,
 			[
 				"year",
 				"month",
@@ -187,11 +188,12 @@ function toTemporalDateTime(item: unknown, options?: unknown) {
 		throw new TypeError();
 	}
 	const result = parseIsoDateTime(item, [temporalDateTimeStringRegExp]);
+	assertNotUndefined(result.$year);
 	const calendar = canonicalizeCalendar(result.$calendar || "iso8601");
 	getTemporalOverflowOption(getOptionsObject(options));
 	return createTemporalDateTime(
 		combineIsoDateAndTimeRecord(
-			createIsoDateRecord(result.$year!, result.$month, result.$day),
+			createIsoDateRecord(result.$year, result.$month, result.$day),
 			result.$time === START_OF_DAY ? midnightTimeRecord() : result.$time,
 		),
 		calendar,
@@ -270,6 +272,7 @@ export function roundIsoDateTime(
 	unit: SingularUnitKey,
 	roundingMode: RoundingMode,
 ): IsoDateTimeRecord {
+	assert(isoDateTimeWithinLimits(isoDateTime));
 	const time = roundTime(isoDateTime.$time, increment, unit, roundingMode);
 	return combineIsoDateAndTimeRecord(addDaysToIsoDate(isoDateTime.$isoDate, time.$days), {
 		...time,
@@ -452,7 +455,7 @@ export class PlainDateTime {
 				microsecond: slot.$isoDateTime.$time.$microsecond,
 				nanosecond: slot.$isoDateTime.$time.$nanosecond,
 			},
-			prepareCalendarFields(slot.$calendar, temporalDateTimeLike as Record<string, unknown>, [
+			prepareCalendarFields(slot.$calendar, temporalDateTimeLike as object, [
 				calendarFieldKeys.$year,
 				calendarFieldKeys.$month,
 				calendarFieldKeys.$monthCode,
@@ -508,19 +511,14 @@ export class PlainDateTime {
 		const roundingIncrement = getRoundingIncrementOption(roundToOptions);
 		const roundingMode = getRoundingModeOption(roundToOptions, "halfExpand");
 		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", REQUIRED);
+		assert(smallestUnit !== "auto");
 		validateTemporalUnitValue(smallestUnit, TIME, ["day"]);
 		const maximum =
-			smallestUnit === "day"
-				? 1
-				: maximumTemporalDurationRoundingIncrement(smallestUnit as SingularUnitKey)!;
+			smallestUnit === "day" ? 1 : maximumTemporalDurationRoundingIncrement(smallestUnit);
+		assertNotUndefined(maximum);
 		validateTemporalRoundingIncrement(roundingIncrement, maximum, smallestUnit === "day");
 		return createTemporalDateTime(
-			roundIsoDateTime(
-				slot.$isoDateTime,
-				roundingIncrement,
-				smallestUnit as SingularUnitKey,
-				roundingMode,
-			),
+			roundIsoDateTime(slot.$isoDateTime, roundingIncrement, smallestUnit, roundingMode),
 			slot.$calendar,
 		);
 	}
@@ -539,11 +537,12 @@ export class PlainDateTime {
 		const digits = getTemporalFractionalSecondDigitsOption(resolvedOptions);
 		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
 		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
+		assert(smallestUnit !== "auto");
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === "hour") {
 			throw new RangeError();
 		}
-		const record = toSecondsStringPrecisionRecord(smallestUnit as SingularUnitKey, digits);
+		const record = toSecondsStringPrecisionRecord(smallestUnit, digits);
 		const result = roundIsoDateTime(
 			slot.$isoDateTime,
 			record.$increment,

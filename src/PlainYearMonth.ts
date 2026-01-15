@@ -4,6 +4,7 @@ import {
 	isoDateToFields,
 	isPartialTemporalObject,
 } from "./internal/abstractOperations.ts";
+import { assertNotUndefined } from "./internal/assertion.ts";
 import {
 	calendarDateFromFields,
 	calendarFieldKeys,
@@ -58,7 +59,7 @@ function toTemporalYearMonth(item: unknown, options?: unknown) {
 		const calendar = getTemporalCalendarIdentifierWithIsoDefault(item);
 		const fields = prepareCalendarFields(
 			calendar,
-			item as Record<string, unknown>,
+			item,
 			[calendarFieldKeys.$year, calendarFieldKeys.$month, calendarFieldKeys.$monthCode],
 			[],
 		);
@@ -77,7 +78,8 @@ function toTemporalYearMonth(item: unknown, options?: unknown) {
 	const result = parseIsoDateTime(item, [temporalYearMonthStringRegExp]);
 	const calendar = canonicalizeCalendar(result.$calendar || "iso8601");
 	getTemporalOverflowOption(getOptionsObject(options));
-	const isoDate = createIsoDateRecord(result.$year!, result.$month, result.$day);
+	assertNotUndefined(result.$year);
+	const isoDate = createIsoDateRecord(result.$year, result.$month, result.$day);
 	if (!isoYearMonthWithinLimits(isoDate)) {
 		throw new RangeError();
 	}
@@ -235,7 +237,7 @@ export class PlainYearMonth {
 		const fields = calendarMergeFields(
 			slot.$calendar,
 			isoDateToFields(slot.$calendar, slot.$isoDate, YEAR_MONTH),
-			prepareCalendarFields(slot.$calendar, temporalYearMonthLike as Record<string, unknown>, [
+			prepareCalendarFields(slot.$calendar, temporalYearMonthLike as object, [
 				calendarFieldKeys.$year,
 				calendarFieldKeys.$month,
 				calendarFieldKeys.$monthCode,
@@ -301,12 +303,7 @@ export class PlainYearMonth {
 				calendarMergeFields(
 					slot.$calendar,
 					isoDateToFields(slot.$calendar, slot.$isoDate, YEAR_MONTH),
-					prepareCalendarFields(
-						slot.$calendar,
-						item as Record<string, unknown>,
-						[calendarFieldKeys.$day],
-						[],
-					),
+					prepareCalendarFields(slot.$calendar, item, [calendarFieldKeys.$day], []),
 				),
 				overflowConstrain,
 			),
