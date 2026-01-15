@@ -25,7 +25,7 @@
 		"test": "vitest",
 		"test262": "node script/test262.ts",
 		"typecheck": "tsgo",
-		"lint": "oxfmt --check . && oxlint ."
+		"lint": "oxfmt --check . && oxlint . --report-unused-disable-directives"
 	},
 	"pnpm": {
 		"overrides": {
