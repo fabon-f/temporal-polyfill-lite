@@ -248,7 +248,6 @@ export class Instant {
 		const roundingIncrement = getRoundingIncrementOption(roundToOptions);
 		const roundingMode = getRoundingModeOption(roundToOptions, roundingModeHalfExpand);
 		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", REQUIRED);
-		assert(smallestUnit !== "auto");
 		validateTemporalUnitValue(smallestUnit, TIME);
 		const maximum = timeUnitLengths[0] / nanosecondsForTimeUnit(smallestUnit);
 		validateTemporalRoundingIncrement(roundingIncrement, maximum, true);
@@ -269,7 +268,6 @@ export class Instant {
 		const digits = getTemporalFractionalSecondDigitsOption(resolvedOptions);
 		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
 		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
-		assert(smallestUnit !== "auto");
 		const rawTz = (resolvedOptions as Record<string, unknown>)["timeZone"];
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === "hour") {

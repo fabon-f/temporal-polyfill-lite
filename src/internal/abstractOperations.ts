@@ -80,7 +80,12 @@ import {
 import { ToZeroPaddedDecimalString } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
 import { parseTimeZoneIdentifier, type TimeZoneIdentifierParseRecord } from "./timeZones.ts";
-import { pluralUnitKeys, singularUnitKeys, type SingularUnitKey } from "./unit.ts";
+import {
+	pluralUnitKeys,
+	singularUnitKeys,
+	type SingularTimeUnitKey,
+	type SingularUnitKey,
+} from "./unit.ts";
 import { mapUnlessUndefined } from "./utils.ts";
 
 /** `ISODateToEpochDays` (`month` is 0-indexed) */
@@ -218,13 +223,13 @@ export function getTemporalFractionalSecondDigitsOption(options: object): number
 
 interface PrecisionRecord {
 	$precision: number | typeof MINUTE | undefined;
-	$unit: SingularUnitKey;
+	$unit: SingularTimeUnitKey;
 	$increment: number;
 }
 
 /** `ToSecondsStringPrecisionRecord` */
 export function toSecondsStringPrecisionRecord(
-	smallestUnit: SingularUnitKey | undefined,
+	smallestUnit: Exclude<SingularTimeUnitKey, "hour"> | undefined,
 	fractionalDigitCount: number | undefined,
 ): PrecisionRecord {
 	if (smallestUnit !== undefined) {
@@ -303,8 +308,26 @@ export function getTemporalUnitValuedOption(
 /** `ValidateTemporalUnitValue` */
 export function validateTemporalUnitValue(
 	value: SingularUnitKey | "auto" | undefined,
+	unitGroup: typeof TIME,
+): asserts value is SingularTimeUnitKey | undefined;
+export function validateTemporalUnitValue(
+	value: SingularUnitKey | "auto" | undefined,
+	unitGroup: typeof DATETIME,
+): asserts value is SingularUnitKey | undefined;
+export function validateTemporalUnitValue<E extends SingularUnitKey | "auto">(
+	value: SingularUnitKey | "auto" | undefined,
+	unitGroup: typeof TIME,
+	extraValues?: E[],
+): asserts value is E | SingularTimeUnitKey | undefined;
+export function validateTemporalUnitValue(
+	value: SingularUnitKey | "auto" | undefined,
 	unitGroup: typeof DATE | typeof TIME | typeof DATETIME,
-	extraValues: string[] = [],
+	extraValues?: (SingularUnitKey | "auto")[],
+): void;
+export function validateTemporalUnitValue(
+	value: SingularUnitKey | "auto" | undefined,
+	unitGroup: typeof DATE | typeof TIME | typeof DATETIME,
+	extraValues: (SingularUnitKey | "auto")[] = [],
 ) {
 	if (value === undefined || extraValues.includes(value)) {
 		return;

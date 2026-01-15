@@ -45,6 +45,13 @@ export const pluralUnitKeys = singularUnitKeys.map((u) => `${u}s`) as [
 ];
 export type SingularUnitKey = (typeof singularUnitKeys)[number];
 export type PluralUnitKey = (typeof pluralUnitKeys)[number];
+export type SingularTimeUnitKey =
+	| "hour"
+	| "minute"
+	| "second"
+	| "millisecond"
+	| "microsecond"
+	| "nanosecond";
 
 export const timeUnitLengths = [
 	millisecondsPerDay * nanosecondsPerMilliseconds,

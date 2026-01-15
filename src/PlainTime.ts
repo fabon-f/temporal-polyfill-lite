@@ -463,7 +463,6 @@ export class PlainTime {
 		const roundingIncrement = getRoundingIncrementOption(roundToOptions);
 		const roundingMode = getRoundingModeOption(roundToOptions, roundingModeHalfExpand);
 		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", REQUIRED);
-		assert(smallestUnit !== "auto");
 		validateTemporalUnitValue(smallestUnit, TIME);
 		const maximum = maximumTemporalDurationRoundingIncrement(smallestUnit);
 		assertNotUndefined(maximum);
@@ -482,7 +481,6 @@ export class PlainTime {
 		const digits = getTemporalFractionalSecondDigitsOption(resolvedOptions);
 		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
 		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
-		assert(smallestUnit !== "auto");
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === "hour") {
 			throw new RangeError();
