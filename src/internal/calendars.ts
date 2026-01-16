@@ -34,7 +34,7 @@ import {
 	showCalendarName,
 } from "./enum.ts";
 import { divFloor, modFloor } from "./math.ts";
-import { asciiLowerCase, ToZeroPaddedDecimalString } from "./string.ts";
+import { asciiLowerCase, toZeroPaddedDecimalString } from "./string.ts";
 import { toTemporalTimeZoneIdentifier } from "./timeZones.ts";
 import { mapUnlessUndefined } from "./utils.ts";
 
@@ -144,9 +144,9 @@ function parseMonthCode(arg: unknown): [monthNumber: number, isLeapMonth: boolea
 }
 
 /** `CreateMonthCode` */
-function createMonthCode(monthNumber: number, isLeapMonth = false) {
+function createMonthCode(monthNumber: number, isLeapMonth = false): string {
 	assert(isLeapMonth || monthNumber > 0);
-	return `M${ToZeroPaddedDecimalString(monthNumber, 2)}${isLeapMonth ? "L" : ""}`;
+	return `M${toZeroPaddedDecimalString(monthNumber, 2)}${isLeapMonth ? "L" : ""}`;
 }
 
 const fieldValues = {
@@ -195,7 +195,7 @@ export function prepareCalendarFields(
 }
 
 /** `CalendarFieldKeysPresent` */
-function calendarFieldKeysPresent(additionalFields: CalendarFieldsRecord) {
+function calendarFieldKeysPresent(additionalFields: CalendarFieldsRecord): CalendarFieldKey[] {
 	return calendarFieldKeyList.filter((k) => additionalFields[k] !== undefined);
 }
 
@@ -204,7 +204,7 @@ export function calendarMergeFields(
 	calendar: SupportedCalendars,
 	fields: CalendarFieldsRecord,
 	additionalFields: CalendarFieldsRecord,
-) {
+): CalendarFieldsRecord {
 	const additionalKeys = calendarFieldKeysPresent(additionalFields);
 	const overriddenKeys = calendarFieldKeysToIgnore(calendar, additionalKeys);
 	const merged = createEmptyCalendarFieldsRecord();
@@ -240,7 +240,7 @@ export function toTemporalCalendarIdentifier(temporalCalendarLike: unknown): Sup
 }
 
 /** `GetTemporalCalendarIdentifierWithISODefault` */
-export function getTemporalCalendarIdentifierWithIsoDefault(item: object) {
+export function getTemporalCalendarIdentifierWithIsoDefault(item: object): SupportedCalendars {
 	const slot =
 		getInternalSlotForPlainDate(item) ||
 		getInternalSlotForPlainDateTime(item) ||
@@ -276,7 +276,7 @@ export function calendarYearMonthFromFields(
 	calendar: SupportedCalendars,
 	fields: CalendarFieldsRecord,
 	overflow: Overflow,
-) {
+): IsoDateRecord {
 	fields.day = 1;
 	calendarResolveFields(calendar, fields, YEAR_MONTH);
 	const result = calendarDateToISO(calendar, fields, overflow);
@@ -301,7 +301,10 @@ export function calendarMonthDayFromFields(
 }
 
 /** `FormatCalendarAnnotation` */
-export function formatCalendarAnnotation(id: SupportedCalendars, showCalendar: ShowCalendarName) {
+export function formatCalendarAnnotation(
+	id: SupportedCalendars,
+	showCalendar: ShowCalendarName,
+): string {
 	if (
 		showCalendar === showCalendarName.$never ||
 		(showCalendar === showCalendarName.$auto && id === "iso8601")
@@ -312,7 +315,7 @@ export function formatCalendarAnnotation(id: SupportedCalendars, showCalendar: S
 }
 
 /** `CalendarEquals` */
-export function calendarEquals(one: SupportedCalendars, two: SupportedCalendars) {
+export function calendarEquals(one: SupportedCalendars, two: SupportedCalendars): boolean {
 	return one === two;
 }
 
@@ -321,7 +324,7 @@ export function isoDaysInMonth(year: number, month: number): number {
 	return isoDateToEpochDays(year, month, 1) - isoDateToEpochDays(year, month - 1, 1);
 }
 
-function isoWeeksInYear(year: number) {
+function isoWeeksInYear(year: number): number {
 	// patterns when the year has 53 ISO weeks:
 	// * 01-01: Thursday, 12-31: Thursday (normal year)
 	// * 01-01: Thursday, 12-31: Friday (leap year)
@@ -431,7 +434,7 @@ function calendarMonthDayToIsoReferenceDate(
 	calendar: SupportedCalendars,
 	fields: CalendarFieldsRecord,
 	overflow: Overflow,
-) {
+): IsoDateRecord {
 	if (calendar === "iso8601" || calendar === "gregory") {
 		const y = fields[calendarFieldKeys.$year];
 		const result = regulateIsoDate(
@@ -469,7 +472,10 @@ function calendarExtraFields(
 }
 
 /** `CalendarFieldKeysToIgnore` */
-function calendarFieldKeysToIgnore(calendar: SupportedCalendars, keys: CalendarFieldKey[]) {
+function calendarFieldKeysToIgnore(
+	calendar: SupportedCalendars,
+	keys: CalendarFieldKey[],
+): CalendarFieldKey[] {
 	const ignoredKeys: CalendarFieldKey[] = [];
 	for (const k of keys) {
 		if (k === calendarFieldKeys.$month) {
@@ -529,7 +535,7 @@ function nonIsoResolveFields(
 	calendar: SupportedNonIsoCalendars,
 	fields: CalendarFieldsRecord,
 	type: typeof DATE | typeof YEAR_MONTH | typeof MONTH_DAY = DATE,
-): void {
+) {
 	if (
 		(fields[calendarFieldKeys.$era] === undefined) !==
 		(fields[calendarFieldKeys.$eraYear] === undefined)
@@ -565,7 +571,7 @@ function calendarResolveFields(
 	calendar: SupportedCalendars,
 	fields: CalendarFieldsRecord,
 	type: typeof DATE | typeof YEAR_MONTH | typeof MONTH_DAY = DATE,
-): void {
+) {
 	if (calendar === "iso8601") {
 		isoResolveFields(fields, type);
 		return;

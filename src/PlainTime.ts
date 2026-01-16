@@ -117,7 +117,7 @@ export function noonTimeRecord(): TimeRecord {
 }
 
 /** `ToTemporalTime` */
-export function toTemporalTime(item: unknown, options?: unknown) {
+export function toTemporalTime(item: unknown, options?: unknown): PlainTime {
 	if (isObject(item)) {
 		if (isPlainTime(item)) {
 			getTemporalOverflowOption(getOptionsObject(options));
@@ -175,7 +175,7 @@ export function regulateTime(
 	microsecond: number,
 	nanosecond: number,
 	overflow: Overflow,
-) {
+): TimeRecord {
 	if (overflow === overflowConstrain) {
 		return createTimeRecord(
 			clamp(hour, 0, 23),
@@ -369,7 +369,7 @@ export function getInternalSlotOrThrowForPlainTime(plainTime: unknown): PlainTim
 	return slot;
 }
 
-export function isPlainTime(item: unknown) {
+export function isPlainTime(item: unknown): boolean {
 	return slots.has(item);
 }
 

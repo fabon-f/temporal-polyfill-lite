@@ -15,7 +15,7 @@ export function compare(a: number, b: number): NumberSign {
 	return Math.sign(a - b) as NumberSign;
 }
 
-export function clamp(num: number, min: number, max: number) {
+export function clamp(num: number, min: number, max: number): number {
 	if (num < min) {
 		return min;
 	}
@@ -25,14 +25,14 @@ export function clamp(num: number, min: number, max: number) {
 	return num;
 }
 
-export function isWithin(num: number, min: number, max: number) {
+export function isWithin(num: number, min: number, max: number): boolean {
 	return num >= min && num <= max;
 }
 
 export function truncateDigits(num: number, digits: number): number {
 	return (
 		(Number.isSafeInteger(num)
-			? Math.trunc(num / Math.pow(10, digits))
+			? Math.trunc(num / 10 ** digits)
 			: (num < 0 ? -1 : 1) *
 				toIntegerWithTruncation(
 					Math.abs(num)

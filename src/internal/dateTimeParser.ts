@@ -159,7 +159,7 @@ function getTimeRecordFromMatchedGroups(matchedGroups: Record<string, string>): 
 }
 
 /** "Static Semantics: Early Errors" */
-function isSemanticallyValid(matchedGroups: Record<string, string>) {
+function isSemanticallyValid(matchedGroups: Record<string, string>): boolean {
 	return (
 		(matchedGroups["a"] || matchedGroups["l"]) !== "-000000" &&
 		(!matchedGroups["a"] ||

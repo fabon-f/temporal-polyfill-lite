@@ -2,7 +2,7 @@ import { REQUIRED } from "./enum.ts";
 import { createNullPrototypeObject, isObject } from "./object.ts";
 
 /** `ToPrimitive` when `preferredType` is string */
-export function ToPrimitive(input: unknown) {
+export function ToPrimitive(input: unknown): unknown {
 	if (!isObject(input)) {
 		return input;
 	}
@@ -47,7 +47,7 @@ export function toNumber(arg: unknown): number {
 }
 
 /** `ToBigInt` */
-export function toBigInt(arg: unknown) {
+export function toBigInt(arg: unknown): bigint {
 	if (isObject(arg)) {
 		// `BigInt.asIntN` do almost the same thing to `ToBigInt` AO.
 		// However, this code path returns incorrect result
@@ -80,7 +80,7 @@ export function toIntegerWithTruncation(arg: unknown): number {
 }
 
 /** `ToPositiveIntegerWithTruncation` */
-export function toPositiveIntegerWithTruncation(arg: unknown) {
+export function toPositiveIntegerWithTruncation(arg: unknown): number {
 	const integer = toIntegerWithTruncation(arg);
 	if (integer <= 0) {
 		throw new RangeError();
@@ -89,7 +89,7 @@ export function toPositiveIntegerWithTruncation(arg: unknown) {
 }
 
 /** `GetOptionsObject` */
-export function getOptionsObject(options: unknown = Object.create(null)) {
+export function getOptionsObject(options: unknown = Object.create(null)): object {
 	if (!isObject(options)) {
 		throw new TypeError();
 	}
@@ -117,7 +117,7 @@ export function getOption<V extends string | undefined>(
 	return value as V;
 }
 
-export function getRoundToOptionsObject(roundTo: unknown) {
+export function getRoundToOptionsObject(roundTo: unknown): object {
 	if (roundTo === undefined) {
 		throw new TypeError();
 	}

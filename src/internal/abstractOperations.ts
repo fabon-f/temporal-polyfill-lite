@@ -77,7 +77,7 @@ import {
 	roundHalfFloor,
 	roundHalfTrunc,
 } from "./rounding.ts";
-import { ToZeroPaddedDecimalString } from "./string.ts";
+import { toZeroPaddedDecimalString } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
 import { parseTimeZoneIdentifier, type TimeZoneIdentifierParseRecord } from "./timeZones.ts";
 import {
@@ -266,20 +266,20 @@ export function toSecondsStringPrecisionRecord(
 		return {
 			$precision: fractionalDigitCount,
 			$unit: "millisecond",
-			$increment: Math.pow(10, 3 - fractionalDigitCount),
+			$increment: 10 ** (3 - fractionalDigitCount),
 		};
 	}
 	if (isWithin(fractionalDigitCount, 4, 6)) {
 		return {
 			$precision: fractionalDigitCount,
 			$unit: "microsecond",
-			$increment: Math.pow(10, 6 - fractionalDigitCount),
+			$increment: 10 ** (6 - fractionalDigitCount),
 		};
 	}
 	return {
 		$precision: fractionalDigitCount,
 		$unit: "nanosecond",
-		$increment: Math.pow(10, 9 - fractionalDigitCount),
+		$increment: 10 ** (9 - fractionalDigitCount),
 	};
 }
 
@@ -323,7 +323,7 @@ export function validateTemporalUnitValue(
 	value: SingularUnitKey | "auto" | undefined,
 	unitGroup: typeof DATE | typeof TIME | typeof DATETIME,
 	extraValues?: (SingularUnitKey | "auto")[],
-): void;
+): asserts value is SingularUnitKey | "auto" | undefined;
 export function validateTemporalUnitValue(
 	value: SingularUnitKey | "auto" | undefined,
 	unitGroup: typeof DATE | typeof TIME | typeof DATETIME,
@@ -379,7 +379,7 @@ export function isPartialTemporalObject(value: unknown): boolean {
 
 /** `FormatFractionalSeconds` */
 function formatFractionalSeconds(subSecondNanoseconds: number, precision?: number): string {
-	const fractionalDigits = ToZeroPaddedDecimalString(subSecondNanoseconds, 9);
+	const fractionalDigits = toZeroPaddedDecimalString(subSecondNanoseconds, 9);
 	if (precision === undefined) {
 		if (subSecondNanoseconds === 0) {
 			return "";
@@ -399,13 +399,13 @@ export function formatTimeString(
 	second: number,
 	subSecondNanoseconds: number,
 	precision?: typeof MINUTE | number,
-) {
-	const hh = ToZeroPaddedDecimalString(hour, 2);
-	const mm = ToZeroPaddedDecimalString(minute, 2);
+): string {
+	const hh = toZeroPaddedDecimalString(hour, 2);
+	const mm = toZeroPaddedDecimalString(minute, 2);
 	if (precision === MINUTE) {
 		return `${hh}:${mm}`;
 	}
-	return `${hh}:${mm}:${ToZeroPaddedDecimalString(second, 2)}${formatFractionalSeconds(subSecondNanoseconds, precision)}`;
+	return `${hh}:${mm}:${toZeroPaddedDecimalString(second, 2)}${formatFractionalSeconds(subSecondNanoseconds, precision)}`;
 }
 
 const roundingFunctions: Record<RoundingMode, (num: number) => number> = {
@@ -433,7 +433,11 @@ const roundingFunctionsAsIfPositive: Record<RoundingMode, (num: number) => numbe
 };
 
 /** `RoundNumberToIncrement` */
-export function roundNumberToIncrement(x: number, increment: number, roundingMode: RoundingMode) {
+export function roundNumberToIncrement(
+	x: number,
+	increment: number,
+	roundingMode: RoundingMode,
+): number {
 	return roundingFunctions[roundingMode](x / increment) * increment;
 }
 

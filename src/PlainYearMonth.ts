@@ -28,7 +28,7 @@ import {
 import { isWithin } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
-import { ToZeroPaddedDecimalString } from "./internal/string.ts";
+import { toZeroPaddedDecimalString } from "./internal/string.ts";
 import { notImplementedYet } from "./internal/utils.ts";
 import {
 	compareIsoDate,
@@ -49,7 +49,7 @@ interface PlainYearMonthSlot {
 const slots = new WeakMap<any, PlainYearMonthSlot>();
 
 /** `ToTemporalYearMonth` */
-function toTemporalYearMonth(item: unknown, options?: unknown) {
+function toTemporalYearMonth(item: unknown, options?: unknown): PlainYearMonth {
 	if (isObject(item)) {
 		const slot = getInternalSlotForPlainYearMonth(item);
 		if (slot) {
@@ -107,7 +107,7 @@ export function createTemporalYearMonth(
 	isoDate: IsoDateRecord,
 	calendar: SupportedCalendars,
 	instance = Object.create(PlainYearMonth.prototype) as PlainYearMonth,
-) {
+): PlainYearMonth {
 	if (!isoYearMonthWithinLimits(isoDate)) {
 		throw new RangeError();
 	}
@@ -119,16 +119,14 @@ export function createTemporalYearMonth(
 function temporalYearMonthToString(
 	yearMonthSlot: PlainYearMonthSlot,
 	showCalendar: ShowCalendarName,
-) {
-	let result = `${padIsoYear(yearMonthSlot.$isoDate.$year)}-${ToZeroPaddedDecimalString(yearMonthSlot.$isoDate.$month, 2)}`;
-	if (
+): string {
+	return `${padIsoYear(yearMonthSlot.$isoDate.$year)}-${toZeroPaddedDecimalString(yearMonthSlot.$isoDate.$month, 2)}${
 		showCalendar === showCalendarName.$always ||
 		showCalendar === showCalendarName.$critical ||
 		yearMonthSlot.$calendar !== "iso8601"
-	) {
-		result = `${result}-${ToZeroPaddedDecimalString(yearMonthSlot.$isoDate.$day, 2)}`;
-	}
-	return result + formatCalendarAnnotation(yearMonthSlot.$calendar, showCalendar);
+			? `-${toZeroPaddedDecimalString(yearMonthSlot.$isoDate.$day, 2)}`
+			: ""
+	}${formatCalendarAnnotation(yearMonthSlot.$calendar, showCalendar)}`;
 }
 
 function createPlainYearMonthSlot(

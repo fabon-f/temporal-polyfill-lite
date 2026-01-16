@@ -40,7 +40,7 @@ function createInternalSlot(
 	} as DateTimeFormatSlot;
 }
 
-export function getInternalSlotOrThrowForDateTimeFormat(dtf: any) {
+export function getInternalSlotOrThrowForDateTimeFormat(dtf: any): DateTimeFormatSlot {
 	const slot = slots.get(dtf);
 	if (!slot) {
 		throw new TypeError();
@@ -48,13 +48,13 @@ export function getInternalSlotOrThrowForDateTimeFormat(dtf: any) {
 	return slot;
 }
 
-function formatDateTime(dtf: DateTimeFormatImpl, date: unknown) {
+function formatDateTime(dtf: DateTimeFormatImpl, date: unknown): string {
 	// @ts-expect-error
 	return getInternalSlotOrThrowForDateTimeFormat(dtf).$rawDtf.format(date);
 }
 
 /** DateTime Format Functions */
-function dateTimeFormatFunction(this: DateTimeFormatImpl, date: unknown) {
+function dateTimeFormatFunction(this: DateTimeFormatImpl, date: unknown): string {
 	return formatDateTime(this, date);
 }
 
@@ -64,7 +64,7 @@ function createDateTimeFormat(
 	options: {} | null = Object.create(null),
 	toLocaleStringTimeZone?: string,
 	instance = Object.create(DateTimeFormatImpl.prototype) as DateTimeFormatImpl,
-) {
+): DateTimeFormatImpl {
 	if (options === null) {
 		throw new TypeError();
 	}

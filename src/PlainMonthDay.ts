@@ -28,7 +28,7 @@ import {
 } from "./internal/enum.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
-import { ToZeroPaddedDecimalString } from "./internal/string.ts";
+import { toZeroPaddedDecimalString } from "./internal/string.ts";
 import {
 	compareIsoDate,
 	createIsoDateRecord,
@@ -101,7 +101,7 @@ export function createTemporalMonthDay(
 	isoDate: IsoDateRecord,
 	calendar: SupportedCalendars,
 	instance = Object.create(PlainMonthDay.prototype) as PlainMonthDay,
-) {
+): PlainMonthDay {
 	if (!isoDateWithinLimits(isoDate)) {
 		throw new RangeError();
 	}
@@ -114,15 +114,13 @@ function temporalMonthDayToString(
 	monthDaySlot: PlainMonthDaySlot,
 	showCalendar: ShowCalendarName,
 ): string {
-	let result = `${ToZeroPaddedDecimalString(monthDaySlot.$isoDate.$month, 2)}-${ToZeroPaddedDecimalString(monthDaySlot.$isoDate.$day, 2)}`;
-	if (
+	return `${
 		showCalendar === showCalendarName.$always ||
 		showCalendar === showCalendarName.$critical ||
 		monthDaySlot.$calendar !== "iso8601"
-	) {
-		result = `${padIsoYear(monthDaySlot.$isoDate.$year)}-${result}`;
-	}
-	return result + formatCalendarAnnotation(monthDaySlot.$calendar, showCalendar);
+			? `${padIsoYear(monthDaySlot.$isoDate.$year)}-`
+			: ""
+	}${toZeroPaddedDecimalString(monthDaySlot.$isoDate.$month, 2)}-${toZeroPaddedDecimalString(monthDaySlot.$isoDate.$day, 2)}${formatCalendarAnnotation(monthDaySlot.$calendar, showCalendar)}`;
 }
 
 function createPlainMonthDaySlot(

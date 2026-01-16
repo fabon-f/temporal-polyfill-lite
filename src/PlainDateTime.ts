@@ -51,7 +51,7 @@ import {
 import type { NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
-import { ToZeroPaddedDecimalString } from "./internal/string.ts";
+import { toZeroPaddedDecimalString } from "./internal/string.ts";
 import { getEpochNanosecondsFor, toTemporalTimeZoneIdentifier } from "./internal/timeZones.ts";
 import type { SingularUnitKey } from "./internal/unit.ts";
 import { notImplementedYet } from "./internal/utils.ts";
@@ -140,7 +140,7 @@ export function interpretTemporalDateTimeFields(
 }
 
 /** `ToTemporalDateTime` */
-function toTemporalDateTime(item: unknown, options?: unknown) {
+function toTemporalDateTime(item: unknown, options?: unknown): PlainDateTime {
 	if (isObject(item)) {
 		if (isPlainDateTime(item)) {
 			getTemporalOverflowOption(getOptionsObject(options));
@@ -215,10 +215,7 @@ export function balanceIsoDateTime(
 	const balancedTime = balanceTime(hour, minute, second, milliseond, microsecond, nanosecond);
 	return combineIsoDateAndTimeRecord(
 		addDaysToIsoDate(createIsoDateRecord(year, month, day), balancedTime.$days),
-		{
-			...balancedTime,
-			$days: 0,
-		},
+		balancedTime,
 	);
 }
 
@@ -227,7 +224,7 @@ export function createTemporalDateTime(
 	isoDateTime: IsoDateTimeRecord,
 	calendar: SupportedCalendars,
 	instance = Object.create(PlainDateTime.prototype) as PlainDateTime,
-) {
+): PlainDateTime {
 	if (!isoDateTimeWithinLimits(isoDateTime)) {
 		throw new RangeError();
 	}
@@ -242,8 +239,8 @@ export function isoDateTimeToString(
 	calendar: SupportedCalendars,
 	precision: number | typeof MINUTE | undefined,
 	showCalendar: ShowCalendarName,
-) {
-	return `${padIsoYear(isoDateTime.$isoDate.$year)}-${ToZeroPaddedDecimalString(isoDateTime.$isoDate.$month, 2)}-${ToZeroPaddedDecimalString(isoDateTime.$isoDate.$day, 2)}T${formatTimeString(
+): string {
+	return `${padIsoYear(isoDateTime.$isoDate.$year)}-${toZeroPaddedDecimalString(isoDateTime.$isoDate.$month, 2)}-${toZeroPaddedDecimalString(isoDateTime.$isoDate.$day, 2)}T${formatTimeString(
 		isoDateTime.$time.$hour,
 		isoDateTime.$time.$minute,
 		isoDateTime.$time.$second,
@@ -274,10 +271,7 @@ export function roundIsoDateTime(
 ): IsoDateTimeRecord {
 	assert(isoDateTimeWithinLimits(isoDateTime));
 	const time = roundTime(isoDateTime.$time, increment, unit, roundingMode);
-	return combineIsoDateAndTimeRecord(addDaysToIsoDate(isoDateTime.$isoDate, time.$days), {
-		...time,
-		$days: 0,
-	});
+	return combineIsoDateAndTimeRecord(addDaysToIsoDate(isoDateTime.$isoDate, time.$days), time);
 }
 
 function createPlainDateTimeSlot(

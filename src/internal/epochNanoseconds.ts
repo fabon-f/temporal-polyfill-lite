@@ -86,7 +86,7 @@ export function roundEpochNanoseconds(
 	epoch: EpochNanoseconds,
 	roundingIncrementNanoseconds: number,
 	roundingMode: RoundingMode,
-) {
+): EpochNanoseconds {
 	return normalizeEpochNanoseconds(
 		epoch[0],
 		roundNumberToIncrementAsIfPositive(epoch[1], roundingIncrementNanoseconds, roundingMode),

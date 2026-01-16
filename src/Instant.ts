@@ -82,7 +82,7 @@ export function isValidEpochNanoseconds(epochNanoseconds: EpochNanoseconds): boo
 export function createTemporalInstant(
 	epochNanoseconds: EpochNanoseconds,
 	instance = Object.create(Instant.prototype) as Instant,
-) {
+): Instant {
 	assert(isValidEpochNanoseconds(epochNanoseconds));
 	const slot = createInternalSlot(epochNanoseconds);
 	slots.set(instance, slot);
@@ -144,17 +144,15 @@ function temporalInstantToString(
 	epoch: EpochNanoseconds,
 	timeZone: string | undefined,
 	precision?: number | typeof MINUTE,
-) {
+): string {
 	const outputTimeZone = timeZone === undefined ? "UTC" : timeZone;
 	const offsetNanoseconds = getOffsetNanosecondsFor(outputTimeZone, epoch);
-	return (
-		isoDateTimeToString(
-			getIsoDateTimeFromOffsetNanoseconds(epoch, offsetNanoseconds),
-			"iso8601",
-			precision,
-			showCalendarName.$never,
-		) + (timeZone === undefined ? "Z" : formatUtcOffsetNanoseconds(offsetNanoseconds))
-	);
+	return `${isoDateTimeToString(
+		getIsoDateTimeFromOffsetNanoseconds(epoch, offsetNanoseconds),
+		"iso8601",
+		precision,
+		showCalendarName.$never,
+	)}${timeZone === undefined ? "Z" : formatUtcOffsetNanoseconds(offsetNanoseconds)}`;
 }
 
 function getInternalSlotForInstant(instant: unknown): InstantSlot | undefined {

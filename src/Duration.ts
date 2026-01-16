@@ -1,5 +1,6 @@
 import { assert, assertNotUndefined } from "./internal/assertion.ts";
 import { toIntegerIfIntegral } from "./internal/ecmascript.ts";
+import type { NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import {
@@ -69,7 +70,7 @@ function toTemporalDuration(item: unknown): DurationSlot {
 }
 
 /** `DurationSign` */
-function durationSign(duration: DurationSlot) {
+function durationSign(duration: DurationSlot): NumberSign {
 	return Math.sign(
 		duration[unitIndices.$year] ||
 			duration[unitIndices.$month] ||
@@ -81,7 +82,7 @@ function durationSign(duration: DurationSlot) {
 			duration[unitIndices.$millisecond] ||
 			duration[unitIndices.$microsecond] ||
 			duration[unitIndices.$nanosecond],
-	);
+	) as NumberSign;
 }
 
 /** `IsValidDuration` */
@@ -94,9 +95,9 @@ function isValidDuration(...units: DurationTuple): boolean {
 		units[unitIndices.$second];
 	return (
 		(units.every((n) => n <= 0) || units.every((n) => n >= 0)) &&
-		Math.abs(units[unitIndices.$year]) < Math.pow(2, 32) &&
-		Math.abs(units[unitIndices.$month]) < Math.pow(2, 32) &&
-		Math.abs(units[unitIndices.$week]) < Math.pow(2, 32) &&
+		Math.abs(units[unitIndices.$year]) < 2 ** 32 &&
+		Math.abs(units[unitIndices.$month]) < 2 ** 32 &&
+		Math.abs(units[unitIndices.$week]) < 2 ** 32 &&
 		// TODO: verify whether `isSafeInteger` guard is necessary or not
 		Number.isSafeInteger(timeDurationAboveSecond) &&
 		compareTimeDuration(
@@ -236,7 +237,7 @@ function timeDurationFromComponents(
 	]);
 }
 
-function isDuration(duration: unknown) {
+function isDuration(duration: unknown): boolean {
 	return slots.has(duration);
 }
 

@@ -16,7 +16,7 @@ import {
 } from "./ZonedDateTime.ts";
 
 /** `SystemTimeZoneIdentifier` */
-function systemTimeZoneIdentifier() {
+function systemTimeZoneIdentifier(): string {
 	// Creating `Intl.DateTimeFormat` is a CPU-heavy operation in many JS engines,
 	// but caching it can cause an unexpected behavior for polyfill users, because the polyfill can return an outdated value.
 	// Unfortunately there's no way to observe a system time zone change effectively.

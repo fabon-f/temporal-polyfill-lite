@@ -36,7 +36,7 @@ import {
 import { clamp, compare, isWithin, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
-import { ToZeroPaddedDecimalString } from "./internal/string.ts";
+import { toZeroPaddedDecimalString } from "./internal/string.ts";
 import {
 	getEpochNanosecondsFor,
 	getStartOfDay,
@@ -106,7 +106,7 @@ export function createTemporalDate(
 }
 
 /** `ToTemporalDate` */
-function toTemporalDate(item: unknown, options?: unknown) {
+function toTemporalDate(item: unknown, options?: unknown): PlainDate {
 	if (isObject(item)) {
 		if (isPlainDate(item)) {
 			getTemporalOverflowOption(getOptionsObject(options));
@@ -171,16 +171,16 @@ export function addDaysToIsoDate(isoDate: IsoDateRecord, days: number): IsoDateR
 }
 
 /** `PadISOYear` */
-export function padIsoYear(year: number) {
+export function padIsoYear(year: number): string {
 	if (isWithin(year, 0, 9999)) {
-		return ToZeroPaddedDecimalString(year, 4);
+		return toZeroPaddedDecimalString(year, 4);
 	}
-	return `${year < 0 ? "-" : "+"}${ToZeroPaddedDecimalString(Math.abs(year), 6)}`;
+	return `${year < 0 ? "-" : "+"}${toZeroPaddedDecimalString(Math.abs(year), 6)}`;
 }
 
 /** `TemporalDateToString` */
 function temporalDateToString(slot: PlainDateSlot, showCalendar: ShowCalendarName) {
-	return `${padIsoYear(slot.$isoDate.$year)}-${ToZeroPaddedDecimalString(slot.$isoDate.$month, 2)}-${ToZeroPaddedDecimalString(slot.$isoDate.$day, 2)}${formatCalendarAnnotation(slot.$calendar, showCalendar)}`;
+	return `${padIsoYear(slot.$isoDate.$year)}-${toZeroPaddedDecimalString(slot.$isoDate.$month, 2)}-${toZeroPaddedDecimalString(slot.$isoDate.$day, 2)}${formatCalendarAnnotation(slot.$calendar, showCalendar)}`;
 }
 
 /** `ISODateWithinLimits` */

@@ -40,19 +40,22 @@ export function createTimeDurationFromMilliseconds(millisec: number): TimeDurati
 	] as TimeDuration;
 }
 
-export function addNanosecondsToTimeDuration(duration: TimeDuration, nanoseconds: number) {
+export function addNanosecondsToTimeDuration(
+	duration: TimeDuration,
+	nanoseconds: number,
+): TimeDuration {
 	return normalize(duration[0], duration[1] + nanoseconds);
 }
 
-export function addTimeDuration(one: TimeDuration, two: TimeDuration) {
+export function addTimeDuration(one: TimeDuration, two: TimeDuration): TimeDuration {
 	return normalize(one[0] + two[0], one[1] + two[1]);
 }
 
-export function sumTimeDuration(timeDurations: TimeDuration[]) {
+export function sumTimeDuration(timeDurations: TimeDuration[]): TimeDuration {
 	return timeDurations.reduce(addTimeDuration);
 }
 
-export function absTimeDuration(timeDuration: TimeDuration) {
+export function absTimeDuration(timeDuration: TimeDuration): TimeDuration {
 	return normalize(Math.abs(timeDuration[0]), Math.abs(timeDuration[1]));
 }
 
@@ -69,6 +72,6 @@ export function timeDurationDaysAndRemainderNanoseconds(
 }
 
 /** be careful with unsafe integers */
-export function timeDurationToNanosecondsNumber(timeDuration: TimeDuration) {
+export function timeDurationToNanosecondsNumber(timeDuration: TimeDuration): number {
 	return timeDuration[0] * nanosecondsPerDay + timeDuration[1];
 }

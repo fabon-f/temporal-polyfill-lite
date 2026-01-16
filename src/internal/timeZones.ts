@@ -95,7 +95,7 @@ function bisectOffsetTransition(
 	startEpochSecond: number,
 	endEpochSecond: number,
 	offsetCacheMap: Map<number, number>,
-) {
+): number {
 	const startOffset = getNamedTimeZoneOffsetNanosecondsForEpochSecond(
 		timeZone,
 		startEpochSecond,
@@ -118,7 +118,7 @@ function bisectOffsetTransition(
 	return right;
 }
 
-function adjustWindowForEpoch(epochSecond: number) {
+function adjustWindowForEpoch(epochSecond: number): number {
 	if (epochSecond < -850000000) {
 		// shortest interval of offset transition recorded in tz database before 1943-01-25 is 513 hours (DST in Hawaii in 1933)
 		return secondsPerDay * 21;
@@ -137,7 +137,7 @@ function searchTimeZoneTransition(
 	endEpochSeconds: number,
 	direction: -1 | 1,
 	offsetCacheMap: Map<number, number>,
-) {
+): EpochNanoseconds | null {
 	// 48 hours for the initial scan
 	let window = secondsPerDay * 2 * direction;
 	let currentStart = startEpochSeconds;
@@ -207,7 +207,7 @@ export function getTimeZoneTransition(
 }
 
 /** normalize upper/lower case of IANA time zone IDs */
-export function normalizeIanaTimeZoneId(id: string) {
+export function normalizeIanaTimeZoneId(id: string): string {
 	return asciiLowerCase(id).replace(/[^/]+/g, (part) => {
 		if (/^(?!etc|yap).{1,3}$|\d/.test(part)) {
 			return asciiUpperCase(part);
@@ -225,7 +225,7 @@ export function normalizeIanaTimeZoneId(id: string) {
 }
 
 /** `GetAvailableNamedTimeZoneIdentifier` + throwing `RangeError` */
-export function getAvailableNamedTimeZoneIdentifier(timeZone: string) {
+export function getAvailableNamedTimeZoneIdentifier(timeZone: string): string {
 	timeZone = normalizeIanaTimeZoneId(timeZone);
 	getFormatterForTimeZone(timeZone);
 	return timeZone;
@@ -242,12 +242,9 @@ export function getIsoPartsFromEpoch(epochNanoseconds: EpochNanoseconds): IsoDat
 }
 
 /** `FormatOffsetTimeZoneIdentifier` */
-export function formatOffsetTimeZoneIdentifier(offsetMinutes: number) {
+export function formatOffsetTimeZoneIdentifier(offsetMinutes: number): string {
 	const abs = Math.abs(offsetMinutes);
-	return (
-		(offsetMinutes < 0 ? "-" : "+") +
-		formatTimeString(divFloor(abs, 60), modFloor(abs, 60), 0, 0, MINUTE)
-	);
+	return `${offsetMinutes < 0 ? "-" : "+"}${formatTimeString(divFloor(abs, 60), modFloor(abs, 60), 0, 0, MINUTE)}`;
 }
 
 /** `FormatUTCOffsetNanoseconds` */
@@ -255,16 +252,13 @@ export function formatUtcOffsetNanoseconds(offsetNanoseconds: number): string {
 	const abs = Math.abs(offsetNanoseconds);
 	const second = modFloor(divFloor(offsetNanoseconds, 1e9), 60);
 	const nanosecond = modFloor(offsetNanoseconds, 1e9);
-	return (
-		(offsetNanoseconds < 0 ? "-" : "+") +
-		formatTimeString(
-			divFloor(abs, nanosecondsPerHour),
-			modFloor(divFloor(abs, nanosecondsPerMinute), 60),
-			second,
-			nanosecond,
-			second === 0 && nanosecond === 0 ? MINUTE : undefined,
-		)
-	);
+	return `${offsetNanoseconds < 0 ? "-" : "+"}${formatTimeString(
+		divFloor(abs, nanosecondsPerHour),
+		modFloor(divFloor(abs, nanosecondsPerMinute), 60),
+		second,
+		nanosecond,
+		second === 0 && nanosecond === 0 ? MINUTE : undefined,
+	)}`;
 }
 
 /** `FormatDateTimeUTCOffsetRounded` */
@@ -276,7 +270,7 @@ export function formatDateTimeUtcOffsetRounded(offsetNanoseconds: number): strin
 }
 
 /** `ToTemporalTimeZoneIdentifier` */
-export function toTemporalTimeZoneIdentifier(temporalTimeZoneLike: unknown) {
+export function toTemporalTimeZoneIdentifier(temporalTimeZoneLike: unknown): string {
 	if (isZonedDateTime(temporalTimeZoneLike)) {
 		return getInternalSlotOrThrowForZonedDateTime(temporalTimeZoneLike).$timeZone;
 	}

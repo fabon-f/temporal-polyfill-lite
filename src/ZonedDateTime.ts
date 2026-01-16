@@ -212,7 +212,7 @@ function interpretISODateTimeOffset(
 }
 
 /** `ToTemporalZonedDateTime` */
-function toTemporalZonedDateTime(item: unknown, options?: unknown) {
+function toTemporalZonedDateTime(item: unknown, options?: unknown): ZonedDateTime {
 	let timeZone: string;
 	let offsetString: string | undefined;
 	let hasUtcDesignator = false;
@@ -347,24 +347,21 @@ function temporalZonedDateTimeToString(
 	increment = 1,
 	unit: Exclude<SingularTimeUnitKey, "hour"> = "nanosecond",
 	roundingMode: RoundingMode = roundingModeTrunc,
-) {
+): string {
 	const epoch = roundTemporalInstant(slot.$epochNanoseconds, increment, unit, roundingMode);
 	const offsetNanoseconds = getOffsetNanosecondsFor(slot.$timeZone, epoch);
-	return (
-		isoDateTimeToString(
-			getIsoDateTimeFromOffsetNanoseconds(epoch, offsetNanoseconds),
-			"iso8601",
-			precision,
-			showCalendarName.$never,
-		) +
-		(showOffset === showOffsetOptions.$never
+	return `${isoDateTimeToString(
+		getIsoDateTimeFromOffsetNanoseconds(epoch, offsetNanoseconds),
+		"iso8601",
+		precision,
+		showCalendarName.$never,
+	)}${
+		showOffset === showOffsetOptions.$never ? "" : formatDateTimeUtcOffsetRounded(offsetNanoseconds)
+	}${
+		showTimeZone === timeZoneNameOptions.$never
 			? ""
-			: formatDateTimeUtcOffsetRounded(offsetNanoseconds)) +
-		(showTimeZone === timeZoneNameOptions.$never
-			? ""
-			: `[${showTimeZone === timeZoneNameOptions.$critical ? "!" : ""}${slot.$timeZone}]`) +
-		formatCalendarAnnotation(slot.$calendar, showCalendar)
-	);
+			: `[${showTimeZone === timeZoneNameOptions.$critical ? "!" : ""}${slot.$timeZone}]`
+	}${formatCalendarAnnotation(slot.$calendar, showCalendar)}`;
 }
 
 /** `GetOffsetNanosecondsFor` with caching */
