@@ -1,7 +1,5 @@
 // enum specification types
 
-/** `START-OF-DAY` */
-export const START_OF_DAY = Symbol();
 /** `DATE` */
 export const DATE = Symbol();
 /** `TIME` */

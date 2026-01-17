@@ -29,7 +29,6 @@ import {
 	REQUIRED,
 	roundingModeHalfExpand,
 	roundingModeTrunc,
-	START_OF_DAY,
 	TIME,
 	type Overflow,
 	type RoundingMode,
@@ -56,6 +55,11 @@ import {
 	type TimeDuration,
 } from "./internal/timeDuration.ts";
 import { assert, assertNotUndefined } from "./internal/assertion.ts";
+import {
+	applySignToDurationSlot,
+	toInternalDurationRecord,
+	toTemporalDuration,
+} from "./Duration.ts";
 
 export interface TimeRecord {
 	$hour: number;
@@ -151,7 +155,7 @@ export function toTemporalTime(item: unknown, options?: unknown): PlainTime {
 		throw new TypeError();
 	}
 	const result = parseIsoDateTime(item, [temporalTimeStringRegExp]);
-	assert(result.$time !== START_OF_DAY);
+	assert(result.$time !== undefined);
 	if (isAmbiguousTemporalTimeString(item)) {
 		throw new RangeError();
 	}
@@ -357,6 +361,22 @@ export function roundTime(
 	);
 }
 
+/** `AddDurationToTime` */
+function addDurationToTime(
+	operationSign: 1 | -1,
+	temporalTime: PlainTimeSlot,
+	temporalDurationLike: unknown,
+): PlainTime {
+	return createTemporalTime(
+		addTime(
+			temporalTime,
+			toInternalDurationRecord(
+				applySignToDurationSlot(toTemporalDuration(temporalDurationLike), operationSign),
+			).$time,
+		),
+	);
+}
+
 function createPlainTimeSlot(time: TimeRecord): PlainTimeSlot {
 	return time as PlainTimeSlot;
 }
@@ -426,11 +446,11 @@ export class PlainTime {
 		const slot = getInternalSlotOrThrowForPlainTime(this);
 		return slot.$nanosecond;
 	}
-	add() {
-		notImplementedYet();
+	add(temporalDurationLike: unknown) {
+		return addDurationToTime(1, getInternalSlotOrThrowForPlainTime(this), temporalDurationLike);
 	}
-	subtract() {
-		notImplementedYet();
+	subtract(temporalDurationLike: unknown) {
+		return addDurationToTime(-1, getInternalSlotOrThrowForPlainTime(this), temporalDurationLike);
 	}
 	with(temporalTimeLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainTime(this);
@@ -441,12 +461,12 @@ export class PlainTime {
 		const overflow = getTemporalOverflowOption(getOptionsObject(options));
 		return createTemporalTime(
 			regulateTime(
-				time.hour === undefined ? slot.$hour : time.hour,
-				time.minute === undefined ? slot.$minute : time.minute,
-				time.second === undefined ? slot.$second : time.second,
-				time.millisecond === undefined ? slot.$millisecond : time.millisecond,
-				time.microsecond === undefined ? slot.$microsecond : time.microsecond,
-				time.nanosecond === undefined ? slot.$nanosecond : time.nanosecond,
+				time.hour ?? slot.$hour,
+				time.minute ?? slot.$minute,
+				time.second ?? slot.$second,
+				time.millisecond ?? slot.$millisecond,
+				time.microsecond ?? slot.$microsecond,
+				time.nanosecond ?? slot.$nanosecond,
 				overflow,
 			),
 		);

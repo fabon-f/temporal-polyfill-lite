@@ -1,4 +1,6 @@
+import type { DateDurationRecord } from "../Duration.ts";
 import {
+	addDaysToIsoDate,
 	createIsoDateRecord,
 	getInternalSlotForPlainDate,
 	isoDateWithinLimits,
@@ -7,7 +9,11 @@ import {
 } from "../PlainDate.ts";
 import { getInternalSlotForPlainDateTime } from "../PlainDateTime.ts";
 import { getInternalSlotForPlainMonthDay } from "../PlainMonthDay.ts";
-import { getInternalSlotForPlainYearMonth, isoYearMonthWithinLimits } from "../PlainYearMonth.ts";
+import {
+	balanceIsoYearMonth,
+	getInternalSlotForPlainYearMonth,
+	isoYearMonthWithinLimits,
+} from "../PlainYearMonth.ts";
 import { getInternalSlotForZonedDateTime } from "../ZonedDateTime.ts";
 import {
 	isoDateRecordToEpochDays,
@@ -222,6 +228,27 @@ export function calendarMergeFields(
 	return merged;
 }
 
+/** `CalendarDateAdd` */
+export function calendarDateAdd(
+	calendar: SupportedCalendars,
+	isoDate: IsoDateRecord,
+	duration: DateDurationRecord,
+	overflow: Overflow,
+): IsoDateRecord {
+	const balancedYearMonth = balanceIsoYearMonth(
+		isoDate.$year + duration.$years,
+		isoDate.$month + duration.$months,
+	);
+	const result = addDaysToIsoDate(
+		regulateIsoDate(balancedYearMonth.$year, balancedYearMonth.$month, isoDate.$day, overflow),
+		duration.$weeks * 7 + duration.$days,
+	);
+	if (!isoDateWithinLimits(result)) {
+		throw new RangeError();
+	}
+	return result;
+}
+
 /** `ToTemporalCalendarIdentifier` */
 export function toTemporalCalendarIdentifier(temporalCalendarLike: unknown): SupportedCalendars {
 	const slot =
@@ -294,9 +321,7 @@ export function calendarMonthDayFromFields(
 ): IsoDateRecord {
 	calendarResolveFields(calendar, fields, MONTH_DAY);
 	const result = calendarMonthDayToIsoReferenceDate(calendar, fields, overflow);
-	if (!isoDateWithinLimits(result)) {
-		throw new RangeError();
-	}
+	assert(isoDateWithinLimits(result));
 	return result;
 }
 
@@ -438,7 +463,7 @@ function calendarMonthDayToIsoReferenceDate(
 	if (calendar === "iso8601" || calendar === "gregory") {
 		const y = fields[calendarFieldKeys.$year];
 		const result = regulateIsoDate(
-			y === undefined ? 1972 : y,
+			y ?? 1972,
 			fields[calendarFieldKeys.$month]!,
 			fields[calendarFieldKeys.$day]!,
 			overflow,

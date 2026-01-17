@@ -1,4 +1,10 @@
 import {
+	adjustDateDurationRecord,
+	applySignToDurationSlot,
+	toInternalDurationRecordWith24HourDays,
+	toTemporalDuration,
+} from "./Duration.ts";
+import {
 	formatTimeString,
 	getRoundingIncrementOption,
 	getRoundingModeOption,
@@ -17,6 +23,7 @@ import {
 } from "./internal/abstractOperations.ts";
 import { assert, assertNotUndefined } from "./internal/assertion.ts";
 import {
+	calendarDateAdd,
 	calendarDateFromFields,
 	calendarEquals,
 	calendarFieldKeys,
@@ -42,7 +49,6 @@ import {
 	REQUIRED,
 	roundingModeTrunc,
 	showCalendarName,
-	START_OF_DAY,
 	TIME,
 	type Overflow,
 	type RoundingMode,
@@ -52,7 +58,11 @@ import type { NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
-import { getEpochNanosecondsFor, toTemporalTimeZoneIdentifier } from "./internal/timeZones.ts";
+import {
+	createOffsetCacheMap,
+	getEpochNanosecondsFor,
+	toTemporalTimeZoneIdentifier,
+} from "./internal/timeZones.ts";
 import type { SingularUnitKey } from "./internal/unit.ts";
 import { notImplementedYet } from "./internal/utils.ts";
 import {
@@ -67,6 +77,7 @@ import {
 	type IsoDateRecord,
 } from "./PlainDate.ts";
 import {
+	addTime,
 	balanceTime,
 	compareTimeRecord,
 	createTemporalTime,
@@ -194,7 +205,7 @@ function toTemporalDateTime(item: unknown, options?: unknown): PlainDateTime {
 	return createTemporalDateTime(
 		combineIsoDateAndTimeRecord(
 			createIsoDateRecord(result.$year, result.$month, result.$day),
-			result.$time === START_OF_DAY ? midnightTimeRecord() : result.$time,
+			result.$time ?? midnightTimeRecord(),
 		),
 		calendar,
 	);
@@ -272,6 +283,27 @@ export function roundIsoDateTime(
 	assert(isoDateTimeWithinLimits(isoDateTime));
 	const time = roundTime(isoDateTime.$time, increment, unit, roundingMode);
 	return combineIsoDateAndTimeRecord(addDaysToIsoDate(isoDateTime.$isoDate, time.$days), time);
+}
+
+/** `AddDurationToDateTime` */
+function addDurationToDateTime(
+	operationSign: 1 | -1,
+	dateTime: PlainDateTimeSlot,
+	temporalDurationLike: unknown,
+	options: unknown,
+): PlainDateTime {
+	const duration = applySignToDurationSlot(toTemporalDuration(temporalDurationLike), operationSign);
+	const overflow = getTemporalOverflowOption(getOptionsObject(options));
+	const internalDuration = toInternalDurationRecordWith24HourDays(duration);
+	const timeResult = addTime(dateTime.$isoDateTime.$time, internalDuration.$time);
+	const dateDuration = adjustDateDurationRecord(internalDuration.$date, timeResult.$days);
+	return createTemporalDateTime(
+		combineIsoDateAndTimeRecord(
+			calendarDateAdd(dateTime.$calendar, dateTime.$isoDateTime.$isoDate, dateDuration, overflow),
+			timeResult,
+		),
+		dateTime.$calendar,
+	);
 }
 
 function createPlainDateTimeSlot(
@@ -487,11 +519,21 @@ export class PlainDateTime {
 			toTemporalCalendarIdentifier(calendarLike),
 		);
 	}
-	add() {
-		notImplementedYet();
+	add(temporalDurationLike: unknown, options: unknown = undefined) {
+		return addDurationToDateTime(
+			1,
+			getInternalSlotOrThrowForPlainDateTime(this),
+			temporalDurationLike,
+			options,
+		);
 	}
-	subtract() {
-		notImplementedYet();
+	subtract(temporalDurationLike: unknown, options: unknown = undefined) {
+		return addDurationToDateTime(
+			-1,
+			getInternalSlotOrThrowForPlainDateTime(this),
+			temporalDurationLike,
+			options,
+		);
 	}
 	until() {
 		notImplementedYet();
@@ -568,7 +610,7 @@ export class PlainDateTime {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);
 		const timeZone = toTemporalTimeZoneIdentifier(temporalTimeZoneLike);
 		const disambiguation = getTemporalDisambiguationOption(getOptionsObject(options));
-		const cache = new Map<number, number>();
+		const cache = createOffsetCacheMap();
 		return createTemporalZonedDateTime(
 			getEpochNanosecondsFor(timeZone, slot.$isoDateTime, disambiguation, cache),
 			timeZone,

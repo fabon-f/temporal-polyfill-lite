@@ -1,3 +1,4 @@
+import { parseTemporalDurationString } from "./internal/abstractOperations.ts";
 import { assert, assertNotUndefined } from "./internal/assertion.ts";
 import { toIntegerIfIntegral } from "./internal/ecmascript.ts";
 import type { NumberSign } from "./internal/math.ts";
@@ -5,12 +6,16 @@ import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import {
 	absTimeDuration,
+	addDaysToTimeDuration,
+	addNanosecondsToTimeDuration,
 	compareTimeDuration,
 	createTimeDurationFromMicroseconds,
 	createTimeDurationFromMilliseconds,
 	createTimeDurationFromNanoseconds,
 	createTimeDurationFromSeconds,
+	signTimeDuration,
 	sumTimeDuration,
+	timeDurationDaysAndRemainderNanoseconds,
 	type TimeDuration,
 } from "./internal/timeDuration.ts";
 import {
@@ -36,6 +41,15 @@ type DurationTuple = [
 	nanoseconds: number,
 ];
 
+type TimeDurationTuple = [
+	hours: number,
+	minutes: number,
+	seconds: number,
+	milliseconds: number,
+	microseconds: number,
+	nanoseconds: number,
+];
+
 type PartialDurationRecord = [
 	years: number | undefined,
 	months: number | undefined,
@@ -49,20 +63,127 @@ type PartialDurationRecord = [
 	nanoseconds: number | undefined,
 ];
 
-type DurationSlot = DurationTuple & { [internalSlotBrand]: unknown };
+export interface DateDurationRecord {
+	$years: number;
+	$months: number;
+	$weeks: number;
+	$days: number;
+}
+
+export interface InternalDurationRecord {
+	$date: DateDurationRecord;
+	$time: TimeDuration;
+}
+
+export type DurationSlot = DurationTuple & { [internalSlotBrand]: unknown };
+
+const maxTimeDuration = addNanosecondsToTimeDuration(
+	createTimeDurationFromSeconds(Number.MAX_SAFE_INTEGER),
+	999999999,
+);
 
 const slots = new WeakMap<any, DurationSlot>();
 
+/** `ToInternalDurationRecord` */
+export function toInternalDurationRecord(duration: DurationSlot): InternalDurationRecord {
+	return combineDateAndTimeDuration(
+		createDateDurationRecord(
+			duration[unitIndices.$year],
+			duration[unitIndices.$month],
+			duration[unitIndices.$week],
+			duration[unitIndices.$day],
+		),
+		timeDurationFromComponents(
+			duration[unitIndices.$hour],
+			duration[unitIndices.$minute],
+			duration[unitIndices.$second],
+			duration[unitIndices.$millisecond],
+			duration[unitIndices.$microsecond],
+			duration[unitIndices.$nanosecond],
+		),
+	);
+}
+
+/** `ToInternalDurationRecordWith24HourDays` */
+export function toInternalDurationRecordWith24HourDays(
+	duration: DurationSlot,
+): InternalDurationRecord {
+	// this AO shouldn't fail, so it's safe to change order of `createDateDurationRecord` and `add24HourDaysToTimeDuration`
+	return combineDateAndTimeDuration(
+		createDateDurationRecord(
+			duration[unitIndices.$year],
+			duration[unitIndices.$month],
+			duration[unitIndices.$week],
+			0,
+		),
+		add24HourDaysToTimeDuration(
+			timeDurationFromComponents(...(duration.slice(unitIndices.$hour) as TimeDurationTuple)),
+			duration[unitIndices.$day],
+		),
+	);
+}
+
+/** `ToDateDurationRecordWithoutTime` */
+export function toDateDurationRecordWithoutTime(duration: DurationSlot): DateDurationRecord {
+	const internalDuration = toInternalDurationRecordWith24HourDays(duration);
+	return createDateDurationRecord(
+		internalDuration.$date.$years,
+		internalDuration.$date.$months,
+		internalDuration.$date.$weeks,
+		timeDurationDaysAndRemainderNanoseconds(internalDuration.$time)[0],
+	);
+}
+
+/** `CreateDateDurationRecord` */
+function createDateDurationRecord(
+	years: number,
+	months: number,
+	weeks: number,
+	days: number,
+): DateDurationRecord {
+	if (!isValidDuration(years, months, weeks, days, 0, 0, 0, 0, 0, 0)) {
+		throw new RangeError();
+	}
+	return {
+		$years: years,
+		$months: months,
+		$weeks: weeks,
+		$days: days,
+	};
+}
+
+/** `AdjustDateDurationRecord` */
+export function adjustDateDurationRecord(
+	dateDuration: DateDurationRecord,
+	days: number,
+	weeks = dateDuration.$weeks,
+	months = dateDuration.$months,
+): DateDurationRecord {
+	return createDateDurationRecord(dateDuration.$years, months, weeks, days);
+}
+
+/** `CombineDateAndTimeDuration` */
+function combineDateAndTimeDuration(
+	date: DateDurationRecord,
+	time: TimeDuration,
+): InternalDurationRecord {
+	assert(dateDurationSign(date) * signTimeDuration(time) >= 0);
+	return {
+		$date: date,
+		$time: time,
+	};
+}
+
 /** `ToTemporalDuration` */
-function toTemporalDuration(item: unknown): DurationSlot {
+export function toTemporalDuration(item: unknown): DurationSlot {
 	if (isDuration(item)) {
 		return getInternalSlotOrThrowForDuration(item);
 	}
 	if (!isObject(item)) {
-		if (typeof item === "string") {
-			// TODO
+		if (typeof item !== "string") {
+			throw new TypeError();
 		}
-		throw new TypeError();
+		return parseTemporalDurationString(item);
 	}
 	return createTemporalDurationSlot(
 		...(toTemporalPartialDurationRecord(item).map((v) => v || 0) as DurationTuple),
@@ -82,6 +203,13 @@ function durationSign(duration: DurationSlot): NumberSign {
 			duration[unitIndices.$millisecond] ||
 			duration[unitIndices.$microsecond] ||
 			duration[unitIndices.$nanosecond],
+	) as NumberSign;
+}
+
+/** `DateDurationSign` */
+export function dateDurationSign(dateDuration: DateDurationRecord): NumberSign {
+	return Math.sign(
+		dateDuration.$years || dateDuration.$months || dateDuration.$weeks || dateDuration.$days,
 	) as NumberSign;
 }
 
@@ -111,8 +239,8 @@ function isValidDuration(...units: DurationTuple): boolean {
 					units[unitIndices.$nanosecond],
 				),
 			),
-			createTimeDurationFromSeconds(Number.MAX_SAFE_INTEGER + 1),
-		) < 0
+			maxTimeDuration,
+		) !== 1
 	);
 }
 
@@ -165,7 +293,7 @@ function toTemporalPartialDurationRecord(temporalDurationLike: unknown): Partial
 }
 
 /** part of `CreateTemporalDuration` */
-function createTemporalDurationSlot(
+export function createTemporalDurationSlot(
 	years: number,
 	months: number,
 	weeks: number,
@@ -218,9 +346,10 @@ function createTemporalDuration(
 
 /** `CreateNegatedTemporalDuration` */
 function createNegatedTemporalDurationSlot(duration: DurationSlot): DurationSlot {
-	return createTemporalDurationSlot(...(duration.map((v) => 0 - v) as DurationTuple));
+	return applySignToDurationSlot(duration, -1);
 }
 
+/** `TimeDurationFromComponents` */
 function timeDurationFromComponents(
 	hours: number,
 	minutes: number,
@@ -237,6 +366,15 @@ function timeDurationFromComponents(
 	]);
 }
 
+/** `Add24HourDaysToTimeDuration` */
+function add24HourDaysToTimeDuration(d: TimeDuration, days: number): TimeDuration {
+	const result = addDaysToTimeDuration(d, days);
+	if (compareTimeDuration(result, maxTimeDuration) === 1) {
+		throw new RangeError();
+	}
+	return result;
+}
+
 function isDuration(duration: unknown): boolean {
 	return slots.has(duration);
 }
@@ -247,6 +385,10 @@ function getInternalSlotOrThrowForDuration(duration: unknown): DurationSlot {
 		throw new TypeError();
 	}
 	return slot;
+}
+
+export function applySignToDurationSlot(duration: DurationSlot, sign: NumberSign): DurationSlot {
+	return createTemporalDurationSlot(...(duration.map((v) => v * sign + 0) as DurationTuple));
 }
 
 export class Duration {
@@ -329,8 +471,8 @@ export class Duration {
 		const thisSlot = getInternalSlotOrThrowForDuration(this);
 		return createTemporalDuration(
 			createTemporalDurationSlot(
-				...(toTemporalPartialDurationRecord(temporalDurationLike).map((v, i) =>
-					v === undefined ? thisSlot[i]! : v,
+				...(toTemporalPartialDurationRecord(temporalDurationLike).map(
+					(v, i) => v ?? thisSlot[i]!,
 				) as [number, number, number, number, number, number, number, number, number, number]),
 			),
 		);

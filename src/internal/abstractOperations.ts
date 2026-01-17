@@ -1,9 +1,15 @@
+import {
+	applySignToDurationSlot,
+	createTemporalDurationSlot,
+	type DurationSlot,
+} from "../Duration.ts";
 import { isPlainDate, type IsoDateRecord } from "../PlainDate.ts";
 import { isPlainDateTime, type IsoDateTimeRecord } from "../PlainDateTime.ts";
 import { isPlainMonthDay } from "../PlainMonthDay.ts";
-import { isPlainTime } from "../PlainTime.ts";
-import { isPlainYearMonth } from "../PlainYearMonth.ts";
+import { balanceTime, isPlainTime } from "../PlainTime.ts";
+import { balanceIsoYearMonth, isPlainYearMonth } from "../PlainYearMonth.ts";
 import { isZonedDateTime } from "../ZonedDateTime.ts";
+import { assertNotUndefined } from "./assertion.ts";
 import {
 	calendarFieldKeys,
 	calendarIsoToDate,
@@ -67,7 +73,7 @@ import {
 	createEpochNanosecondsFromEpochMilliseconds,
 	type EpochNanoseconds,
 } from "./epochNanoseconds.ts";
-import { divFloor, isWithin, modFloor } from "./math.ts";
+import { divFloor, isWithin, modFloor, type NumberSign } from "./math.ts";
 import { isObject } from "./object.ts";
 import {
 	roundExpand,
@@ -77,7 +83,7 @@ import {
 	roundHalfFloor,
 	roundHalfTrunc,
 } from "./rounding.ts";
-import { toZeroPaddedDecimalString } from "./string.ts";
+import { asciiLowerCase, toZeroPaddedDecimalString } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
 import { parseTimeZoneIdentifier, type TimeZoneIdentifierParseRecord } from "./timeZones.ts";
 import {
@@ -90,14 +96,15 @@ import { mapUnlessUndefined } from "./utils.ts";
 
 /** `ISODateToEpochDays` (`month` is 0-indexed) */
 export function isoDateToEpochDays(year: number, month: number, day: number): number {
-	year += divFloor(month, 12);
+	const balancedYearMonth = balanceIsoYearMonth(year, month + 1);
 
 	// Gregorian calendar has 400 years cycle (146097 days).
 	// In order to avoid `Date.UTC` quirks on 1 or 2 digit years
 	// and handle extreme dates not supported by `Date`.
 	return (
-		Date.UTC((year % 400) - 400, modFloor(month, 12), 0) / millisecondsPerDay +
-		(Math.trunc(year / 400) + 1) * daysPer400Years +
+		Date.UTC((balancedYearMonth.$year % 400) - 400, balancedYearMonth.$month - 1, 0) /
+			millisecondsPerDay +
+		(Math.trunc(balancedYearMonth.$year / 400) + 1) * daysPer400Years +
 		day
 	);
 }
@@ -342,6 +349,16 @@ export function validateTemporalUnitValue(
 	}
 }
 
+/** `IsCalendarUnit` */
+function isCalendarUnit(unit: SingularUnitKey): unit is "year" | "month" | "week" {
+	return unit === "year" || unit === "month" || unit === "week";
+}
+
+/** alternative to `TemporalUnitCategory` */
+export function isDateUnit(unit: SingularUnitKey): unit is "year" | "month" | "week" | "day" {
+	return isCalendarUnit(unit) || unit === "day";
+}
+
 /** `MaximumTemporalDurationRoundingIncrement` */
 export function maximumTemporalDurationRoundingIncrement(
 	unit: SingularUnitKey,
@@ -499,6 +516,50 @@ export function parseTemporalTimeZoneString(timeZoneString: string): TimeZoneIde
 		throw new RangeError();
 	}
 	return parseTimeZoneIdentifier(timeZoneId);
+}
+
+/** `ParseTemporalDurationString` */
+export function parseTemporalDurationString(isoString: string): DurationSlot {
+	/**
+	 * * a fractional time unit should be in the end (and appears at most once)
+	 * * date time separator "T" should be followed by time units
+	 * * at least one of units should be present
+	 */
+	const invalidDurationRegExp = /[pt]$|[.,](\d{1,9})[hms]./;
+	const durationRegExp =
+		/^([+-]?)p(?:(\d+)y)?(?:(\d+)m)?(?:(\d+)w)?(?:(\d+)d)?(?:t(?:(\d+)(?:[.,](\d{1,9}))?h)?(?:(\d+)(?:[.,](\d{1,9}))?m)?(?:(\d+)(?:[.,](\d{1,9}))?s)?)?$/;
+
+	isoString = asciiLowerCase(isoString);
+	const result = isoString.match(durationRegExp);
+	if (!result || invalidDurationRegExp.test(isoString)) {
+		throw new RangeError();
+	}
+	assertNotUndefined(result[1]);
+	const fracPart = balanceTime(
+		0,
+		0,
+		0,
+		0,
+		0,
+		toIntegerWithTruncation((result[7] || "").padEnd(9, "0")) * 3600 +
+			toIntegerWithTruncation((result[9] || "").padEnd(9, "0")) * 60 +
+			toIntegerWithTruncation((result[11] || "").padEnd(9, "0")),
+	);
+	return applySignToDurationSlot(
+		createTemporalDurationSlot(
+			toIntegerWithTruncation(result[2] || ""),
+			toIntegerWithTruncation(result[3] || ""),
+			toIntegerWithTruncation(result[4] || ""),
+			toIntegerWithTruncation(result[5] || ""),
+			toIntegerWithTruncation(result[6] || ""),
+			toIntegerWithTruncation(result[8] || "") + fracPart.$minute,
+			toIntegerWithTruncation(result[10] || "") + fracPart.$second,
+			fracPart.$millisecond,
+			fracPart.$microsecond,
+			fracPart.$nanosecond,
+		),
+		toIntegerWithTruncation(`${result[1]}1`) as NumberSign,
+	);
 }
 
 /** `ToOffsetString` */

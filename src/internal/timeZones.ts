@@ -49,6 +49,22 @@ import { utcEpochMilliseconds } from "./time.ts";
 
 const intlCache = Object.create(null) as Record<string, Intl.DateTimeFormat>;
 
+export function createOffsetCacheMap(
+	epochNanoseconds?: EpochNanoseconds | undefined,
+	offsetNanoseconds?: number | undefined,
+): Map<number, number> {
+	return new Map(
+		epochNanoseconds !== undefined && offsetNanoseconds !== undefined
+			? [[clampEpochSecond(epochSeconds(epochNanoseconds)), offsetNanoseconds]]
+			: [],
+	);
+}
+
+function clampEpochSecond(epochSecond: number): number {
+	// avoid CE / BCE confusion while retrieving offset info, clamp to 1653 BC (no offset transition in pre-modern years)
+	return clamp(epochSecond, -1e10, Infinity);
+}
+
 function getNamedTimeZoneOffsetNanosecondsForEpochSecond(
 	timeZone: string,
 	epochSecond: number,
@@ -57,22 +73,21 @@ function getNamedTimeZoneOffsetNanosecondsForEpochSecond(
 	if (timeZone === "UTC") {
 		return 0;
 	}
-	// avoid CE / BCE confusion, clamp to 1653 BC (no offset transition in pre-modern years)
-	const clampedEpoch = clamp(epochSecond * 1000, -1e13, Infinity);
+	const clampedEpochSecond = clampEpochSecond(epochSecond);
 
-	const cachedOffsetNanoseconds = offsetCacheMap && offsetCacheMap.get(clampedEpoch);
+	const cachedOffsetNanoseconds = offsetCacheMap && offsetCacheMap.get(clampedEpochSecond);
 	if (cachedOffsetNanoseconds !== undefined) {
 		return cachedOffsetNanoseconds;
 	}
 
-	const parts = getFormatterForTimeZone(timeZone).formatToParts(clampedEpoch);
+	const parts = getFormatterForTimeZone(timeZone).formatToParts(clampedEpochSecond * 1000);
 	const units = ["year", "month", "day", "hour", "minute", "second"].map((unit) =>
 		toIntegerIfIntegral(parts.find((p) => p.type === unit)!.value),
 	) as [number, number, number, number, number, number];
 	const offsetNanoseconds =
-		(utcEpochMilliseconds(...units) - clampedEpoch) * nanosecondsPerMilliseconds;
+		(utcEpochMilliseconds(...units) - clampedEpochSecond * 1000) * nanosecondsPerMilliseconds;
 	if (offsetCacheMap) {
-		offsetCacheMap.set(epochSecond, offsetNanoseconds);
+		offsetCacheMap.set(clampedEpochSecond, offsetNanoseconds);
 	}
 	return offsetNanoseconds;
 }
@@ -305,7 +320,7 @@ export function getEpochNanosecondsFor(
 	timeZone: string,
 	isoDateTime: IsoDateTimeRecord,
 	disambiguation: Disambiguation,
-	offsetCacheMap: Map<number, number>,
+	offsetCacheMap?: Map<number, number>,
 ): EpochNanoseconds {
 	return disambiguatePossibleEpochNanoseconds(
 		getPossibleEpochNanoseconds(timeZone, isoDateTime, offsetCacheMap),
@@ -322,7 +337,7 @@ export function disambiguatePossibleEpochNanoseconds(
 	timeZone: string,
 	isoDateTime: IsoDateTimeRecord,
 	disambiguation: Disambiguation,
-	offsetCacheMap: Map<number, number>,
+	offsetCacheMap?: Map<number, number>,
 ): EpochNanoseconds {
 	if (possibleEpochNs.length === 1) {
 		assertNotUndefined(possibleEpochNs[0]);
@@ -354,7 +369,7 @@ export function disambiguatePossibleEpochNanoseconds(
 export function getPossibleEpochNanoseconds(
 	timeZone: string,
 	isoDateTime: IsoDateTimeRecord,
-	offsetCacheMap: Map<number, number>,
+	offsetCacheMap?: Map<number, number>,
 ): EpochNanoseconds[] {
 	let possibleEpochNanoseconds: EpochNanoseconds[];
 	const parsedTimeZone = parseTimeZoneIdentifier(timeZone);
@@ -448,7 +463,7 @@ export function parseTimeZoneIdentifier(identifier: string): TimeZoneIdentifierP
 function getNamedTimeZoneEpochNanoseconds(
 	timeZone: string,
 	isoDateTime: IsoDateTimeRecord,
-	offsetCacheMap: Map<number, number>,
+	offsetCacheMap?: Map<number, number>,
 ): EpochNanoseconds[] {
 	const utcEpoch = getUtcEpochNanoseconds(isoDateTime);
 	return getNamedTimeZoneEpochCandidates(timeZone, isoDateTime, offsetCacheMap).filter(
@@ -466,7 +481,7 @@ function getNamedTimeZoneEpochNanoseconds(
 function getNamedTimeZoneEpochCandidates(
 	timeZone: string,
 	isoDateTime: IsoDateTimeRecord,
-	offsetCacheMap: Map<number, number>,
+	offsetCacheMap?: Map<number, number>,
 ): EpochNanoseconds[] {
 	const utcEpoch = getUtcEpochNanoseconds(isoDateTime);
 	if (timeZone === "UTC") {

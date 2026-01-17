@@ -25,7 +25,7 @@ import {
 	YEAR_MONTH,
 	type ShowCalendarName,
 } from "./internal/enum.ts";
-import { isWithin } from "./internal/math.ts";
+import { divFloor, isWithin, modFloor } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
@@ -44,6 +44,11 @@ interface PlainYearMonthSlot {
 	$isoDate: IsoDateRecord;
 	$calendar: SupportedCalendars;
 	[internalSlotBrand]: unknown;
+}
+
+interface IsoYearMonthRecord {
+	$year: number;
+	$month: number;
 }
 
 const slots = new WeakMap<any, PlainYearMonthSlot>();
@@ -100,6 +105,14 @@ export function isoYearMonthWithinLimits(isoDate: IsoDateRecord): boolean {
 		(isoDate.$year !== -271821 || isoDate.$month >= 4) &&
 		(isoDate.$year !== 275760 || isoDate.$month <= 9)
 	);
+}
+
+/** `BalanceISOYearMonth` */
+export function balanceIsoYearMonth(year: number, month: number): IsoYearMonthRecord {
+	return {
+		$year: year + divFloor(month - 1, 12),
+		$month: modFloor(month - 1, 12) + 1,
+	};
 }
 
 /** `CreateTemporalYearMonth` */

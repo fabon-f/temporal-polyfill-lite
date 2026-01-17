@@ -1,10 +1,17 @@
 import {
+	applySignToDurationSlot,
+	defaultTemporalLargestUnit,
+	toInternalDurationRecordWith24HourDays,
+	toTemporalDuration,
+} from "./Duration.ts";
+import {
 	checkIsoDaysRange,
 	getRoundingIncrementOption,
 	getRoundingModeOption,
 	getTemporalFractionalSecondDigitsOption,
 	getTemporalUnitValuedOption,
 	getUtcEpochNanoseconds,
+	isDateUnit,
 	toSecondsStringPrecisionRecord,
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
@@ -28,11 +35,11 @@ import {
 	roundingModeHalfExpand,
 	roundingModeTrunc,
 	showCalendarName,
-	START_OF_DAY,
 	TIME,
 	type RoundingMode,
 } from "./internal/enum.ts";
 import {
+	addTimeDurationToEpochNanoseconds,
 	compareEpochNanoseconds,
 	convertEpochNanosecondsToBigInt,
 	createEpochNanosecondsFromBigInt,
@@ -43,6 +50,7 @@ import {
 } from "./internal/epochNanoseconds.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
+import type { TimeDuration } from "./internal/timeDuration.ts";
 import {
 	formatUtcOffsetNanoseconds,
 	getIsoDateTimeFromOffsetNanoseconds,
@@ -106,7 +114,7 @@ function toTemporalInstant(item: unknown): Instant {
 	const offsetNanoseconds = parsed.$timeZone.$z
 		? 0
 		: parseDateTimeUtcOffset(parsed.$timeZone.$offsetString!);
-	assert(parsed.$time !== START_OF_DAY);
+	assert(parsed.$time !== undefined);
 	assertNotUndefined(parsed.$year);
 	const time = parsed.$time;
 	const balanced = balanceIsoDateTime(
@@ -126,6 +134,19 @@ function toTemporalInstant(item: unknown): Instant {
 		throw new RangeError();
 	}
 	return createTemporalInstant(epoch);
+}
+
+/** `AddInstant` */
+export function addInstant(
+	epochNanoseconds: EpochNanoseconds,
+	timeDuration: TimeDuration,
+): EpochNanoseconds {
+	const result = addTimeDurationToEpochNanoseconds(epochNanoseconds, timeDuration);
+	console.log(epochNanoseconds, timeDuration, result);
+	if (!isValidEpochNanoseconds(result)) {
+		throw new RangeError();
+	}
+	return result;
 }
 
 /** `RoundTemporalInstant` */
@@ -153,6 +174,21 @@ function temporalInstantToString(
 		precision,
 		showCalendarName.$never,
 	)}${timeZone === undefined ? "Z" : formatUtcOffsetNanoseconds(offsetNanoseconds)}`;
+}
+
+/** `AddDurationToInstant` */
+function addDurationToInstant(
+	operationSign: 1 | -1,
+	instant: InstantSlot,
+	temporalDurationLike: unknown,
+): Instant {
+	const duration = applySignToDurationSlot(toTemporalDuration(temporalDurationLike), operationSign);
+	if (isDateUnit(defaultTemporalLargestUnit(duration))) {
+		throw new RangeError();
+	}
+	return createTemporalInstant(
+		addInstant(instant.$epochNanoseconds, toInternalDurationRecordWith24HourDays(duration).$time),
+	);
 }
 
 function getInternalSlotForInstant(instant: unknown): InstantSlot | undefined {
@@ -217,11 +253,11 @@ export class Instant {
 			getInternalSlotOrThrowForInstant(this).$epochNanoseconds,
 		);
 	}
-	add() {
-		notImplementedYet();
+	add(temporalDurationLike: unknown) {
+		return addDurationToInstant(1, getInternalSlotOrThrowForInstant(this), temporalDurationLike);
 	}
-	subtract() {
-		notImplementedYet();
+	subtract(temporalDurationLike: unknown) {
+		return addDurationToInstant(-1, getInternalSlotOrThrowForInstant(this), temporalDurationLike);
 	}
 	until() {
 		notImplementedYet();

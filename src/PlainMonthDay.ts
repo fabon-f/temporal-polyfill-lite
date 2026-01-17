@@ -49,7 +49,7 @@ interface PlainMonthDaySlot {
 const slots = new WeakMap<any, PlainMonthDaySlot>();
 
 /** `ToTemporalMonthDay` */
-function toTemporalMonthDay(item: unknown, options: unknown = undefined): PlainMonthDay {
+function toTemporalMonthDay(item: unknown, options?: unknown): PlainMonthDay {
 	if (isObject(item)) {
 		const slot = getInternalSlotForPlainMonthDay(item);
 		if (slot) {

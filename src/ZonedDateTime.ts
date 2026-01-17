@@ -1,4 +1,16 @@
-import { createTemporalInstant, isValidEpochNanoseconds, roundTemporalInstant } from "./Instant.ts";
+import {
+	applySignToDurationSlot,
+	dateDurationSign,
+	toInternalDurationRecord,
+	toTemporalDuration,
+	type InternalDurationRecord,
+} from "./Duration.ts";
+import {
+	addInstant,
+	createTemporalInstant,
+	isValidEpochNanoseconds,
+	roundTemporalInstant,
+} from "./Instant.ts";
 import {
 	checkIsoDaysRange,
 	getDirectionOption,
@@ -23,6 +35,7 @@ import {
 } from "./internal/abstractOperations.ts";
 import { assert, assertNotUndefined } from "./internal/assertion.ts";
 import {
+	calendarDateAdd,
 	calendarEquals,
 	calendarFieldKeys,
 	calendarIsoToDate,
@@ -60,12 +73,12 @@ import {
 	roundingModeTrunc,
 	showCalendarName,
 	showOffsetOptions,
-	START_OF_DAY,
 	TIME,
 	timeZoneNameOptions,
 	type Disambiguation,
 	type Offset,
 	type OffsetBehaviour,
+	type Overflow,
 	type RoundingMode,
 	type ShowCalendarName,
 	type ShowOffsetOptions,
@@ -85,6 +98,7 @@ import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { timeDurationToNanosecondsNumber } from "./internal/timeDuration.ts";
 import {
+	createOffsetCacheMap,
 	disambiguatePossibleEpochNanoseconds,
 	formatDateTimeUtcOffsetRounded,
 	formatOffsetTimeZoneIdentifier,
@@ -114,6 +128,7 @@ import {
 	createTemporalDateTime,
 	interpretTemporalDateTimeFields,
 	isoDateTimeToString,
+	isoDateTimeWithinLimits,
 	roundIsoDateTime,
 	type IsoDateTimeRecord,
 } from "./PlainDateTime.ts";
@@ -140,7 +155,7 @@ const slots = new WeakMap<any, ZonedDateTimeSlot>();
 /** `InterpretISODateTimeOffset` */
 function interpretISODateTimeOffset(
 	isoDate: IsoDateRecord,
-	time: typeof START_OF_DAY | TimeRecord,
+	time: TimeRecord | undefined,
 	offsetBehaviour: OffsetBehaviour,
 	offsetNanoseconds: number,
 	timeZone: string,
@@ -149,7 +164,7 @@ function interpretISODateTimeOffset(
 	matchExactly: boolean,
 	offsetCacheMap: Map<number, number>,
 ): EpochNanoseconds {
-	if (time === START_OF_DAY) {
+	if (time === undefined) {
 		assert(offsetBehaviour === offsetBehaviourWall);
 		assert(offsetNanoseconds === 0);
 		return getStartOfDay(timeZone, isoDate, offsetCacheMap);
@@ -221,7 +236,7 @@ function toTemporalZonedDateTime(item: unknown, options?: unknown): ZonedDateTim
 	let calendar: SupportedCalendars;
 	let matchExactly = true;
 	let isoDate: IsoDateRecord;
-	let time: typeof START_OF_DAY | TimeRecord;
+	let time: TimeRecord | undefined;
 	if (isObject(item)) {
 		if (isZonedDateTime(item)) {
 			const resolvedOptions = getOptionsObject(options);
@@ -288,7 +303,7 @@ function toTemporalZonedDateTime(item: unknown, options?: unknown): ZonedDateTim
 			: offsetBehaviourOption;
 	const offsetNanoseconds =
 		offsetBehaviour === offsetBehaviourOption ? parseDateTimeUtcOffset(offsetString!) : 0;
-	const cache = new Map<number, number>();
+	const cache = createOffsetCacheMap();
 	const epoch = interpretISODateTimeOffset(
 		isoDate,
 		time,
@@ -362,6 +377,69 @@ function temporalZonedDateTimeToString(
 			? ""
 			: `[${showTimeZone === timeZoneNameOptions.$critical ? "!" : ""}${slot.$timeZone}]`
 	}${formatCalendarAnnotation(slot.$calendar, showCalendar)}`;
+}
+
+/** `AddZonedDateTime` */
+function addZonedDateTime(
+	epochNanoseconds: EpochNanoseconds,
+	timeZone: string,
+	calendar: SupportedCalendars,
+	duration: InternalDurationRecord,
+	overflow: Overflow,
+	offsetCacheMap?: Map<number, number>,
+): EpochNanoseconds {
+	if (dateDurationSign(duration.$date) === 0) {
+		return addInstant(epochNanoseconds, duration.$time);
+	}
+	const isoDateTime = getIsoDateTimeFromOffsetNanoseconds(
+		epochNanoseconds,
+		getOffsetNanosecondsFor(timeZone, epochNanoseconds, offsetCacheMap),
+	);
+	const intermediateDateTime = combineIsoDateAndTimeRecord(
+		calendarDateAdd(calendar, isoDateTime.$isoDate, duration.$date, overflow),
+		isoDateTime.$time,
+	);
+	if (!isoDateTimeWithinLimits(intermediateDateTime)) {
+		throw new RangeError();
+	}
+	return addInstant(
+		getEpochNanosecondsFor(
+			timeZone,
+			intermediateDateTime,
+			disambiguationCompatible,
+			offsetCacheMap,
+		),
+		duration.$time,
+	);
+}
+
+/** `AddDurationToZonedDateTime` */
+function addDurationToZonedDateTime(
+	operationSign: 1 | -1,
+	zonedDateTime: ZonedDateTimeSlot,
+	temporalDurationLike: unknown,
+	options: unknown,
+): ZonedDateTime {
+	const duration = applySignToDurationSlot(toTemporalDuration(temporalDurationLike), operationSign);
+	const overflow = getTemporalOverflowOption(getOptionsObject(options));
+	const cache = createOffsetCacheMap(
+		zonedDateTime.$epochNanoseconds,
+		zonedDateTime.$offsetNanoseconds,
+	);
+	return createTemporalZonedDateTime(
+		addZonedDateTime(
+			zonedDateTime.$epochNanoseconds,
+			zonedDateTime.$timeZone,
+			zonedDateTime.$calendar,
+			toInternalDurationRecord(duration),
+			overflow,
+			cache,
+		),
+		zonedDateTime.$timeZone,
+		zonedDateTime.$calendar,
+		undefined,
+		cache,
+	);
 }
 
 /** `GetOffsetNanosecondsFor` with caching */
@@ -525,7 +603,7 @@ export class ZonedDateTime {
 			.$weekOfYear.$year;
 	}
 	get hoursInDay() {
-		const cache = new Map<number, number>();
+		const cache = createOffsetCacheMap();
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
 		const today = getIsoDateTimeForZonedDateTimeSlot(slot).$isoDate;
 
@@ -567,7 +645,7 @@ export class ZonedDateTime {
 		);
 	}
 	with(temporalZonedDateTimeLike: unknown, options: unknown = undefined) {
-		const cache = new Map<number, number>();
+		const cache = createOffsetCacheMap();
 
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
 		if (!isPartialTemporalObject(temporalZonedDateTimeLike)) {
@@ -625,7 +703,7 @@ export class ZonedDateTime {
 		);
 	}
 	withPlainTime(plainTimeLike: unknown = undefined) {
-		const cache = new Map<number, number>();
+		const cache = createOffsetCacheMap();
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
 		const isoDateTime = getIsoDateTimeForZonedDateTimeSlot(slot);
 		if (plainTimeLike === undefined) {
@@ -669,11 +747,21 @@ export class ZonedDateTime {
 			toTemporalCalendarIdentifier(calendarLike),
 		);
 	}
-	add() {
-		notImplementedYet();
+	add(temporalDurationLike: unknown, options: unknown = undefined) {
+		return addDurationToZonedDateTime(
+			1,
+			getInternalSlotOrThrowForZonedDateTime(this),
+			temporalDurationLike,
+			options,
+		);
 	}
-	subtract() {
-		notImplementedYet();
+	subtract(temporalDurationLike: unknown, options: unknown = undefined) {
+		return addDurationToZonedDateTime(
+			-1,
+			getInternalSlotOrThrowForZonedDateTime(this),
+			temporalDurationLike,
+			options,
+		);
 	}
 	until() {
 		notImplementedYet();
@@ -694,7 +782,7 @@ export class ZonedDateTime {
 		validateTemporalRoundingIncrement(roundingIncrement, maximum, smallestUnit === "day");
 		const isoDateTime = getIsoDateTimeForZonedDateTimeSlot(slot);
 
-		const cache = new Map<number, number>();
+		const cache = createOffsetCacheMap();
 		if (smallestUnit === "day") {
 			const startOfDay = getStartOfDay(slot.$timeZone, isoDateTime.$isoDate, cache);
 			const startOfNextDay = getStartOfDay(
@@ -797,7 +885,7 @@ export class ZonedDateTime {
 		throw new TypeError();
 	}
 	startOfDay() {
-		const cache = new Map<number, number>();
+		const cache = createOffsetCacheMap();
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
 		return createTemporalZonedDateTime(
 			getStartOfDay(slot.$timeZone, getIsoDateTimeForZonedDateTimeSlot(slot).$isoDate, cache),
@@ -817,7 +905,7 @@ export class ZonedDateTime {
 				? { direction: directionParam }
 				: getOptionsObject(directionParam),
 		);
-		const cache = new Map<number, number>();
+		const cache = createOffsetCacheMap();
 		const transition = getTimeZoneTransition(
 			slot.$timeZone,
 			slot.$epochNanoseconds,

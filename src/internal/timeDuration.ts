@@ -47,6 +47,10 @@ export function addNanosecondsToTimeDuration(
 	return normalize(duration[0], duration[1] + nanoseconds);
 }
 
+export function addDaysToTimeDuration(duration: TimeDuration, days: number): TimeDuration {
+	return normalize(duration[0] + days, duration[1]);
+}
+
 export function addTimeDuration(one: TimeDuration, two: TimeDuration): TimeDuration {
 	return normalize(one[0] + two[0], one[1] + two[1]);
 }
@@ -64,6 +68,11 @@ export const compareTimeDuration = compareEpochNanoseconds as (
 	a: TimeDuration,
 	b: TimeDuration,
 ) => NumberSign;
+
+/** `TimeDurationSign` */
+export function signTimeDuration(timeDuration: TimeDuration): NumberSign {
+	return compareTimeDuration(timeDuration, [0, 0] as TimeDuration);
+}
 
 export function timeDurationDaysAndRemainderNanoseconds(
 	timeDuration: TimeDuration,

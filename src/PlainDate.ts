@@ -1,4 +1,9 @@
 import {
+	applySignToDurationSlot,
+	toDateDurationRecordWithoutTime,
+	toTemporalDuration,
+} from "./Duration.ts";
+import {
 	epochDaysToIsoDate,
 	getTemporalOverflowOption,
 	getTemporalShowCalendarNameOption,
@@ -9,6 +14,7 @@ import {
 } from "./internal/abstractOperations.ts";
 import { assert, assertNotUndefined } from "./internal/assertion.ts";
 import {
+	calendarDateAdd,
 	calendarDateFromFields,
 	calendarFieldKeys,
 	calendarIsoToDate,
@@ -38,6 +44,7 @@ import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
 import {
+	createOffsetCacheMap,
 	getEpochNanosecondsFor,
 	getStartOfDay,
 	toTemporalTimeZoneIdentifier,
@@ -193,6 +200,26 @@ export function compareIsoDate(isoDate1: IsoDateRecord, isoDate2: IsoDateRecord)
 	return compare(isoDateRecordToEpochDays(isoDate1), isoDateRecordToEpochDays(isoDate2));
 }
 
+/** `AddDurationToDate` */
+function addDurationToDate(
+	operationSign: 1 | -1,
+	temporalDate: PlainDateSlot,
+	temporalDurationLike: unknown,
+	options: unknown,
+): PlainDate {
+	return createTemporalDate(
+		calendarDateAdd(
+			temporalDate.$calendar,
+			temporalDate.$isoDate,
+			toDateDurationRecordWithoutTime(
+				applySignToDurationSlot(toTemporalDuration(temporalDurationLike), operationSign),
+			),
+			getTemporalOverflowOption(getOptionsObject(options)),
+		),
+		temporalDate.$calendar,
+	);
+}
+
 export function getInternalSlotForPlainDate(plainDate: unknown): PlainDateSlot | undefined {
 	return slots.get(plainDate);
 }
@@ -327,11 +354,21 @@ export class PlainDate {
 			slot.$calendar,
 		);
 	}
-	add() {
-		notImplementedYet();
+	add(temporalDurationLike: unknown, options: unknown = undefined) {
+		return addDurationToDate(
+			1,
+			getInternalSlotOrThrowForPlainDate(this),
+			temporalDurationLike,
+			options,
+		);
 	}
-	subtract() {
-		notImplementedYet();
+	subtract(temporalDurationLike: unknown, options: unknown = undefined) {
+		return addDurationToDate(
+			-1,
+			getInternalSlotOrThrowForPlainDate(this),
+			temporalDurationLike,
+			options,
+		);
 	}
 	with(temporalDateLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainDate(this);
@@ -396,7 +433,7 @@ export class PlainDate {
 			timeZone = toTemporalTimeZoneIdentifier(item);
 			temporalTime = undefined;
 		}
-		const cache = new Map<number, number>();
+		const cache = createOffsetCacheMap();
 		if (temporalTime === undefined) {
 			return createTemporalZonedDateTime(
 				getStartOfDay(timeZone, slot.$isoDate, cache),
