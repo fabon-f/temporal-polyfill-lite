@@ -33,7 +33,12 @@ export function isWithin(num: number, min: number, max: number): boolean {
 
 /** `x` and `z` should be safe integer */
 export function fusedMultiplyAddPow10(x: number, digitCount: number, z: number): number {
-	assert(10 ** digitCount > z && Math.sign(x) * Math.sign(z) !== -1, `${x}, ${digitCount}, ${z}`);
+	assert(
+		10 ** digitCount > z &&
+			Math.sign(x) * Math.sign(z) !== -1 &&
+			Math.abs(x) < 1e21 &&
+			Math.abs(z) < 1e21,
+	);
 	return Number.isSafeInteger(x * 10 ** digitCount + z)
 		? x * 10 ** digitCount + z
 		: Number(`${toString(x)}${toZeroPaddedDecimalString(Math.abs(z), digitCount)}`);

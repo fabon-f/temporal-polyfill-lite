@@ -34,7 +34,7 @@ import {
 	type RoundingMode,
 } from "./internal/enum.ts";
 import {
-	singularUnitKeys,
+	getUnitIndex,
 	timeUnitLengths,
 	unitIndices,
 	type SingularUnitKey,
@@ -347,7 +347,7 @@ export function roundTime(
 	roundingMode: RoundingMode,
 ): TimeRecord {
 	assert(unit !== "year" && unit !== "month" && unit !== "week");
-	const unitIndex = singularUnitKeys.indexOf(unit);
+	const unitIndex = getUnitIndex(unit);
 	const values = [
 		time.$hour,
 		time.$minute,

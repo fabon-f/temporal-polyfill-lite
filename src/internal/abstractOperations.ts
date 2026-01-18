@@ -87,6 +87,7 @@ import { asciiLowerCase, toZeroPaddedDecimalString } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
 import { parseTimeZoneIdentifier, type TimeZoneIdentifierParseRecord } from "./timeZones.ts";
 import {
+	getUnitIndex,
 	pluralUnitKeys,
 	singularUnitKeys,
 	type SingularDateUnitKey,
@@ -375,8 +376,11 @@ export function validateTemporalUnitValue(
 }
 
 /** `LargerOfTwoTemporalUnits` */
-function largerOfTwoTemporalUnits(u1: SingularUnitKey, u2: SingularUnitKey): SingularUnitKey {
-	return singularUnitKeys.indexOf(u1) < singularUnitKeys.indexOf(u2) ? u1 : u2;
+export function largerOfTwoTemporalUnits(
+	u1: SingularUnitKey,
+	u2: SingularUnitKey,
+): SingularUnitKey {
+	return getUnitIndex(u1) < getUnitIndex(u2) ? u1 : u2;
 }
 
 /** `IsCalendarUnit` */
@@ -425,7 +429,7 @@ export function isPartialTemporalObject(value: unknown): boolean {
 }
 
 /** `FormatFractionalSeconds` */
-function formatFractionalSeconds(subSecondNanoseconds: number, precision?: number): string {
+export function formatFractionalSeconds(subSecondNanoseconds: number, precision?: number): string {
 	const fractionalDigits = toZeroPaddedDecimalString(subSecondNanoseconds, 9);
 	if (precision === undefined) {
 		if (subSecondNanoseconds === 0) {

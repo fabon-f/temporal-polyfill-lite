@@ -1,7 +1,16 @@
-import { parseTemporalDurationString } from "./internal/abstractOperations.ts";
+import {
+	formatFractionalSeconds,
+	getRoundingModeOption,
+	getTemporalFractionalSecondDigitsOption,
+	getTemporalUnitValuedOption,
+	largerOfTwoTemporalUnits,
+	parseTemporalDurationString,
+	toSecondsStringPrecisionRecord,
+	validateTemporalUnitValue,
+} from "./internal/abstractOperations.ts";
 import { assert, assertNotUndefined } from "./internal/assertion.ts";
-import { toIntegerIfIntegral } from "./internal/ecmascript.ts";
-import type { RoundingMode } from "./internal/enum.ts";
+import { getOptionsObject, toIntegerIfIntegral, toString } from "./internal/ecmascript.ts";
+import { MINUTE, roundingModeTrunc, TIME, type RoundingMode } from "./internal/enum.ts";
 import { differenceEpochNanoseconds, type EpochNanoseconds } from "./internal/epochNanoseconds.ts";
 import type { NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
@@ -441,6 +450,49 @@ export function roundTimeDuration(
 	);
 }
 
+/** `TemporalDurationToString` */
+function temporalDurationToString(duration: DurationSlot, precision?: number | undefined): string {
+	const sign = durationSign(duration);
+	duration = applySignToDurationSlot(duration, sign);
+	const secondsDuration = timeDurationFromComponents(
+		0,
+		0,
+		duration[unitIndices.$second],
+		duration[unitIndices.$millisecond],
+		duration[unitIndices.$microsecond],
+		duration[unitIndices.$nanosecond],
+	);
+	const [, , , seconds, milliseconds, microseconds, nanoseconds] = balanceTimeDuration(
+		secondsDuration,
+		"second",
+	);
+	const [yearPart, monthPart, weekPart, dayPart, hourPart, minutePart] = [
+		"Y",
+		"M",
+		"W",
+		"D",
+		"H",
+		"M",
+	].map((designator, index) => (duration[index] ? `${duration[index]}${designator}` : "")) as [
+		string,
+		string,
+		string,
+		string,
+		string,
+		string,
+	];
+	const time = [
+		hourPart,
+		minutePart,
+		timeDurationSign(secondsDuration) ||
+		largerOfTwoTemporalUnits(defaultTemporalLargestUnit(duration), "second") === "second" ||
+		precision !== undefined
+			? `${toString(seconds)}${formatFractionalSeconds(milliseconds * 1e6 + microseconds * 1e3 + nanoseconds, precision)}S`
+			: "",
+	].join("");
+	return `${sign < 0 ? "-" : ""}P${[yearPart, monthPart, weekPart, dayPart].join("")}${time === "" ? "" : `T${time}`}`;
+}
+
 function isDuration(duration: unknown): boolean {
 	return slots.has(duration);
 }
@@ -608,11 +660,41 @@ export class Duration {
 	total() {
 		notImplementedYet();
 	}
-	toString() {
-		notImplementedYet();
+	toString(options: unknown = undefined) {
+		const slot = getInternalSlotOrThrowForDuration(this);
+		const resolvedOptions = getOptionsObject(options);
+		const digits = getTemporalFractionalSecondDigitsOption(resolvedOptions);
+		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
+		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
+		validateTemporalUnitValue(smallestUnit, TIME);
+		if (smallestUnit === "hour" || smallestUnit === "minute") {
+			throw new RangeError();
+		}
+		const precisionRecord = toSecondsStringPrecisionRecord(smallestUnit, digits);
+		assert(precisionRecord.$precision !== MINUTE);
+		if (precisionRecord.$unit === "nanosecond" && precisionRecord.$increment === 1) {
+			return temporalDurationToString(slot, precisionRecord.$precision);
+		}
+		const largestUnit = defaultTemporalLargestUnit(slot);
+		const internalDuration = toInternalDurationRecord(slot);
+		return temporalDurationToString(
+			temporalDurationFromInternal(
+				combineDateAndTimeDuration(
+					internalDuration.$date,
+					roundTimeDuration(
+						internalDuration.$time,
+						precisionRecord.$increment,
+						precisionRecord.$unit,
+						roundingMode,
+					),
+				),
+				largerOfTwoTemporalUnits(largestUnit, "second"),
+			),
+			precisionRecord.$precision,
+		);
 	}
 	toJSON() {
-		notImplementedYet();
+		return temporalDurationToString(getInternalSlotOrThrowForDuration(this));
 	}
 	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {

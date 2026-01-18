@@ -73,7 +73,7 @@ import {
 	toTemporalTime,
 	toTimeRecordOrMidnight,
 } from "./PlainTime.ts";
-import { balanceIsoYearMonth, createTemporalYearMonth } from "./PlainYearMonth.ts";
+import { createTemporalYearMonth } from "./PlainYearMonth.ts";
 import {
 	createTemporalZonedDateTime,
 	getInternalSlotOrThrowForZonedDateTime,
