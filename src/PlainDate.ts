@@ -1,10 +1,16 @@
 import {
 	applySignToDurationSlot,
+	combineDateAndTimeDuration,
+	createTemporalDuration,
+	createTemporalDurationSlot,
+	Duration,
+	temporalDurationFromInternal,
 	toDateDurationRecordWithoutTime,
 	toTemporalDuration,
 } from "./Duration.ts";
 import {
 	epochDaysToIsoDate,
+	getDifferenceSettings,
 	getTemporalOverflowOption,
 	getTemporalShowCalendarNameOption,
 	isoDateRecordToEpochDays,
@@ -16,6 +22,8 @@ import { assert, assertNotUndefined } from "./internal/assertion.ts";
 import {
 	calendarDateAdd,
 	calendarDateFromFields,
+	calendarDateUntil,
+	calendarEquals,
 	calendarFieldKeys,
 	calendarIsoToDate,
 	calendarMergeFields,
@@ -43,6 +51,7 @@ import { clamp, compare, isWithin, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
+import { createTimeDurationFromSeconds } from "./internal/timeDuration.ts";
 import {
 	createOffsetCacheMap,
 	getEpochNanosecondsFor,
@@ -64,7 +73,7 @@ import {
 	toTemporalTime,
 	toTimeRecordOrMidnight,
 } from "./PlainTime.ts";
-import { createTemporalYearMonth } from "./PlainYearMonth.ts";
+import { balanceIsoYearMonth, createTemporalYearMonth } from "./PlainYearMonth.ts";
 import {
 	createTemporalZonedDateTime,
 	getInternalSlotOrThrowForZonedDateTime,
@@ -198,6 +207,46 @@ export function isoDateWithinLimits(isoDate: IsoDateRecord): boolean {
 /** `CompareISODate` */
 export function compareIsoDate(isoDate1: IsoDateRecord, isoDate2: IsoDateRecord): NumberSign {
 	return compare(isoDateRecordToEpochDays(isoDate1), isoDateRecordToEpochDays(isoDate2));
+}
+
+/** `DifferenceTemporalPlainDate` */
+function differenceTemporalPlainDate(
+	operationSign: 1 | -1,
+	temporalDate: PlainDateSlot,
+	other: unknown,
+	options: unknown,
+): Duration {
+	const otherSlot = getInternalSlotOrThrowForPlainDate(toTemporalDate(other));
+	if (!calendarEquals(temporalDate.$calendar, otherSlot.$calendar)) {
+		throw new RangeError();
+	}
+	const settings = getDifferenceSettings(
+		operationSign,
+		getOptionsObject(options),
+		DATE,
+		[],
+		"day",
+		"day",
+	);
+	if (!compareIsoDate(temporalDate.$isoDate, otherSlot.$isoDate)) {
+		return createTemporalDuration(createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+	}
+	const duration = combineDateAndTimeDuration(
+		calendarDateUntil(
+			temporalDate.$calendar,
+			temporalDate.$isoDate,
+			otherSlot.$isoDate,
+			settings.$largestUnit,
+		),
+		createTimeDurationFromSeconds(0),
+	);
+	if (settings.$smallestUnit !== "day" || settings.$roundingIncrement !== 1) {
+		// TODO
+		notImplementedYet();
+	}
+	return createTemporalDuration(
+		applySignToDurationSlot(temporalDurationFromInternal(duration, "day"), operationSign),
+	);
 }
 
 /** `AddDurationToDate` */
@@ -397,11 +446,16 @@ export class PlainDate {
 			toTemporalCalendarIdentifier(calendarLike),
 		);
 	}
-	until() {
-		notImplementedYet();
+	until(other: unknown, options: unknown = undefined) {
+		return differenceTemporalPlainDate(1, getInternalSlotOrThrowForPlainDate(this), other, options);
 	}
-	since() {
-		notImplementedYet();
+	since(other: unknown, options: unknown = undefined) {
+		return differenceTemporalPlainDate(
+			-1,
+			getInternalSlotOrThrowForPlainDate(this),
+			other,
+			options,
+		);
 	}
 	equals(other: unknown) {
 		return !compareIsoDate(

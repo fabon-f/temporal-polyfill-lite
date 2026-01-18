@@ -1,5 +1,6 @@
 import {
 	formatTimeString,
+	getDifferenceSettings,
 	getRoundingIncrementOption,
 	getRoundingModeOption,
 	getTemporalFractionalSecondDigitsOption,
@@ -20,7 +21,6 @@ import {
 import {
 	getOptionsObject,
 	getRoundToOptionsObject,
-	toIntegerIfIntegral,
 	toIntegerWithTruncation,
 } from "./internal/ecmascript.ts";
 import {
@@ -49,7 +49,6 @@ import {
 	isZonedDateTime,
 } from "./ZonedDateTime.ts";
 import { calendarFieldKeys } from "./internal/calendars.ts";
-import { notImplementedYet } from "./internal/utils.ts";
 import {
 	timeDurationDaysAndRemainderNanoseconds,
 	type TimeDuration,
@@ -57,8 +56,14 @@ import {
 import { assert, assertNotUndefined } from "./internal/assertion.ts";
 import {
 	applySignToDurationSlot,
+	combineDateAndTimeDuration,
+	createTemporalDuration,
+	roundTimeDuration,
+	temporalDurationFromInternal,
+	timeDurationFromComponents,
 	toInternalDurationRecord,
 	toTemporalDuration,
+	zeroDateDuration,
 } from "./Duration.ts";
 
 export interface TimeRecord {
@@ -118,6 +123,18 @@ export function midnightTimeRecord(): TimeRecord {
 /** `NoonTimeRecord` */
 export function noonTimeRecord(): TimeRecord {
 	return createTimeRecord(12, 0, 0, 0, 0, 0);
+}
+
+/** `DifferenceTime` */
+function differenceTime(time1: TimeRecord, time2: TimeRecord): TimeDuration {
+	return timeDurationFromComponents(
+		time2.$hour - time1.$hour,
+		time2.$minute - time1.$minute,
+		time2.$second - time1.$second,
+		time2.$millisecond - time1.$millisecond,
+		time2.$microsecond - time1.$microsecond,
+		time2.$nanosecond - time1.$nanosecond,
+	);
 }
 
 /** `ToTemporalTime` */
@@ -361,6 +378,41 @@ export function roundTime(
 	);
 }
 
+/** `DifferenceTemporalPlainTime` */
+function differenceTemporalPlainTime(
+	operationSign: 1 | -1,
+	temporalTime: PlainTimeSlot,
+	other: unknown,
+	options: unknown,
+) {
+	const otherTime = getInternalSlotOrThrowForPlainTime(toTemporalTime(other));
+	const settings = getDifferenceSettings(
+		operationSign,
+		getOptionsObject(options),
+		TIME,
+		[],
+		"nanosecond",
+		"hour",
+	);
+	return createTemporalDuration(
+		applySignToDurationSlot(
+			temporalDurationFromInternal(
+				combineDateAndTimeDuration(
+					zeroDateDuration(),
+					roundTimeDuration(
+						differenceTime(temporalTime, otherTime),
+						settings.$roundingIncrement,
+						settings.$smallestUnit,
+						settings.$roundingMode,
+					),
+				),
+				settings.$largestUnit,
+			),
+			operationSign,
+		),
+	);
+}
+
 /** `AddDurationToTime` */
 function addDurationToTime(
 	operationSign: 1 | -1,
@@ -406,7 +458,7 @@ export class PlainTime {
 			throw new TypeError();
 		}
 		const units = [hour, minute, second, millisecond, microsecond, nanosecond].map(
-			toIntegerIfIntegral,
+			toIntegerWithTruncation,
 		) as TimeRecordTupleWithoutDays;
 		if (!isValidTime(...units)) {
 			throw new RangeError();
@@ -471,11 +523,16 @@ export class PlainTime {
 			),
 		);
 	}
-	until() {
-		notImplementedYet();
+	until(other: unknown, options: unknown = undefined) {
+		return differenceTemporalPlainTime(1, getInternalSlotOrThrowForPlainTime(this), other, options);
 	}
-	since() {
-		notImplementedYet();
+	since(other: unknown, options: unknown = undefined) {
+		return differenceTemporalPlainTime(
+			-1,
+			getInternalSlotOrThrowForPlainTime(this),
+			other,
+			options,
+		);
 	}
 	round(roundTo: unknown) {
 		const slot = getInternalSlotOrThrowForPlainTime(this);

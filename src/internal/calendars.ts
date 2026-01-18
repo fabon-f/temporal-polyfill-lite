@@ -1,6 +1,11 @@
-import type { DateDurationRecord } from "../Duration.ts";
+import {
+	createDateDurationRecord,
+	zeroDateDuration,
+	type DateDurationRecord,
+} from "../Duration.ts";
 import {
 	addDaysToIsoDate,
+	compareIsoDate,
 	createIsoDateRecord,
 	getInternalSlotForPlainDate,
 	isoDateWithinLimits,
@@ -38,10 +43,12 @@ import {
 	type Overflow,
 	type ShowCalendarName,
 	showCalendarName,
+	overflowConstrain,
 } from "./enum.ts";
 import { divFloor, modFloor } from "./math.ts";
 import { asciiLowerCase, toZeroPaddedDecimalString } from "./string.ts";
 import { toTemporalTimeZoneIdentifier } from "./timeZones.ts";
+import type { SingularDateUnitKey } from "./unit.ts";
 import { mapUnlessUndefined } from "./utils.ts";
 
 type YearWeekRecord =
@@ -247,6 +254,50 @@ export function calendarDateAdd(
 		throw new RangeError();
 	}
 	return result;
+}
+
+/** `CalendarDateUntil` */
+export function calendarDateUntil(
+	_calendar: SupportedCalendars,
+	one: IsoDateRecord,
+	two: IsoDateRecord,
+	largestUnit: SingularDateUnitKey,
+): DateDurationRecord {
+	const sign = compareIsoDate(two, one);
+	if (!sign) {
+		return zeroDateDuration();
+	}
+	if (largestUnit === "week" || largestUnit === "day") {
+		const days =
+			isoDateToEpochDays(two.$year, two.$month - 1, two.$day) -
+			isoDateToEpochDays(one.$year, one.$month - 1, one.$day);
+		return largestUnit === "week"
+			? createDateDurationRecord(0, 0, Math.trunc(days / 7) + 0, (days % 7) + 0)
+			: createDateDurationRecord(0, 0, 0, days);
+	}
+	const months =
+		two.$year * 12 +
+		two.$month -
+		one.$year * 12 -
+		one.$month -
+		// subtract 1 if adding months to `one` surpasses `two`
+		(sign * (one.$day - two.$day) > 0 ? sign : 0);
+	const balancedYearMonth = balanceIsoYearMonth(one.$year, one.$month + months);
+	const days =
+		isoDateRecordToEpochDays(two) -
+		isoDateRecordToEpochDays(
+			regulateIsoDate(
+				balancedYearMonth.$year,
+				balancedYearMonth.$month,
+				one.$day,
+				overflowConstrain,
+			),
+		);
+	console.log(months, days);
+	if (largestUnit === "year") {
+		return createDateDurationRecord(Math.trunc(months / 12) + 0, (months % 12) + 0, 0, days);
+	}
+	return createDateDurationRecord(0, months, 0, days);
 }
 
 /** `ToTemporalCalendarIdentifier` */

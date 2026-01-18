@@ -1,6 +1,14 @@
-import { millisecondsPerDay, nanosecondsPerDay, secondsPerDay } from "./constants.ts";
+import { roundNumberToIncrement } from "./abstractOperations.ts";
+import { assert } from "./assertion.ts";
+import {
+	microsecondsPerDay,
+	millisecondsPerDay,
+	nanosecondsPerDay,
+	secondsPerDay,
+} from "./constants.ts";
+import type { RoundingMode } from "./enum.ts";
 import { compareEpochNanoseconds, normalizeEpochNanoseconds } from "./epochNanoseconds.ts";
-import { truncateDigits, type NumberSign } from "./math.ts";
+import { fusedMultiplyAddPow10, type NumberSign } from "./math.ts";
 
 const timeDurationBrand = /*#__PURE__*/ Symbol();
 
@@ -15,29 +23,33 @@ export function normalize(days: number, nanoseconds: number): TimeDuration {
 }
 
 export function createTimeDurationFromSeconds(sec: number): TimeDuration {
-	return [Math.trunc(sec / secondsPerDay) + 0, (sec % secondsPerDay) * 1e9 + 0] as TimeDuration;
+	return normalize(Math.trunc(sec / secondsPerDay), (sec % secondsPerDay) * 1e9);
 }
 
 export function createTimeDurationFromNanoseconds(nanosec: number): TimeDuration {
-	// `Math.trunc(nanosec / nanosecondsPerDay)` can return wrong result for unsafe integer due to floating-point precision
-	return addNanosecondsToTimeDuration(
-		createTimeDurationFromSeconds(truncateDigits(nanosec, 9)),
-		nanosec % 1e9,
+	// `Math.trunc(nanosec / nanosecondsPerDay)` can return wrong result for unsafe integer due to floating-point precision.
+	// `(nanosec - nanosec % nanosecondsPerDay) / nanosecondsPerDay` can be slightly larger or smaller than "actual" integer,
+	// but `nanosecondsPerDay` is large enough compared to maximum ulp (unit in the last place) in valid duration range (2 ** 30),
+	// so calling `Math.round` can return precise integer.
+	return normalize(
+		Math.round((nanosec - (nanosec % nanosecondsPerDay)) / nanosecondsPerDay),
+		nanosec % nanosecondsPerDay,
 	);
 }
 
 export function createTimeDurationFromMicroseconds(microsec: number): TimeDuration {
-	return addNanosecondsToTimeDuration(
-		createTimeDurationFromSeconds(truncateDigits(microsec, 6)),
-		(microsec % 1e6) * 1e3,
+	// same to `createTimeDurationFromNanoseconds` (8.64e10 is large enough than maximum ulp `2 ** 20`)
+	return normalize(
+		Math.round((microsec - (microsec % microsecondsPerDay)) / microsecondsPerDay),
+		(microsec % microsecondsPerDay) * 1e3,
 	);
 }
 
 export function createTimeDurationFromMilliseconds(millisec: number): TimeDuration {
-	return [
-		Math.trunc(millisec / millisecondsPerDay) + 0,
-		(millisec % millisecondsPerDay) * 1e6 + 0,
-	] as TimeDuration;
+	return normalize(
+		Math.trunc(millisec / millisecondsPerDay),
+		(millisec % millisecondsPerDay) * 1e6,
+	);
 }
 
 export function addNanosecondsToTimeDuration(
@@ -80,7 +92,50 @@ export function timeDurationDaysAndRemainderNanoseconds(
 	return timeDuration;
 }
 
-/** be careful with unsafe integers */
 export function timeDurationToNanosecondsNumber(timeDuration: TimeDuration): number {
-	return timeDuration[0] * nanosecondsPerDay + timeDuration[1];
+	return fusedMultiplyAddPow10(
+		timeDuration[0] * 864 + Math.trunc(timeDuration[1] / 1e11),
+		11,
+		timeDuration[1] % 1e11,
+	);
+}
+
+export function timeDurationToMicrosecondsNumber(timeDuration: TimeDuration): number {
+	return fusedMultiplyAddPow10(
+		timeDuration[0] * 864 + Math.trunc(timeDuration[1] / 1e11),
+		8,
+		Math.trunc(timeDuration[1] / 1e3) % 1e8,
+	);
+}
+
+export function timeDurationToMillisecondsNumber(timeDuration: TimeDuration): number {
+	return fusedMultiplyAddPow10(
+		timeDuration[0] * 864 + Math.trunc(timeDuration[1] / 1e11),
+		5,
+		Math.trunc(timeDuration[1] / 1e6) % 1e5,
+	);
+}
+
+export function timeDurationToSecondsNumber(timeDuration: TimeDuration): number {
+	return timeDuration[0] * secondsPerDay + Math.trunc(timeDuration[1] / 1e9);
+}
+
+export function roundTimeDuration(
+	timeDuration: TimeDuration,
+	roundingIncrementNanoseconds: number,
+	roundingMode: RoundingMode,
+): TimeDuration {
+	return normalize(
+		timeDuration[0],
+		roundNumberToIncrement(timeDuration[1], roundingIncrementNanoseconds, roundingMode),
+	);
+}
+
+/** `divisor` should be factor of 8.64e13 (nanoseconds per day) */
+export function divModTruncTimeDuration(
+	timeDuration: TimeDuration,
+	divisor: number,
+): [div: number, mod: number] {
+	assert(nanosecondsPerDay % divisor === 0);
+	return [(nanosecondsPerDay / divisor) * timeDuration[0] + 0, (timeDuration[1] % divisor) + 0];
 }

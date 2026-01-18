@@ -52,6 +52,7 @@ export type SingularTimeUnitKey =
 	| "millisecond"
 	| "microsecond"
 	| "nanosecond";
+export type SingularDateUnitKey = "year" | "month" | "week" | "day";
 
 export const timeUnitLengths = [
 	millisecondsPerDay * nanosecondsPerMilliseconds,

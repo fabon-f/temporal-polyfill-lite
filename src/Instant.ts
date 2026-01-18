@@ -1,11 +1,20 @@
 import {
 	applySignToDurationSlot,
+	combineDateAndTimeDuration,
+	createTemporalDuration,
 	defaultTemporalLargestUnit,
+	Duration,
+	roundTimeDuration,
+	temporalDurationFromInternal,
+	timeDurationFromEpochNanosecondsDifference,
 	toInternalDurationRecordWith24HourDays,
 	toTemporalDuration,
+	zeroDateDuration,
+	type InternalDurationRecord,
 } from "./Duration.ts";
 import {
 	checkIsoDaysRange,
+	getDifferenceSettings,
 	getRoundingIncrementOption,
 	getRoundingModeOption,
 	getTemporalFractionalSecondDigitsOption,
@@ -57,8 +66,12 @@ import {
 	getOffsetNanosecondsFor,
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
-import { nanosecondsForTimeUnit, timeUnitLengths, type SingularUnitKey } from "./internal/unit.ts";
-import { notImplementedYet } from "./internal/utils.ts";
+import {
+	nanosecondsForTimeUnit,
+	timeUnitLengths,
+	type SingularTimeUnitKey,
+	type SingularUnitKey,
+} from "./internal/unit.ts";
 import { balanceIsoDateTime, isoDateTimeToString } from "./PlainDateTime.ts";
 import { createTemporalZonedDateTime, getInternalSlotForZonedDateTime } from "./ZonedDateTime.ts";
 
@@ -142,11 +155,29 @@ export function addInstant(
 	timeDuration: TimeDuration,
 ): EpochNanoseconds {
 	const result = addTimeDurationToEpochNanoseconds(epochNanoseconds, timeDuration);
-	console.log(epochNanoseconds, timeDuration, result);
 	if (!isValidEpochNanoseconds(result)) {
 		throw new RangeError();
 	}
 	return result;
+}
+
+/** `DifferenceInstant` */
+function differenceInstant(
+	ns1: EpochNanoseconds,
+	ns2: EpochNanoseconds,
+	roundingIncrement: number,
+	smallestUnit: SingularTimeUnitKey,
+	roundingMode: RoundingMode,
+): InternalDurationRecord {
+	return combineDateAndTimeDuration(
+		zeroDateDuration(),
+		roundTimeDuration(
+			timeDurationFromEpochNanosecondsDifference(ns2, ns1),
+			roundingIncrement,
+			smallestUnit,
+			roundingMode,
+		),
+	);
 }
 
 /** `RoundTemporalInstant` */
@@ -174,6 +205,39 @@ function temporalInstantToString(
 		precision,
 		showCalendarName.$never,
 	)}${timeZone === undefined ? "Z" : formatUtcOffsetNanoseconds(offsetNanoseconds)}`;
+}
+
+/** `DifferenceTemporalInstant` */
+function differenceTemporalInstant(
+	operationSign: 1 | -1,
+	instant: InstantSlot,
+	other: unknown,
+	options: unknown,
+): Duration {
+	const otherSlot = getInternalSlotOrThrowForInstant(toTemporalInstant(other));
+	const settings = getDifferenceSettings(
+		operationSign,
+		getOptionsObject(options),
+		TIME,
+		[],
+		"nanosecond",
+		"second",
+	);
+	return createTemporalDuration(
+		applySignToDurationSlot(
+			temporalDurationFromInternal(
+				differenceInstant(
+					instant.$epochNanoseconds,
+					otherSlot.$epochNanoseconds,
+					settings.$roundingIncrement,
+					settings.$smallestUnit,
+					settings.$roundingMode,
+				),
+				settings.$largestUnit,
+			),
+			operationSign,
+		),
+	);
 }
 
 /** `AddDurationToInstant` */
@@ -259,11 +323,11 @@ export class Instant {
 	subtract(temporalDurationLike: unknown) {
 		return addDurationToInstant(-1, getInternalSlotOrThrowForInstant(this), temporalDurationLike);
 	}
-	until() {
-		notImplementedYet();
+	until(other: unknown, options: unknown = undefined) {
+		return differenceTemporalInstant(1, getInternalSlotOrThrowForInstant(this), other, options);
 	}
-	since() {
-		notImplementedYet();
+	since(other: unknown, options: unknown = undefined) {
+		return differenceTemporalInstant(-1, getInternalSlotOrThrowForInstant(this), other, options);
 	}
 	round(roundTo: unknown) {
 		const slot = getInternalSlotOrThrowForInstant(this);

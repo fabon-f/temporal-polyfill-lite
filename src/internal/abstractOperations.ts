@@ -89,6 +89,7 @@ import { parseTimeZoneIdentifier, type TimeZoneIdentifierParseRecord } from "./t
 import {
 	pluralUnitKeys,
 	singularUnitKeys,
+	type SingularDateUnitKey,
 	type SingularTimeUnitKey,
 	type SingularUnitKey,
 } from "./unit.ts";
@@ -142,6 +143,26 @@ export function getTemporalDisambiguationOption(options: object): Disambiguation
 		[disambiguationCompatible, disambiguationEarlier, disambiguationLater, disambiguationReject],
 		disambiguationCompatible,
 	);
+}
+
+/** ``NegateRoundingMode`` */
+function negateRoundingMode(roundingMode: RoundingMode): RoundingMode {
+	// 3. If roundingMode is half-ceil, return half-floor.
+	// 4. If roundingMode is half-floor, return half-ceil.
+	// 5. Return roundingMode.
+	if (roundingMode === roundingModeCeil) {
+		return roundingModeFloor;
+	}
+	if (roundingMode === roundingModeFloor) {
+		return roundingModeCeil;
+	}
+	if (roundingMode === roundingModeHalfCeil) {
+		return roundingModeHalfFloor;
+	}
+	if (roundingMode === roundingModeHalfFloor) {
+		return roundingModeHalfCeil;
+	}
+	return roundingMode;
 }
 
 /** `GetTemporalOffsetOption` */
@@ -329,6 +350,10 @@ export function validateTemporalUnitValue<E extends SingularUnitKey | "auto">(
 export function validateTemporalUnitValue(
 	value: SingularUnitKey | "auto" | undefined,
 	unitGroup: typeof DATE | typeof TIME | typeof DATETIME,
+): asserts value is SingularUnitKey | undefined;
+export function validateTemporalUnitValue(
+	value: SingularUnitKey | "auto" | undefined,
+	unitGroup: typeof DATE | typeof TIME | typeof DATETIME,
 	extraValues?: (SingularUnitKey | "auto")[],
 ): asserts value is SingularUnitKey | "auto" | undefined;
 export function validateTemporalUnitValue(
@@ -349,13 +374,18 @@ export function validateTemporalUnitValue(
 	}
 }
 
+/** `LargerOfTwoTemporalUnits` */
+function largerOfTwoTemporalUnits(u1: SingularUnitKey, u2: SingularUnitKey): SingularUnitKey {
+	return singularUnitKeys.indexOf(u1) < singularUnitKeys.indexOf(u2) ? u1 : u2;
+}
+
 /** `IsCalendarUnit` */
 function isCalendarUnit(unit: SingularUnitKey): unit is "year" | "month" | "week" {
 	return unit === "year" || unit === "month" || unit === "week";
 }
 
 /** alternative to `TemporalUnitCategory` */
-export function isDateUnit(unit: SingularUnitKey): unit is "year" | "month" | "week" | "day" {
+export function isDateUnit(unit: SingularUnitKey): unit is SingularDateUnitKey {
 	return isCalendarUnit(unit) || unit === "day";
 }
 
@@ -584,6 +614,63 @@ export function isoDateToFields(
 		[calendarFieldKeys.$year]: type === MONTH_DAY ? undefined : date.$year,
 		[calendarFieldKeys.$monthCode]: date.$monthCode,
 		[calendarFieldKeys.$day]: type === YEAR_MONTH ? undefined : date.$day,
+	};
+}
+
+// 18. Return the Record { [[SmallestUnit]]: smallestUnit, [[LargestUnit]]: largestUnit, [[RoundingMode]]: roundingMode, [[RoundingIncrement]]: roundingIncrement,  }.
+interface DifferenceSettings<Unit> {
+	$smallestUnit: Unit;
+	$largestUnit: Unit;
+	$roundingMode: RoundingMode;
+	$roundingIncrement: number;
+}
+
+type UnitType<UnitGroup> = UnitGroup extends typeof DATE
+	? SingularDateUnitKey
+	: UnitGroup extends typeof TIME
+		? SingularTimeUnitKey
+		: SingularUnitKey;
+
+/** `GetDifferenceSettings` */
+export function getDifferenceSettings<
+	UnitGroup extends typeof DATE | typeof TIME | typeof DATETIME,
+>(
+	operationSign: 1 | -1,
+	options: object,
+	unitGroup: UnitGroup,
+	disallowedUnits: SingularUnitKey[],
+	fallbackSmallestUnit: SingularUnitKey,
+	smallestLargestDefaultUnit: SingularUnitKey,
+): DifferenceSettings<UnitType<UnitGroup>> {
+	let largestUnit = getTemporalUnitValuedOption(options, "largestUnit", undefined) || "auto";
+	const roundingIncrement = getRoundingIncrementOption(options);
+	const roundingMode = getRoundingModeOption(options, roundingModeTrunc);
+	const smallestUnit =
+		getTemporalUnitValuedOption(options, "smallestUnit", undefined) || fallbackSmallestUnit;
+	validateTemporalUnitValue(largestUnit, unitGroup, ["auto"]);
+	if (disallowedUnits.includes(largestUnit as any)) {
+		throw new RangeError();
+	}
+	validateTemporalUnitValue(smallestUnit, unitGroup);
+	if (disallowedUnits.includes(smallestUnit as any)) {
+		throw new RangeError();
+	}
+	const defaultLargestUnit = largerOfTwoTemporalUnits(smallestLargestDefaultUnit, smallestUnit);
+	if (largestUnit === "auto") {
+		largestUnit = defaultLargestUnit;
+	}
+	if (largerOfTwoTemporalUnits(largestUnit, smallestUnit) !== largestUnit) {
+		throw new RangeError();
+	}
+	const maximum = maximumTemporalDurationRoundingIncrement(smallestUnit);
+	if (maximum) {
+		validateTemporalRoundingIncrement(roundingIncrement, maximum, false);
+	}
+	return {
+		$smallestUnit: smallestUnit as UnitType<UnitGroup>,
+		$largestUnit: largestUnit as UnitType<UnitGroup>,
+		$roundingMode: operationSign === -1 ? negateRoundingMode(roundingMode) : roundingMode,
+		$roundingIncrement: roundingIncrement,
 	};
 }
 

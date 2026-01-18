@@ -1,4 +1,6 @@
-import { toIntegerWithTruncation } from "./ecmascript.ts";
+import { assert } from "./assertion.ts";
+import { toString } from "./ecmascript.ts";
+import { toZeroPaddedDecimalString } from "./string.ts";
 
 // without `-0` quirks
 export type NumberSign = -1 | 0 | 1;
@@ -29,15 +31,10 @@ export function isWithin(num: number, min: number, max: number): boolean {
 	return num >= min && num <= max;
 }
 
-export function truncateDigits(num: number, digits: number): number {
-	return (
-		(Number.isSafeInteger(num)
-			? Math.trunc(num / 10 ** digits)
-			: (num < 0 ? -1 : 1) *
-				toIntegerWithTruncation(
-					Math.abs(num)
-						.toPrecision(50) // oxlint-disable-line oxc/number-arg-out-of-range
-						.replace(/^\d+/, (d) => d.slice(0, -digits)),
-				)) + 0
-	);
+/** `x` and `z` should be safe integer */
+export function fusedMultiplyAddPow10(x: number, digitCount: number, z: number): number {
+	assert(10 ** digitCount > z && Math.sign(x) * Math.sign(z) !== -1, `${x}, ${digitCount}, ${z}`);
+	return Number.isSafeInteger(x * 10 ** digitCount + z)
+		? x * 10 ** digitCount + z
+		: Number(`${toString(x)}${toZeroPaddedDecimalString(Math.abs(z), digitCount)}`);
 }

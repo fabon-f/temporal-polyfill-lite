@@ -1,6 +1,8 @@
 import { parseTemporalDurationString } from "./internal/abstractOperations.ts";
 import { assert, assertNotUndefined } from "./internal/assertion.ts";
 import { toIntegerIfIntegral } from "./internal/ecmascript.ts";
+import type { RoundingMode } from "./internal/enum.ts";
+import { differenceEpochNanoseconds, type EpochNanoseconds } from "./internal/epochNanoseconds.ts";
 import type { NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
@@ -13,15 +15,22 @@ import {
 	createTimeDurationFromMilliseconds,
 	createTimeDurationFromNanoseconds,
 	createTimeDurationFromSeconds,
+	roundTimeDuration as roundTimeDurationOriginal,
 	signTimeDuration,
 	sumTimeDuration,
 	timeDurationDaysAndRemainderNanoseconds,
+	timeDurationToMicrosecondsNumber,
+	timeDurationToMillisecondsNumber,
+	timeDurationToNanosecondsNumber,
+	timeDurationToSecondsNumber,
 	type TimeDuration,
 } from "./internal/timeDuration.ts";
 import {
+	nanosecondsForTimeUnit,
 	pluralUnitKeys,
 	singularUnitKeys,
 	unitIndices,
+	type SingularTimeUnitKey,
 	type SingularUnitKey,
 } from "./internal/unit.ts";
 import { mapUnlessUndefined, notImplementedYet } from "./internal/utils.ts";
@@ -84,6 +93,11 @@ const maxTimeDuration = addNanosecondsToTimeDuration(
 
 const slots = new WeakMap<any, DurationSlot>();
 
+/** `ZeroDateDuration` */
+export function zeroDateDuration(): DateDurationRecord {
+	return createDateDurationRecord(0, 0, 0, 0);
+}
+
 /** `ToInternalDurationRecord` */
 export function toInternalDurationRecord(duration: DurationSlot): InternalDurationRecord {
 	return combineDateAndTimeDuration(
@@ -134,8 +148,23 @@ export function toDateDurationRecordWithoutTime(duration: DurationSlot): DateDur
 	);
 }
 
+/** `TemporalDurationFromInternal` */
+export function temporalDurationFromInternal(
+	internalDuration: InternalDurationRecord,
+	largestUnit: SingularUnitKey,
+): DurationSlot {
+	const [days, ...timeUnits] = balanceTimeDuration(internalDuration.$time, largestUnit);
+	return createTemporalDurationSlot(
+		internalDuration.$date.$years,
+		internalDuration.$date.$months,
+		internalDuration.$date.$weeks,
+		internalDuration.$date.$days + days,
+		...timeUnits,
+	);
+}
+
 /** `CreateDateDurationRecord` */
-function createDateDurationRecord(
+export function createDateDurationRecord(
 	years: number,
 	months: number,
 	weeks: number,
@@ -163,11 +192,11 @@ export function adjustDateDurationRecord(
 }
 
 /** `CombineDateAndTimeDuration` */
-function combineDateAndTimeDuration(
+export function combineDateAndTimeDuration(
 	date: DateDurationRecord,
 	time: TimeDuration,
 ): InternalDurationRecord {
-	assert(dateDurationSign(date) * signTimeDuration(time) >= 0);
+	assert(dateDurationSign(date) * timeDurationSign(time) >= 0);
 	return {
 		$date: date,
 		$time: time,
@@ -228,19 +257,16 @@ function isValidDuration(...units: DurationTuple): boolean {
 		Math.abs(units[unitIndices.$week]) < 2 ** 32 &&
 		// TODO: verify whether `isSafeInteger` guard is necessary or not
 		Number.isSafeInteger(timeDurationAboveSecond) &&
-		compareTimeDuration(
-			absTimeDuration(
-				timeDurationFromComponents(
-					units[unitIndices.$day] * 24 + units[unitIndices.$hour],
-					units[unitIndices.$minute],
-					units[unitIndices.$second],
-					units[unitIndices.$millisecond],
-					units[unitIndices.$microsecond],
-					units[unitIndices.$nanosecond],
-				),
+		timeDurationWithinLimits(
+			timeDurationFromComponents(
+				units[unitIndices.$day] * 24 + units[unitIndices.$hour],
+				units[unitIndices.$minute],
+				units[unitIndices.$second],
+				units[unitIndices.$millisecond],
+				units[unitIndices.$microsecond],
+				units[unitIndices.$nanosecond],
 			),
-			maxTimeDuration,
-		) !== 1
+		)
 	);
 }
 
@@ -336,7 +362,7 @@ export function createTemporalDurationSlot(
 }
 
 /** part of `CreateTemporalDuration` */
-function createTemporalDuration(
+export function createTemporalDuration(
 	slot: DurationSlot,
 	instance = Object.create(Duration.prototype) as Duration,
 ): Duration {
@@ -350,7 +376,7 @@ function createNegatedTemporalDurationSlot(duration: DurationSlot): DurationSlot
 }
 
 /** `TimeDurationFromComponents` */
-function timeDurationFromComponents(
+export function timeDurationFromComponents(
 	hours: number,
 	minutes: number,
 	seconds: number,
@@ -375,6 +401,46 @@ function add24HourDaysToTimeDuration(d: TimeDuration, days: number): TimeDuratio
 	return result;
 }
 
+/** `TimeDurationFromEpochNanosecondsDifference` */
+export function timeDurationFromEpochNanosecondsDifference(
+	one: EpochNanoseconds,
+	two: EpochNanoseconds,
+): TimeDuration {
+	const result = differenceEpochNanoseconds(two, one);
+	assert(timeDurationWithinLimits(result));
+	return result;
+}
+
+/** `RoundTimeDurationToIncrement` */
+function roundTimeDurationToIncrement(
+	d: TimeDuration,
+	increment: number,
+	roundingMode: RoundingMode,
+): TimeDuration {
+	const rounded = roundTimeDurationOriginal(d, increment, roundingMode);
+	if (!timeDurationWithinLimits(rounded)) {
+		throw new RangeError();
+	}
+	return rounded;
+}
+
+/** `TimeDurationSign` */
+const timeDurationSign = signTimeDuration;
+
+/** `RoundTimeDuration` */
+export function roundTimeDuration(
+	timeDuration: TimeDuration,
+	increment: number,
+	unit: SingularTimeUnitKey,
+	roundingMode: RoundingMode,
+): TimeDuration {
+	return roundTimeDurationToIncrement(
+		timeDuration,
+		nanosecondsForTimeUnit(unit) * increment,
+		roundingMode,
+	);
+}
+
 function isDuration(duration: unknown): boolean {
 	return slots.has(duration);
 }
@@ -389,6 +455,47 @@ function getInternalSlotOrThrowForDuration(duration: unknown): DurationSlot {
 
 export function applySignToDurationSlot(duration: DurationSlot, sign: NumberSign): DurationSlot {
 	return createTemporalDurationSlot(...(duration.map((v) => v * sign + 0) as DurationTuple));
+}
+
+function timeDurationWithinLimits(d: TimeDuration): boolean {
+	return compareTimeDuration(absTimeDuration(d), maxTimeDuration) !== 1;
+}
+
+function balanceTimeDuration(
+	d: TimeDuration,
+	largestUnit: SingularUnitKey,
+): [days: number, ...TimeDurationTuple] {
+	const nanoseconds = timeDurationDaysAndRemainderNanoseconds(d)[1];
+	const remNanoseconds = (nanoseconds % 1000) + 0;
+	const remMicroseconds = (Math.trunc(nanoseconds / 1e3) % 1000) + 0;
+	const remMilliseconds = (Math.trunc(nanoseconds / 1e6) % 1000) + 0;
+	const seconds = timeDurationToSecondsNumber(d);
+	const remSeconds = (seconds % 60) + 0;
+	const minutes = Math.trunc(seconds / 60) + 0;
+	const remMinutes = (minutes % 60) + 0;
+	const hours = Math.trunc(minutes / 60) + 0;
+	const remHours = (hours % 24) + 0;
+	const days = Math.trunc(hours / 24) + 0;
+
+	if (largestUnit === "nanosecond") {
+		return [0, 0, 0, 0, 0, 0, timeDurationToNanosecondsNumber(d)];
+	}
+	if (largestUnit === "microsecond") {
+		return [0, 0, 0, 0, 0, timeDurationToMicrosecondsNumber(d), remNanoseconds];
+	}
+	if (largestUnit === "millisecond") {
+		return [0, 0, 0, 0, timeDurationToMillisecondsNumber(d), remMicroseconds, remNanoseconds];
+	}
+	if (largestUnit === "second") {
+		return [0, 0, 0, seconds, remMilliseconds, remMicroseconds, remNanoseconds];
+	}
+	if (largestUnit === "minute") {
+		return [0, 0, minutes, remSeconds, remMilliseconds, remMicroseconds, remNanoseconds];
+	}
+	if (largestUnit === "hour") {
+		return [0, hours, remMinutes, remSeconds, remMilliseconds, remMicroseconds, remNanoseconds];
+	}
+	return [days, remHours, remMinutes, remSeconds, remMilliseconds, remMicroseconds, remNanoseconds];
 }
 
 export class Duration {
