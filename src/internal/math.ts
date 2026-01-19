@@ -1,7 +1,3 @@
-import { assert } from "./assertion.ts";
-import { toString } from "./ecmascript.ts";
-import { toZeroPaddedDecimalString } from "./string.ts";
-
 // without `-0` quirks
 export type NumberSign = -1 | 0 | 1;
 
@@ -29,17 +25,4 @@ export function clamp(num: number, min: number, max: number): number {
 
 export function isWithin(num: number, min: number, max: number): boolean {
 	return num >= min && num <= max;
-}
-
-/** `x` and `z` should be safe integer */
-export function fusedMultiplyAddPow10(x: number, digitCount: number, z: number): number {
-	assert(
-		10 ** digitCount > z &&
-			Math.sign(x) * Math.sign(z) !== -1 &&
-			Math.abs(x) < 1e21 &&
-			Math.abs(z) < 1e21,
-	);
-	return Number.isSafeInteger(x * 10 ** digitCount + z)
-		? x * 10 ** digitCount + z
-		: Number(`${toString(x)}${toZeroPaddedDecimalString(Math.abs(z), digitCount)}`);
 }

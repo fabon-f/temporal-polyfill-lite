@@ -42,14 +42,13 @@ import {
 	createTimeDurationFromMilliseconds,
 	createTimeDurationFromNanoseconds,
 	createTimeDurationFromSeconds,
+	divideTimeDurationToFloatingPoint,
 	roundTimeDuration as roundTimeDurationOriginal,
 	signTimeDuration,
 	sumTimeDuration,
 	timeDurationDaysAndRemainderNanoseconds,
-	timeDurationToMicrosecondsNumber,
-	timeDurationToMillisecondsNumber,
-	timeDurationToNanosecondsNumber,
 	timeDurationToSecondsNumber,
+	timeDurationToSubsecondsNumber,
 	type TimeDuration,
 } from "./internal/timeDuration.ts";
 import { createOffsetCacheMap } from "./internal/timeZones.ts";
@@ -493,10 +492,7 @@ export function roundTimeDuration(
 
 /** `TotalTimeDuration` */
 function totalTimeDuration(timeDuration: TimeDuration, unit: SingularTimeUnitKey | "day"): number {
-	// TODO: investigate the way to achive better precision
-	const length = nanosecondsForTimeUnit(unit);
-	const [days, nanoseconds] = timeDurationDaysAndRemainderNanoseconds(timeDuration);
-	return (nanosecondsForTimeUnit("day") / length) * days + nanoseconds / length;
+	return divideTimeDurationToFloatingPoint(timeDuration, nanosecondsForTimeUnit(unit));
 }
 
 /** `TemporalDurationToString` */
@@ -603,13 +599,13 @@ function balanceTimeDuration(
 	const days = Math.trunc(hours / 24) + 0;
 
 	if (largestUnit === "nanosecond") {
-		return [0, 0, 0, 0, 0, 0, timeDurationToNanosecondsNumber(d)];
+		return [0, 0, 0, 0, 0, 0, timeDurationToSubsecondsNumber(d, -9)];
 	}
 	if (largestUnit === "microsecond") {
-		return [0, 0, 0, 0, 0, timeDurationToMicrosecondsNumber(d), remNanoseconds];
+		return [0, 0, 0, 0, 0, timeDurationToSubsecondsNumber(d, -6), remNanoseconds];
 	}
 	if (largestUnit === "millisecond") {
-		return [0, 0, 0, 0, timeDurationToMillisecondsNumber(d), remMicroseconds, remNanoseconds];
+		return [0, 0, 0, 0, timeDurationToSubsecondsNumber(d, -3), remMicroseconds, remNanoseconds];
 	}
 	if (largestUnit === "second") {
 		return [0, 0, 0, seconds, remMilliseconds, remMicroseconds, remNanoseconds];

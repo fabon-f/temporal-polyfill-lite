@@ -1,14 +1,15 @@
 import { roundNumberToIncrement } from "./abstractOperations.ts";
-import { assert } from "./assertion.ts";
 import {
 	microsecondsPerDay,
 	millisecondsPerDay,
 	nanosecondsPerDay,
 	secondsPerDay,
 } from "./constants.ts";
+import { toNumber } from "./ecmascript.ts";
 import type { RoundingMode } from "./enum.ts";
 import { compareEpochNanoseconds, normalizeEpochNanoseconds } from "./epochNanoseconds.ts";
-import { fusedMultiplyAddPow10, type NumberSign } from "./math.ts";
+import { type NumberSign } from "./math.ts";
+import { toZeroPaddedDecimalString } from "./string.ts";
 
 const timeDurationBrand = /*#__PURE__*/ Symbol();
 
@@ -92,27 +93,29 @@ export function timeDurationDaysAndRemainderNanoseconds(
 	return timeDuration;
 }
 
-export function timeDurationToNanosecondsNumber(timeDuration: TimeDuration): number {
-	return fusedMultiplyAddPow10(
-		timeDuration[0] * 864 + Math.trunc(timeDuration[1] / 1e11),
-		11,
-		timeDuration[1] % 1e11,
-	);
-}
-
-export function timeDurationToMicrosecondsNumber(timeDuration: TimeDuration): number {
-	return fusedMultiplyAddPow10(
-		timeDuration[0] * 864 + Math.trunc(timeDuration[1] / 1e11),
-		8,
-		Math.trunc(timeDuration[1] / 1e3) % 1e8,
-	);
-}
-
-export function timeDurationToMillisecondsNumber(timeDuration: TimeDuration): number {
-	return fusedMultiplyAddPow10(
-		timeDuration[0] * 864 + Math.trunc(timeDuration[1] / 1e11),
-		5,
-		Math.trunc(timeDuration[1] / 1e6) % 1e5,
+export function timeDurationToSubsecondsNumber(
+	timeDuration: TimeDuration,
+	digitsInNanoseconds: number,
+	includeFractionalPart?: boolean,
+) {
+	const sign = signTimeDuration(timeDuration);
+	timeDuration = absTimeDuration(timeDuration);
+	return (
+		sign *
+			toNumber(
+				`${timeDuration[0] * 864 + Math.trunc(timeDuration[1] / 1e11)}${toZeroPaddedDecimalString(
+					Math.trunc((timeDuration[1] % 1e11) / 10 ** (9 + digitsInNanoseconds)),
+					2 - digitsInNanoseconds,
+				)}.${
+					includeFractionalPart
+						? toZeroPaddedDecimalString(
+								timeDuration[1] % 10 ** (9 + digitsInNanoseconds),
+								9 + digitsInNanoseconds,
+							)
+						: "0"
+				}`,
+			) +
+		0
 	);
 }
 
@@ -131,11 +134,19 @@ export function roundTimeDuration(
 	);
 }
 
-/** `divisor` should be factor of 8.64e13 (nanoseconds per day) */
-export function divModTruncTimeDuration(
-	timeDuration: TimeDuration,
-	divisor: number,
-): [div: number, mod: number] {
-	assert(nanosecondsPerDay % divisor === 0);
-	return [(nanosecondsPerDay / divisor) * timeDuration[0] + 0, (timeDuration[1] % divisor) + 0];
+export function divideTimeDurationToFloatingPoint(timeDuration: TimeDuration, divisor: number) {
+	if (divisor === 1) {
+		return timeDurationToSubsecondsNumber(timeDuration, -9, true);
+	}
+	if (divisor === 1e3) {
+		return timeDurationToSubsecondsNumber(timeDuration, -6, true);
+	}
+	if (divisor === 1e6) {
+		return timeDurationToSubsecondsNumber(timeDuration, -3, true);
+	}
+	if (divisor === 1e9) {
+		return timeDurationToSubsecondsNumber(timeDuration, 0, true);
+	}
+	// TODO: investigate the way to achive better precision
+	return (nanosecondsPerDay / divisor) * timeDuration[0] + timeDuration[1] / divisor;
 }

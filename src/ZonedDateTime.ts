@@ -96,7 +96,7 @@ import {
 } from "./internal/epochNanoseconds.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
-import { timeDurationToNanosecondsNumber } from "./internal/timeDuration.ts";
+import { timeDurationToSubsecondsNumber } from "./internal/timeDuration.ts";
 import {
 	createOffsetCacheMap,
 	disambiguatePossibleEpochNanoseconds,
@@ -608,11 +608,12 @@ export class ZonedDateTime {
 		const today = getIsoDateTimeForZonedDateTimeSlot(slot).$isoDate;
 
 		return (
-			timeDurationToNanosecondsNumber(
+			timeDurationToSubsecondsNumber(
 				differenceEpochNanoseconds(
 					getStartOfDay(slot.$timeZone, today, cache),
 					getStartOfDay(slot.$timeZone, addDaysToIsoDate(today, 1), cache),
 				),
+				-9,
 			) / nanosecondsPerHour
 		);
 	}
@@ -794,10 +795,14 @@ export class ZonedDateTime {
 				addNanosecondsToEpochSeconds(
 					startOfDay,
 					roundNumberToIncrement(
-						timeDurationToNanosecondsNumber(
+						timeDurationToSubsecondsNumber(
 							differenceEpochNanoseconds(startOfDay, slot.$epochNanoseconds),
+							-9,
 						),
-						timeDurationToNanosecondsNumber(differenceEpochNanoseconds(startOfDay, startOfNextDay)),
+						timeDurationToSubsecondsNumber(
+							differenceEpochNanoseconds(startOfDay, startOfNextDay),
+							-9,
+						),
 						roundingMode,
 					),
 				),
