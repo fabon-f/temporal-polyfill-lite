@@ -39,9 +39,9 @@ export type Offset =
 	| typeof offsetIgnore
 	| typeof offsetReject;
 
-export const offsetBehaviourOption = Symbol();
-export const offsetBehaviourExact = Symbol();
-export const offsetBehaviourWall = Symbol();
+export const offsetBehaviourOption = Symbol("option");
+export const offsetBehaviourExact = Symbol("exact");
+export const offsetBehaviourWall = Symbol("wall");
 export type OffsetBehaviour =
 	| typeof offsetBehaviourOption
 	| typeof offsetBehaviourExact

@@ -89,7 +89,7 @@ export interface IsoDateRecord {
 	$day: number;
 }
 
-interface PlainDateSlot {
+export interface PlainDateSlot {
 	$isoDate: IsoDateRecord;
 	$calendar: SupportedCalendars;
 	[internalSlotBrand]: unknown;

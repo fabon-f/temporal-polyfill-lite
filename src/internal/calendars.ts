@@ -293,7 +293,6 @@ export function calendarDateUntil(
 				overflowConstrain,
 			),
 		);
-	console.log(months, days);
 	if (largestUnit === "year") {
 		return createDateDurationRecord(Math.trunc(months / 12) + 0, (months % 12) + 0, 0, days);
 	}

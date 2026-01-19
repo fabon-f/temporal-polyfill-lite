@@ -2,23 +2,41 @@ import {
 	formatFractionalSeconds,
 	getRoundingModeOption,
 	getTemporalFractionalSecondDigitsOption,
+	getTemporalRelativeToOption,
 	getTemporalUnitValuedOption,
+	isCalendarUnit,
+	isDateUnit,
+	isoDateRecordToEpochDays,
 	largerOfTwoTemporalUnits,
 	parseTemporalDurationString,
 	toSecondsStringPrecisionRecord,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
 import { assert, assertNotUndefined } from "./internal/assertion.ts";
+import { calendarDateAdd } from "./internal/calendars.ts";
 import { getOptionsObject, toIntegerIfIntegral, toString } from "./internal/ecmascript.ts";
-import { MINUTE, roundingModeTrunc, TIME, type RoundingMode } from "./internal/enum.ts";
-import { differenceEpochNanoseconds, type EpochNanoseconds } from "./internal/epochNanoseconds.ts";
+import {
+	DATETIME,
+	MINUTE,
+	overflowConstrain,
+	REQUIRED,
+	roundingModeTrunc,
+	TIME,
+	type RoundingMode,
+} from "./internal/enum.ts";
+import {
+	compareEpochNanoseconds,
+	differenceEpochNanoseconds,
+	type EpochNanoseconds,
+} from "./internal/epochNanoseconds.ts";
 import type { NumberSign } from "./internal/math.ts";
-import { isObject } from "./internal/object.ts";
+import { createNullPrototypeObject, isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import {
 	absTimeDuration,
 	addDaysToTimeDuration,
 	addNanosecondsToTimeDuration,
+	addTimeDuration,
 	compareTimeDuration,
 	createTimeDurationFromMicroseconds,
 	createTimeDurationFromMilliseconds,
@@ -34,6 +52,7 @@ import {
 	timeDurationToSecondsNumber,
 	type TimeDuration,
 } from "./internal/timeDuration.ts";
+import { createOffsetCacheMap } from "./internal/timeZones.ts";
 import {
 	nanosecondsForTimeUnit,
 	pluralUnitKeys,
@@ -43,6 +62,8 @@ import {
 	type SingularUnitKey,
 } from "./internal/unit.ts";
 import { mapUnlessUndefined, notImplementedYet } from "./internal/utils.ts";
+import type { PlainDateSlot } from "./PlainDate.ts";
+import { addZonedDateTime } from "./ZonedDateTime.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 
@@ -404,7 +425,7 @@ export function timeDurationFromComponents(
 /** `Add24HourDaysToTimeDuration` */
 function add24HourDaysToTimeDuration(d: TimeDuration, days: number): TimeDuration {
 	const result = addDaysToTimeDuration(d, days);
-	if (compareTimeDuration(result, maxTimeDuration) === 1) {
+	if (!timeDurationWithinLimits(result)) {
 		throw new RangeError();
 	}
 	return result;
@@ -436,6 +457,26 @@ function roundTimeDurationToIncrement(
 /** `TimeDurationSign` */
 const timeDurationSign = signTimeDuration;
 
+/** `DateDurationDays` */
+function dateDurationDays(dateDuration: DateDurationRecord, plainRelativeTo: PlainDateSlot) {
+	const yearsMonthsWeeksDuration = adjustDateDurationRecord(dateDuration, 0);
+	if (!dateDurationSign(dateDuration)) {
+		return dateDuration.$days;
+	}
+	return (
+		dateDuration.$days +
+		isoDateRecordToEpochDays(
+			calendarDateAdd(
+				plainRelativeTo.$calendar,
+				plainRelativeTo.$isoDate,
+				yearsMonthsWeeksDuration,
+				overflowConstrain,
+			),
+		) -
+		isoDateRecordToEpochDays(plainRelativeTo.$isoDate)
+	);
+}
+
 /** `RoundTimeDuration` */
 export function roundTimeDuration(
 	timeDuration: TimeDuration,
@@ -448,6 +489,14 @@ export function roundTimeDuration(
 		nanosecondsForTimeUnit(unit) * increment,
 		roundingMode,
 	);
+}
+
+/** `TotalTimeDuration` */
+function totalTimeDuration(timeDuration: TimeDuration, unit: SingularTimeUnitKey | "day"): number {
+	// TODO: investigate the way to achive better precision
+	const length = nanosecondsForTimeUnit(unit);
+	const [days, nanoseconds] = timeDurationDaysAndRemainderNanoseconds(timeDuration);
+	return (nanosecondsForTimeUnit("day") / length) * days + nanoseconds / length;
 }
 
 /** `TemporalDurationToString` */
@@ -491,6 +540,30 @@ function temporalDurationToString(duration: DurationSlot, precision?: number | u
 			: "",
 	].join("");
 	return `${sign < 0 ? "-" : ""}P${[yearPart, monthPart, weekPart, dayPart].join("")}${time === "" ? "" : `T${time}`}`;
+}
+
+/** `AddDurations` */
+function addDurations(operationSign: 1 | -1, duration: DurationSlot, other: unknown): Duration {
+	const otherSlot = applySignToDurationSlot(toTemporalDuration(other), operationSign);
+	const largestUnit = largerOfTwoTemporalUnits(
+		defaultTemporalLargestUnit(duration),
+		defaultTemporalLargestUnit(otherSlot),
+	);
+	if (isCalendarUnit(largestUnit)) {
+		throw new RangeError();
+	}
+	return createTemporalDuration(
+		temporalDurationFromInternal(
+			combineDateAndTimeDuration(
+				zeroDateDuration(),
+				addTimeDuration(
+					toInternalDurationRecordWith24HourDays(duration).$time,
+					toInternalDurationRecordWith24HourDays(otherSlot).$time,
+				),
+			),
+			largestUnit,
+		),
+	);
 }
 
 function isDuration(duration: unknown): boolean {
@@ -587,8 +660,54 @@ export class Duration {
 	static from(item: unknown) {
 		return createTemporalDuration(toTemporalDuration(item));
 	}
-	static compare() {
-		notImplementedYet();
+	static compare(one: unknown, two: unknown, options: unknown = undefined) {
+		const slot1 = toTemporalDuration(one);
+		const slot2 = toTemporalDuration(two);
+		const relativeToRecord = getTemporalRelativeToOption(getOptionsObject(options));
+		if (slot1.every((v, i) => slot2[i] === v)) {
+			return 0;
+		}
+		const largestUnit1 = defaultTemporalLargestUnit(slot1);
+		const largestUnit2 = defaultTemporalLargestUnit(slot2);
+		const duration1 = toInternalDurationRecord(slot1);
+		const duration2 = toInternalDurationRecord(slot2);
+		if (relativeToRecord.$zoned && (isDateUnit(largestUnit1) || isDateUnit(largestUnit2))) {
+			const cache = createOffsetCacheMap();
+			return compareEpochNanoseconds(
+				addZonedDateTime(
+					relativeToRecord.$zoned.$epochNanoseconds,
+					relativeToRecord.$zoned.$timeZone,
+					relativeToRecord.$zoned.$calendar,
+					duration1,
+					overflowConstrain,
+					cache,
+				),
+				addZonedDateTime(
+					relativeToRecord.$zoned.$epochNanoseconds,
+					relativeToRecord.$zoned.$timeZone,
+					relativeToRecord.$zoned.$calendar,
+					duration2,
+					overflowConstrain,
+					cache,
+				),
+			);
+		}
+		let days1: number;
+		let days2: number;
+		if (isCalendarUnit(largestUnit1) || isCalendarUnit(largestUnit2)) {
+			if (!relativeToRecord.$plain) {
+				throw new RangeError();
+			}
+			days1 = dateDurationDays(duration1.$date, relativeToRecord.$plain);
+			days2 = dateDurationDays(duration2.$date, relativeToRecord.$plain);
+		} else {
+			days1 = slot1[unitIndices.$day];
+			days2 = slot2[unitIndices.$day];
+		}
+		return compareTimeDuration(
+			add24HourDaysToTimeDuration(duration1.$time, days1),
+			add24HourDaysToTimeDuration(duration2.$time, days2),
+		);
 	}
 	get years() {
 		return getInternalSlotOrThrowForDuration(this)[unitIndices.$year];
@@ -648,17 +767,37 @@ export class Duration {
 			),
 		);
 	}
-	add() {
-		notImplementedYet();
+	add(other: unknown) {
+		return addDurations(1, getInternalSlotOrThrowForDuration(this), other);
 	}
-	subtract() {
-		notImplementedYet();
+	subtract(other: unknown) {
+		return addDurations(-1, getInternalSlotOrThrowForDuration(this), other);
 	}
 	round() {
 		notImplementedYet();
 	}
-	total() {
-		notImplementedYet();
+	total(totalOf: unknown) {
+		const duration = getInternalSlotOrThrowForDuration(this);
+		if (totalOf === undefined) {
+			throw new TypeError();
+		}
+		const totalOfOptions =
+			typeof totalOf === "string"
+				? createNullPrototypeObject({ unit: totalOf })
+				: getOptionsObject(totalOf);
+		const relativeToRecord = getTemporalRelativeToOption(totalOfOptions);
+		const unit = getTemporalUnitValuedOption(totalOfOptions, "unit", REQUIRED);
+		validateTemporalUnitValue(unit, DATETIME);
+		if (relativeToRecord.$zoned) {
+			notImplementedYet();
+		}
+		if (relativeToRecord.$plain) {
+			notImplementedYet();
+		}
+		if (isCalendarUnit(defaultTemporalLargestUnit(duration)) || isCalendarUnit(unit)) {
+			throw new RangeError();
+		}
+		return totalTimeDuration(toInternalDurationRecordWith24HourDays(duration).$time, unit);
 	}
 	toString(options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForDuration(this);

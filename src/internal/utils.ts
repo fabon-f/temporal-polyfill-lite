@@ -5,6 +5,6 @@ export function mapUnlessUndefined<T, R>(
 	return value === undefined ? undefined : func(value);
 }
 
-export function notImplementedYet() {
-	throw new Error();
+export function notImplementedYet(): never {
+	throw new Error("Not implemented yet");
 }

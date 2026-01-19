@@ -141,7 +141,7 @@ import {
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 
-interface ZonedDateTimeSlot {
+export interface ZonedDateTimeSlot {
 	$epochNanoseconds: EpochNanoseconds;
 	$timeZone: string;
 	$calendar: SupportedCalendars;
@@ -153,7 +153,7 @@ interface ZonedDateTimeSlot {
 const slots = new WeakMap<any, ZonedDateTimeSlot>();
 
 /** `InterpretISODateTimeOffset` */
-function interpretISODateTimeOffset(
+export function interpretISODateTimeOffset(
 	isoDate: IsoDateRecord,
 	time: TimeRecord | undefined,
 	offsetBehaviour: OffsetBehaviour,
@@ -380,7 +380,7 @@ function temporalZonedDateTimeToString(
 }
 
 /** `AddZonedDateTime` */
-function addZonedDateTime(
+export function addZonedDateTime(
 	epochNanoseconds: EpochNanoseconds,
 	timeZone: string,
 	calendar: SupportedCalendars,
