@@ -13,10 +13,10 @@
 		"@rollup/plugin-strip": "^3.0.4",
 		"@rollup/plugin-terser": "^0.4.4",
 		"@tsconfig/strictest": "^2.0.8",
-		"@types/node": "^25.0.8",
-		"@typescript/native-preview": "7.0.0-dev.20260115.1",
-		"oxfmt": "0.24.0",
-		"oxlint": "^1.39.0",
+		"@types/node": "^25.0.9",
+		"@typescript/native-preview": "7.0.0-dev.20260119.1",
+		"oxfmt": "0.26.0",
+		"oxlint": "^1.41.0",
 		"rolldown": "1.0.0-beta.60",
 		"tzdata": "^1.0.47",
 		"vitest": "^4.0.17"
@@ -32,5 +32,5 @@
 			"vite": "beta"
 		}
 	},
-	"packageManager": "pnpm@10.28.0"
+	"packageManager": "pnpm@10.28.1"
 }
