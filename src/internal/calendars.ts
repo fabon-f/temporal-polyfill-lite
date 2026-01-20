@@ -33,7 +33,7 @@ import {
 	toIntegerWithTruncation,
 	toNumber,
 	toPositiveIntegerWithTruncation,
-	ToPrimitive,
+	toPrimitive,
 	toString,
 } from "./ecmascript.ts";
 import {
@@ -144,7 +144,7 @@ export function canonicalizeCalendar(id: string): SupportedCalendars {
 
 /** `ParseMonthCode` */
 function parseMonthCode(arg: unknown): [monthNumber: number, isLeapMonth: boolean] {
-	const monthCode = ToPrimitive(arg);
+	const monthCode = toPrimitive(arg);
 	if (typeof monthCode !== "string") {
 		throw new TypeError();
 	}

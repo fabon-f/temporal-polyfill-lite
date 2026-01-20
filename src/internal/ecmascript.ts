@@ -2,7 +2,7 @@ import { REQUIRED } from "./enum.ts";
 import { createNullPrototypeObject, isObject } from "./object.ts";
 
 /** `ToPrimitive` when `preferredType` is string */
-export function ToPrimitive(input: unknown): unknown {
+export function toPrimitive(input: unknown): unknown {
 	if (!isObject(input)) {
 		return input;
 	}
@@ -27,36 +27,28 @@ export function ToPrimitive(input: unknown): unknown {
 
 /** `ToString` */
 export function toString(value: unknown): string {
-	if (typeof value === "symbol") {
-		throw new TypeError();
-	}
-	return String(value);
+	return `${value}`;
 }
 
 /** `ToBoolean` */
 export function toBoolean(value: unknown): boolean {
-	return Boolean(value);
+	return !!value;
 }
 
+// `Math.max` do the same thing to `ToNumber` AO
 /** `ToNumber` */
-export function toNumber(arg: unknown): number {
-	if (typeof arg === "bigint") {
-		throw new TypeError();
-	}
-	return Number(arg);
-}
+export const toNumber: (arg: unknown) => number = Math.max as any;
 
 /** `ToBigInt` */
 export function toBigInt(arg: unknown): bigint {
-	if (isObject(arg)) {
-		// `BigInt.asIntN` do almost the same thing to `ToBigInt` AO.
-		// However, this code path returns incorrect result
+	if (isObject(arg) || typeof arg === "number") {
+		// When `arg` is an object and `toPrimitive(arg)` returns `number`, `ToBigInt` AO should raise `TypeError`,
+		// therefore we can't simply call `BigInt` function.
+		// `BigInt.asIntN` does almost the same thing to `ToBigInt` AO.
+		// Note that this code path can return incorrect result
 		// when `arg` is converted to BigInt larger than `2**53-1` bits,
 		// which is unlikely to occur due to a limit of JavaScript engines.
 		return BigInt.asIntN(2 ** 53 - 1, arg as any);
-	}
-	if (typeof arg === "number") {
-		throw new TypeError();
 	}
 	return BigInt(arg as any);
 }

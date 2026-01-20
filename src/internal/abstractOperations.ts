@@ -53,7 +53,7 @@ import {
 	temporalYearMonthStringRegExp,
 	temporalZonedDateTimeStringRegExp,
 } from "./dateTimeParser.ts";
-import { getOption, toIntegerWithTruncation, ToPrimitive, toString } from "./ecmascript.ts";
+import { getOption, toIntegerWithTruncation, toPrimitive, toString } from "./ecmascript.ts";
 import {
 	DATE,
 	DATETIME,
@@ -759,7 +759,7 @@ export function parseTemporalDurationString(isoString: string): DurationSlot {
 
 /** `ToOffsetString` */
 export function toOffsetString(arg: unknown): string {
-	const offset = ToPrimitive(arg);
+	const offset = toPrimitive(arg);
 	if (typeof offset !== "string") {
 		throw new TypeError();
 	}

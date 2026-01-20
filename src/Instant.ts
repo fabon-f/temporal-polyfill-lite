@@ -36,7 +36,7 @@ import {
 	getRoundToOptionsObject,
 	toBigInt,
 	toIntegerIfIntegral,
-	ToPrimitive,
+	toPrimitive,
 } from "./internal/ecmascript.ts";
 import {
 	MINUTE,
@@ -117,7 +117,7 @@ function toTemporalInstant(item: unknown): Instant {
 		if (slot) {
 			return createTemporalInstant(slot.$epochNanoseconds);
 		}
-		item = ToPrimitive(item);
+		item = toPrimitive(item);
 	}
 	if (typeof item !== "string") {
 		throw new TypeError();
