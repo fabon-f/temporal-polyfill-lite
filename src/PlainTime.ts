@@ -65,6 +65,7 @@ import {
 	toTemporalDuration,
 	zeroDateDuration,
 } from "./Duration.ts";
+import { DateTimeFormat } from "./DateTimeFormat.ts";
 
 export interface TimeRecord {
 	$hour: number;
@@ -441,6 +442,10 @@ export function getInternalSlotOrThrowForPlainTime(plainTime: unknown): PlainTim
 	return slot;
 }
 
+export function getInternalSlotForPlainTime(plainTime: unknown): PlainTimeSlot | undefined {
+	return slots.get(plainTime);
+}
+
 export function isPlainTime(item: unknown): boolean {
 	return slots.has(item);
 }
@@ -568,10 +573,9 @@ export class PlainTime {
 			record.$precision,
 		);
 	}
-	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
-		// TODO
-		return timeRecordToString(getInternalSlotOrThrowForPlainTime(this), undefined);
+		getInternalSlotOrThrowForPlainTime(this);
+		return new DateTimeFormat(locales as any, options as any).format(this as any);
 	}
 	toJSON() {
 		return timeRecordToString(getInternalSlotOrThrowForPlainTime(this), undefined);

@@ -1,3 +1,4 @@
+import { DateTimeFormat } from "./DateTimeFormat.ts";
 import {
 	add24HourDaysToTimeDuration,
 	adjustDateDurationRecord,
@@ -747,16 +748,9 @@ export class PlainDateTime {
 		}
 		return isoDateTimeToString(result, slot.$calendar, record.$precision, showCalendar);
 	}
-	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
-		// TODO
-		const slot = getInternalSlotOrThrowForPlainDateTime(this);
-		return isoDateTimeToString(
-			slot.$isoDateTime,
-			slot.$calendar,
-			undefined,
-			showCalendarName.$auto,
-		);
+		getInternalSlotOrThrowForPlainDateTime(this);
+		return new DateTimeFormat(locales as any, options as any).format(this as any);
 	}
 	toJSON() {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);

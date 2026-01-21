@@ -1,3 +1,4 @@
+import { DateTimeFormat } from "./DateTimeFormat.ts";
 import {
 	getTemporalOverflowOption,
 	getTemporalShowCalendarNameOption,
@@ -224,13 +225,9 @@ export class PlainMonthDay {
 			getTemporalShowCalendarNameOption(getOptionsObject(options)),
 		);
 	}
-	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
-		// TODO
-		return temporalMonthDayToString(
-			getInternalSlotOrThrowForPlainMonthDay(this),
-			showCalendarName.$auto,
-		);
+		getInternalSlotOrThrowForPlainMonthDay(this);
+		return new DateTimeFormat(locales as any, options as any).format(this as any);
 	}
 	toJSON() {
 		return temporalMonthDayToString(

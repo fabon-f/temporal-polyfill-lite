@@ -1,3 +1,4 @@
+import { DateTimeFormat } from "./DateTimeFormat.ts";
 import {
 	adjustDateDurationRecord,
 	applySignToDurationSlot,
@@ -430,13 +431,10 @@ export class PlainYearMonth {
 			getTemporalShowCalendarNameOption(getOptionsObject(options)),
 		);
 	}
-	// oxlint-disable-next-line no-unused-vars
-	toLocaleString(locale: unknown = undefined, options: unknown = undefined) {
-		// TODO
-		return temporalYearMonthToString(
-			getInternalSlotOrThrowForPlainYearMonth(this),
-			showCalendarName.$auto,
-		);
+
+	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
+		getInternalSlotOrThrowForPlainYearMonth(this);
+		return new DateTimeFormat(locales as any, options as any).format(this as any);
 	}
 	toJSON() {
 		return temporalYearMonthToString(

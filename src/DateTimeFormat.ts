@@ -1,7 +1,20 @@
+import { getInternalSlotForInstant, isInstant } from "./Instant.ts";
+import { getUtcEpochNanoseconds } from "./internal/abstractOperations.ts";
 import { toBoolean, toString } from "./internal/ecmascript.ts";
-import { pickObject } from "./internal/object.ts";
+import { epochMilliseconds } from "./internal/epochNanoseconds.ts";
+import { createNullPrototypeObject, pickObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
 import { mapUnlessUndefined } from "./internal/utils.ts";
+import { createIsoDateRecord, getInternalSlotForPlainDate, isPlainDate } from "./PlainDate.ts";
+import {
+	combineIsoDateAndTimeRecord,
+	getInternalSlotForPlainDateTime,
+	isPlainDateTime,
+} from "./PlainDateTime.ts";
+import { getInternalSlotForPlainMonthDay, isPlainMonthDay } from "./PlainMonthDay.ts";
+import { getInternalSlotForPlainTime, isPlainTime, midnightTimeRecord } from "./PlainTime.ts";
+import { getInternalSlotForPlainYearMonth, isPlainYearMonth } from "./PlainYearMonth.ts";
+import { isZonedDateTime } from "./ZonedDateTime.ts";
 
 export const OriginalDateTimeFormat = globalThis.Intl.DateTimeFormat;
 type RawDTF = InstanceType<typeof OriginalDateTimeFormat>;
@@ -10,8 +23,14 @@ const internalSlotBrand = /*#__PURE__*/ Symbol();
 
 interface DateTimeFormatSlot {
 	$rawDtf: RawDTF;
+	$locale: string;
 	$originalOptions: Intl.DateTimeFormatOptions;
 	$boundFormatFunction?: ((date: unknown) => string) | undefined;
+	$rawDtfForPlainDate?: Intl.DateTimeFormat;
+	$rawDtfForPlainTime?: Intl.DateTimeFormat;
+	$rawDtfForPlainDateTime?: Intl.DateTimeFormat;
+	$rawDtfForPlainYearMonth?: Intl.DateTimeFormat;
+	$rawDtfForPlainMonthDay?: Intl.DateTimeFormat;
 	[internalSlotBrand]: unknown;
 }
 
@@ -34,10 +53,11 @@ function createInternalSlot(
 	rawDTF: RawDTF,
 	originalOptions: Intl.DateTimeFormatOptions,
 ): DateTimeFormatSlot {
-	return {
+	return createNullPrototypeObject({
 		$rawDtf: rawDTF,
 		$originalOptions: originalOptions,
-	} as DateTimeFormatSlot;
+		$locale: rawDTF.resolvedOptions().locale,
+	}) as DateTimeFormatSlot;
 }
 
 export function getInternalSlotOrThrowForDateTimeFormat(dtf: any): DateTimeFormatSlot {
@@ -48,9 +68,10 @@ export function getInternalSlotOrThrowForDateTimeFormat(dtf: any): DateTimeForma
 	return slot;
 }
 
-function formatDateTime(dtf: DateTimeFormatImpl, date: unknown): string {
-	// @ts-expect-error
-	return getInternalSlotOrThrowForDateTimeFormat(dtf).$rawDtf.format(date);
+export function formatDateTime(dtf: DateTimeFormatImpl, date: unknown): string {
+	const slot = getInternalSlotOrThrowForDateTimeFormat(dtf);
+	const [rawDtf, value] = handleDateTimeValue(slot, date);
+	return rawDtf.format(value as any);
 }
 
 /** DateTime Format Functions */
@@ -58,8 +79,139 @@ function dateTimeFormatFunction(this: DateTimeFormatImpl, date: unknown): string
 	return formatDateTime(this, date);
 }
 
+function formatDateTimeToParts(dtf: DateTimeFormatImpl, date: unknown): Intl.DateTimeFormatPart[] {
+	const slot = getInternalSlotOrThrowForDateTimeFormat(dtf);
+	const [rawDtf, value] = handleDateTimeValue(slot, date);
+	return rawDtf.formatToParts(value as any);
+}
+
+function formatDateTimeRange(dtf: DateTimeFormatImpl, x: unknown, y: unknown): string {
+	const slot = getInternalSlotOrThrowForDateTimeFormat(dtf);
+	validateSameTemporalType(x, y);
+	const [rawDtf, value1] = handleDateTimeValue(slot, x);
+	const [, value2] = handleDateTimeValue(slot, y);
+	return rawDtf.formatRange(value1 as any, value2 as any);
+}
+
+function formatDateTimeRangeToParts(
+	dtf: DateTimeFormatImpl,
+	x: unknown,
+	y: unknown,
+): Intl.DateTimeRangeFormatPart[] {
+	const slot = getInternalSlotOrThrowForDateTimeFormat(dtf);
+	validateSameTemporalType(x, y);
+	const [rawDtf, value1] = handleDateTimeValue(slot, x);
+	const [, value2] = handleDateTimeValue(slot, y);
+	return rawDtf.formatRangeToParts(value1 as any, value2 as any);
+}
+
+function amendOptionsForPlainDate(
+	originalOptions: Intl.DateTimeFormatOptions,
+): Intl.DateTimeFormatOptions {
+	const newOptions = createNullPrototypeObject(originalOptions);
+	if (!hasAnyOptions(originalOptions, ["year", "month", "day", "weekday", "dateStyle"])) {
+		if (hasAnyOptions(originalOptions, ["hour", "minute", "second"])) {
+			throw new TypeError();
+		}
+		Object.assign(newOptions, { year: "numeric", month: "numeric", day: "numeric" });
+	}
+	Object.assign(newOptions, {
+		hour: undefined,
+		minute: undefined,
+		second: undefined,
+		dayPeriod: undefined,
+		timeZoneName: undefined,
+		timeStyle: undefined,
+		timeZone: "UTC",
+	});
+	return newOptions;
+}
+
+function amendOptionsForPlainTime(
+	originalOptions: Intl.DateTimeFormatOptions,
+): Intl.DateTimeFormatOptions {
+	const newOptions = createNullPrototypeObject(originalOptions);
+	if (
+		!hasAnyOptions(originalOptions, [
+			"hour",
+			"minute",
+			"second",
+			"fractionalSecondDigits",
+			"timeStyle",
+			"dayPeriod",
+		])
+	) {
+		if (hasAnyOptions(originalOptions, ["year", "month", "day", "weekday", "dateStyle"])) {
+			throw new TypeError();
+		}
+		Object.assign(newOptions, {
+			hour: "numeric",
+			minute: "numeric",
+			second: "numeric",
+		});
+	}
+	if (originalOptions.timeStyle === "long" || originalOptions.timeStyle === "full") {
+		// stop displaying time zone name
+		Object.assign(newOptions, {
+			timeStyle: undefined,
+			hour: "numeric",
+			minute: "numeric",
+			second: "numeric",
+		});
+	}
+	Object.assign(newOptions, {
+		era: undefined,
+		year: undefined,
+		month: undefined,
+		day: undefined,
+		weekday: undefined,
+		timeZoneName: undefined,
+		dateStyle: undefined,
+		timeZone: "UTC",
+	});
+	return newOptions;
+}
+
+function amendOptionsForPlainDateTime(
+	originalOptions: Intl.DateTimeFormatOptions,
+): Intl.DateTimeFormatOptions {
+	const newOptions = createNullPrototypeObject(originalOptions);
+	Object.assign({
+		timeZoneName: undefined,
+		timeZone: "UTC",
+	});
+	return newOptions;
+}
+
+function amendOptionsForPlainYearMonth(
+	originalOptions: Intl.DateTimeFormatOptions,
+): Intl.DateTimeFormatOptions {
+	const newOptions = createNullPrototypeObject(originalOptions);
+	Object.assign({
+		timeZone: "UTC",
+	});
+	return newOptions;
+}
+
+function amendOptionsForPlainMonthDay(
+	originalOptions: Intl.DateTimeFormatOptions,
+): Intl.DateTimeFormatOptions {
+	const newOptions = createNullPrototypeObject(originalOptions);
+	Object.assign({
+		timeZone: "UTC",
+	});
+	return newOptions;
+}
+
+function hasAnyOptions(
+	options: Intl.DateTimeFormatOptions,
+	keys: (keyof Intl.DateTimeFormatOptions)[],
+): boolean {
+	return keys.some((k) => options[k] !== undefined);
+}
+
 /** `CreateDateTimeFormat` */
-function createDateTimeFormat(
+export function createDateTimeFormat(
 	locales: unknown,
 	options: {} | null = Object.create(null),
 	toLocaleStringTimeZone?: string,
@@ -80,24 +232,135 @@ function createDateTimeFormat(
 		}
 		copiedOptions["timeZone"] = toLocaleStringTimeZone;
 	}
-	// @ts-expect-error
-	const rawDtf = new OriginalDateTimeFormat(locales, copiedOptions);
+	const rawDtf = new OriginalDateTimeFormat(locales as any, copiedOptions);
+	const resolvedOptions = rawDtf.resolvedOptions();
 	// `resolvedOptions` returns almost same to original options
-	const coercedOriginalOptions = rawDtf.resolvedOptions();
+	const coercedOriginalOptions = createNullPrototypeObject(resolvedOptions);
 	for (const key of Object.keys(coercedOriginalOptions)) {
 		if (copiedOptions[key] === undefined) {
-			// @ts-expect-error
-			coercedOriginalOptions[key] = undefined;
+			(coercedOriginalOptions as Record<string, any>)[key] = undefined;
 		}
 	}
 	coercedOriginalOptions.hour12 = copiedOptions["hour12"];
 	coercedOriginalOptions.hourCycle = copiedOptions["hourCycle"];
 	coercedOriginalOptions.formatMatcher = copiedOptions["formatMatcher"];
+	coercedOriginalOptions.timeZone = resolvedOptions.timeZone;
+	coercedOriginalOptions.calendar = resolvedOptions.calendar;
 	slots.set(
 		instance,
 		createInternalSlot(rawDtf, coercedOriginalOptions as Intl.DateTimeFormatOptions),
 	);
 	return instance;
+}
+
+/** `SameTemporalType` */
+function validateSameTemporalType(x: unknown, y: unknown) {
+	if (
+		[
+			isPlainDate,
+			isPlainTime,
+			isPlainDateTime,
+			isZonedDateTime,
+			isInstant,
+			isPlainYearMonth,
+			isPlainMonthDay,
+		].some((f) => f(x) !== f(y))
+	) {
+		throw new TypeError();
+	}
+}
+
+/** `HandleDateTimeValue` */
+function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [RawDTF, number] {
+	const plainTimeSlot = getInternalSlotForPlainTime(x);
+	if (plainTimeSlot) {
+		return [
+			(dateTimeFormat.$rawDtfForPlainTime ||= new OriginalDateTimeFormat(
+				dateTimeFormat.$locale,
+				amendOptionsForPlainTime(dateTimeFormat.$originalOptions),
+			)),
+			epochMilliseconds(
+				getUtcEpochNanoseconds(
+					combineIsoDateAndTimeRecord(createIsoDateRecord(1970, 1, 1), plainTimeSlot),
+				),
+			),
+		];
+	}
+	const plainDateSlot = getInternalSlotForPlainDate(x);
+	if (plainDateSlot) {
+		if (
+			plainDateSlot.$calendar !== dateTimeFormat.$originalOptions.calendar &&
+			plainDateSlot.$calendar !== "iso8601"
+		) {
+			throw new RangeError();
+		}
+		return [
+			(dateTimeFormat.$rawDtfForPlainDate ||= new OriginalDateTimeFormat(
+				dateTimeFormat.$locale,
+				amendOptionsForPlainDate(dateTimeFormat.$originalOptions),
+			)),
+			epochMilliseconds(
+				getUtcEpochNanoseconds(
+					combineIsoDateAndTimeRecord(plainDateSlot.$isoDate, midnightTimeRecord()),
+				),
+			),
+		];
+	}
+	const plainDateTimeSlot = getInternalSlotForPlainDateTime(x);
+	if (plainDateTimeSlot) {
+		if (
+			plainDateTimeSlot.$calendar !== dateTimeFormat.$originalOptions.calendar &&
+			plainDateTimeSlot.$calendar !== "iso8601"
+		) {
+			throw new RangeError();
+		}
+		return [
+			(dateTimeFormat.$rawDtfForPlainDateTime ||= new OriginalDateTimeFormat(
+				dateTimeFormat.$locale,
+				amendOptionsForPlainDateTime(dateTimeFormat.$originalOptions),
+			)),
+			epochMilliseconds(getUtcEpochNanoseconds(plainDateTimeSlot.$isoDateTime)),
+		];
+	}
+	const plainYearMonthSlot = getInternalSlotForPlainYearMonth(x);
+	if (plainYearMonthSlot) {
+		if (plainYearMonthSlot.$calendar !== dateTimeFormat.$originalOptions.calendar) {
+			throw new RangeError();
+		}
+		return [
+			(dateTimeFormat.$rawDtfForPlainYearMonth ||= new OriginalDateTimeFormat(
+				dateTimeFormat.$locale,
+				amendOptionsForPlainYearMonth(dateTimeFormat.$originalOptions),
+			)),
+			epochMilliseconds(
+				getUtcEpochNanoseconds(
+					combineIsoDateAndTimeRecord(plainYearMonthSlot.$isoDate, midnightTimeRecord()),
+				),
+			),
+		];
+	}
+	const plainMonthDaySlot = getInternalSlotForPlainMonthDay(x);
+	if (plainMonthDaySlot) {
+		if (plainMonthDaySlot.$calendar !== dateTimeFormat.$originalOptions.calendar) {
+			throw new RangeError();
+		}
+		return [
+			(dateTimeFormat.$rawDtfForPlainMonthDay ||= new OriginalDateTimeFormat(
+				dateTimeFormat.$locale,
+				amendOptionsForPlainMonthDay(dateTimeFormat.$originalOptions),
+			)),
+			epochMilliseconds(
+				getUtcEpochNanoseconds(
+					combineIsoDateAndTimeRecord(plainMonthDaySlot.$isoDate, midnightTimeRecord()),
+				),
+			),
+		];
+	}
+	const instantSlot = getInternalSlotForInstant(x);
+	if (instantSlot) {
+		return [dateTimeFormat.$rawDtf, epochMilliseconds(instantSlot.$epochNanoseconds)];
+	}
+	return [dateTimeFormat.$rawDtf, x as any];
 }
 
 export class DateTimeFormatImpl {
@@ -113,19 +376,13 @@ export class DateTimeFormatImpl {
 		);
 	}
 	formatToParts(date: unknown) {
-		// @ts-expect-error
-		return getInternalSlotOrThrowForDateTimeFormat(this).$rawDtf.formatToParts(date);
+		return formatDateTimeToParts(this, date);
 	}
 	formatRange(startDate: unknown, endDate: unknown) {
-		// @ts-expect-error
-		return getInternalSlotOrThrowForDateTimeFormat(this).$rawDtf.formatRange(startDate, endDate);
+		return formatDateTimeRange(this, startDate, endDate);
 	}
 	formatRangeToParts(startDate: unknown, endDate: unknown) {
-		return getInternalSlotOrThrowForDateTimeFormat(this).$rawDtf.formatRangeToParts(
-			// @ts-expect-error
-			startDate,
-			endDate,
-		);
+		return formatDateTimeRangeToParts(this, startDate, endDate);
 	}
 	resolvedOptions() {
 		return getInternalSlotOrThrowForDateTimeFormat(this).$rawDtf.resolvedOptions();

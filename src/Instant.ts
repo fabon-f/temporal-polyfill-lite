@@ -1,3 +1,4 @@
+import { DateTimeFormat } from "./DateTimeFormat.ts";
 import {
 	applySignToDurationSlot,
 	combineDateAndTimeDuration,
@@ -255,7 +256,7 @@ function addDurationToInstant(
 	);
 }
 
-function getInternalSlotForInstant(instant: unknown): InstantSlot | undefined {
+export function getInternalSlotForInstant(instant: unknown): InstantSlot | undefined {
 	return slots.get(instant);
 }
 
@@ -265,6 +266,10 @@ function getInternalSlotOrThrowForInstant(instant: unknown): InstantSlot {
 		throw new TypeError();
 	}
 	return slot;
+}
+
+export function isInstant(value: unknown) {
+	return slots.has(value);
 }
 
 function createInternalSlot(epoch: EpochNanoseconds): InstantSlot {
@@ -376,13 +381,9 @@ export class Instant {
 			precisionRecord.$precision,
 		);
 	}
-	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
-		// TODO
-		return temporalInstantToString(
-			getInternalSlotOrThrowForInstant(this).$epochNanoseconds,
-			undefined,
-		);
+		getInternalSlotOrThrowForInstant(this);
+		return new DateTimeFormat(locales as any, options as any).format(this as any);
 	}
 	toJSON() {
 		return temporalInstantToString(

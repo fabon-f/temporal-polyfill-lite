@@ -1,4 +1,9 @@
 import {
+	createDateTimeFormat,
+	formatDateTime,
+	getInternalSlotOrThrowForDateTimeFormat,
+} from "./DateTimeFormat.ts";
+import {
 	applySignToDurationSlot,
 	combineDateAndTimeDuration,
 	createTemporalDuration,
@@ -1089,16 +1094,17 @@ export class ZonedDateTime {
 			roundingMode,
 		);
 	}
-	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
-		// TODO
-		return temporalZonedDateTimeToString(
-			getInternalSlotOrThrowForZonedDateTime(this),
-			undefined,
-			showCalendarName.$auto,
-			timeZoneNameOptions.$auto,
-			showOffsetOptions.$auto,
-		);
+		const slot = getInternalSlotOrThrowForZonedDateTime(this);
+		const dtf = createDateTimeFormat(locales, options, slot.$timeZone);
+		const dtfSlot = getInternalSlotOrThrowForDateTimeFormat(dtf);
+		if (
+			slot.$calendar !== "iso8601" ||
+			!calendarEquals(slot.$calendar, dtfSlot.$originalOptions.calendar as SupportedCalendars)
+		) {
+			throw new RangeError();
+		}
+		return formatDateTime(dtf, createTemporalInstant(slot.$epochNanoseconds));
 	}
 	toJSON() {
 		return temporalZonedDateTimeToString(
