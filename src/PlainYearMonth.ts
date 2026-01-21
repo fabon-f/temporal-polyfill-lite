@@ -2,11 +2,15 @@ import {
 	adjustDateDurationRecord,
 	applySignToDurationSlot,
 	combineDateAndTimeDuration,
+	createDateDurationRecord,
 	createTemporalDuration,
 	createTemporalDurationSlot,
 	Duration,
+	durationSign,
 	roundRelativeDuration,
 	temporalDurationFromInternal,
+	toDateDurationRecordWithoutTime,
+	toTemporalDuration,
 } from "./Duration.ts";
 import {
 	getDifferenceSettings,
@@ -18,6 +22,7 @@ import {
 } from "./internal/abstractOperations.ts";
 import { assertNotUndefined } from "./internal/assertion.ts";
 import {
+	calendarDateAdd,
 	calendarDateFromFields,
 	calendarDateUntil,
 	calendarEquals,
@@ -45,8 +50,8 @@ import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
 import { createTimeDurationFromSeconds } from "./internal/timeDuration.ts";
-import { notImplementedYet } from "./internal/utils.ts";
 import {
+	addDaysToIsoDate,
 	compareIsoDate,
 	createIsoDateRecord,
 	createTemporalDate,
@@ -217,6 +222,47 @@ function differenceTemporalPlainYearMonth(
 	);
 }
 
+/** `AddDurationToYearMonth` */
+function addDurationToYearMonth(
+	operationSign: 1 | -1,
+	yearMonth: PlainYearMonthSlot,
+	temporalDurationLike: unknown,
+	options: unknown,
+): PlainYearMonth {
+	const duration = applySignToDurationSlot(toTemporalDuration(temporalDurationLike), operationSign);
+	const overflow = getTemporalOverflowOption(getOptionsObject(options));
+	const fields = isoDateToFields(yearMonth.$calendar, yearMonth.$isoDate, YEAR_MONTH);
+	fields.day = 1;
+	const intermediateDate = calendarDateFromFields(yearMonth.$calendar, fields, overflowConstrain);
+	return createTemporalYearMonth(
+		calendarYearMonthFromFields(
+			yearMonth.$calendar,
+			isoDateToFields(
+				yearMonth.$calendar,
+				calendarDateAdd(
+					yearMonth.$calendar,
+					durationSign(duration) < 0
+						? addDaysToIsoDate(
+								calendarDateAdd(
+									yearMonth.$calendar,
+									intermediateDate,
+									createDateDurationRecord(0, 1, 0, 0),
+									overflowConstrain,
+								),
+								-1,
+							)
+						: intermediateDate,
+					toDateDurationRecordWithoutTime(duration),
+					overflow,
+				),
+				YEAR_MONTH,
+			),
+			overflow,
+		),
+		yearMonth.$calendar,
+	);
+}
+
 function createPlainYearMonthSlot(
 	isoDate: IsoDateRecord,
 	calendar: SupportedCalendars,
@@ -338,11 +384,21 @@ export class PlainYearMonth {
 			slot.$calendar,
 		);
 	}
-	add() {
-		notImplementedYet();
+	add(temporalDurationLike: unknown, options: unknown = undefined) {
+		return addDurationToYearMonth(
+			1,
+			getInternalSlotOrThrowForPlainYearMonth(this),
+			temporalDurationLike,
+			options,
+		);
 	}
-	subtract() {
-		notImplementedYet();
+	subtract(temporalDurationLike: unknown, options: unknown = undefined) {
+		return addDurationToYearMonth(
+			-1,
+			getInternalSlotOrThrowForPlainYearMonth(this),
+			temporalDurationLike,
+			options,
+		);
 	}
 	until(other: unknown, options: unknown = undefined) {
 		return differenceTemporalPlainYearMonth(
@@ -376,9 +432,11 @@ export class PlainYearMonth {
 	}
 	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locale: unknown = undefined, options: unknown = undefined) {
-		getInternalSlotOrThrowForPlainYearMonth(this);
 		// TODO
-		return "";
+		return temporalYearMonthToString(
+			getInternalSlotOrThrowForPlainYearMonth(this),
+			showCalendarName.$auto,
+		);
 	}
 	toJSON() {
 		return temporalYearMonthToString(

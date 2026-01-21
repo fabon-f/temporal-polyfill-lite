@@ -378,9 +378,11 @@ export class Instant {
 	}
 	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
-		getInternalSlotOrThrowForInstant(this);
 		// TODO
-		return "";
+		return temporalInstantToString(
+			getInternalSlotOrThrowForInstant(this).$epochNanoseconds,
+			undefined,
+		);
 	}
 	toJSON() {
 		return temporalInstantToString(

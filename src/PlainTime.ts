@@ -570,9 +570,8 @@ export class PlainTime {
 	}
 	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
-		getInternalSlotOrThrowForPlainTime(this);
 		// TODO
-		return "";
+		return timeRecordToString(getInternalSlotOrThrowForPlainTime(this), undefined);
 	}
 	toJSON() {
 		return timeRecordToString(getInternalSlotOrThrowForPlainTime(this), undefined);

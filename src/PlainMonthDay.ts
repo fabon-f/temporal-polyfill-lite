@@ -226,9 +226,11 @@ export class PlainMonthDay {
 	}
 	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
-		getInternalSlotOrThrowForPlainMonthDay(this);
-		// TODO:
-		return "";
+		// TODO
+		return temporalMonthDayToString(
+			getInternalSlotOrThrowForPlainMonthDay(this),
+			showCalendarName.$auto,
+		);
 	}
 	toJSON() {
 		return temporalMonthDayToString(

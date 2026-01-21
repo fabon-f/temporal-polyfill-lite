@@ -45,6 +45,7 @@ import {
 	showCalendarName,
 	overflowConstrain,
 } from "./enum.ts";
+import { calendarNotSupported } from "./errorMessages.ts";
 import { divFloor, modFloor } from "./math.ts";
 import { asciiLowerCase, toZeroPaddedDecimalString } from "./string.ts";
 import { toTemporalTimeZoneIdentifier } from "./timeZones.ts";
@@ -137,7 +138,7 @@ export interface CalendarFieldsRecord {
 export function canonicalizeCalendar(id: string): SupportedCalendars {
 	id = asciiLowerCase(id);
 	if (!["iso8601", "gregory"].includes(id)) {
-		throw new RangeError();
+		throw new RangeError(calendarNotSupported(id));
 	}
 	return id as SupportedCalendars;
 }

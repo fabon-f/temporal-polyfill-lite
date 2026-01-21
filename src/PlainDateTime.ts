@@ -3,7 +3,9 @@ import {
 	adjustDateDurationRecord,
 	applySignToDurationSlot,
 	combineDateAndTimeDuration,
+	createTemporalDuration,
 	createTemporalDurationSlot,
+	Duration,
 	roundRelativeDuration,
 	temporalDurationFromInternal,
 	timeDurationSign,
@@ -11,7 +13,6 @@ import {
 	totalRelativeDuration,
 	toTemporalDuration,
 	zeroDateDuration,
-	type DurationSlot,
 	type InternalDurationRecord,
 } from "./Duration.ts";
 import {
@@ -398,7 +399,7 @@ function differenceTemporalPlainDateTime(
 	dateTime: PlainDateTimeSlot,
 	other: unknown,
 	options: unknown,
-): DurationSlot {
+): Duration {
 	const otherSlot = getInternalSlotOrThrowForPlainDateTime(toTemporalDateTime(other));
 	if (!calendarEquals(dateTime.$calendar, otherSlot.$calendar)) {
 		throw new RangeError();
@@ -412,22 +413,24 @@ function differenceTemporalPlainDateTime(
 		"day",
 	);
 	if (!compareIsoDateTime(dateTime.$isoDateTime, otherSlot.$isoDateTime)) {
-		return createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+		return createTemporalDuration(createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	}
-	return applySignToDurationSlot(
-		temporalDurationFromInternal(
-			differencePlainDateTimeWithRounding(
-				dateTime.$isoDateTime,
-				otherSlot.$isoDateTime,
-				dateTime.$calendar,
+	return createTemporalDuration(
+		applySignToDurationSlot(
+			temporalDurationFromInternal(
+				differencePlainDateTimeWithRounding(
+					dateTime.$isoDateTime,
+					otherSlot.$isoDateTime,
+					dateTime.$calendar,
+					settings.$largestUnit,
+					settings.$roundingIncrement,
+					settings.$smallestUnit,
+					settings.$roundingMode,
+				),
 				settings.$largestUnit,
-				settings.$roundingIncrement,
-				settings.$smallestUnit,
-				settings.$roundingMode,
 			),
-			settings.$largestUnit,
+			operationSign,
 		),
-		operationSign,
 	);
 }
 
@@ -746,9 +749,14 @@ export class PlainDateTime {
 	}
 	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
-		getInternalSlotOrThrowForPlainDateTime(this);
 		// TODO
-		return "";
+		const slot = getInternalSlotOrThrowForPlainDateTime(this);
+		return isoDateTimeToString(
+			slot.$isoDateTime,
+			slot.$calendar,
+			undefined,
+			showCalendarName.$auto,
+		);
 	}
 	toJSON() {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);

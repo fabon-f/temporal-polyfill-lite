@@ -533,9 +533,8 @@ export class PlainDate {
 	}
 	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
-		getInternalSlotOrThrowForPlainDate(this);
 		// TODO
-		return "";
+		return temporalDateToString(getInternalSlotOrThrowForPlainDate(this), showCalendarName.$auto);
 	}
 	toJSON() {
 		return temporalDateToString(getInternalSlotOrThrowForPlainDate(this), showCalendarName.$auto);

@@ -4,6 +4,7 @@ import {
 	createTemporalDuration,
 	createTemporalDurationSlot,
 	dateDurationSign,
+	Duration,
 	roundRelativeDuration,
 	temporalDurationFromInternal,
 	timeDurationFromEpochNanosecondsDifference,
@@ -13,7 +14,6 @@ import {
 	totalTimeDuration,
 	toTemporalDuration,
 	zeroDateDuration,
-	type DurationSlot,
 	type InternalDurationRecord,
 } from "./Duration.ts";
 import {
@@ -458,7 +458,7 @@ function differenceZonedDateTime(
 	if (!compareIsoDate(startDateTime.$isoDate, endDateTime.$isoDate)) {
 		return combineDateAndTimeDuration(
 			zeroDateDuration(),
-			timeDurationFromEpochNanosecondsDifference(ns1, ns2),
+			timeDurationFromEpochNanosecondsDifference(ns2, ns1),
 		);
 	}
 	let timeDuration = differenceTime(startDateTime.$time, endDateTime.$time);
@@ -564,7 +564,7 @@ function differenceTemporalZonedDateTime(
 	zonedDateTime: ZonedDateTimeSlot,
 	other: unknown,
 	options: unknown,
-): DurationSlot {
+): Duration {
 	const otherSlot = getInternalSlotOrThrowForZonedDateTime(toTemporalZonedDateTime(other));
 	if (!calendarEquals(zonedDateTime.$calendar, otherSlot.$calendar)) {
 		throw new RangeError();
@@ -579,41 +579,45 @@ function differenceTemporalZonedDateTime(
 	);
 	if (!isDateUnit(settings.$largestUnit)) {
 		assert(!isDateUnit(settings.$smallestUnit));
-		return applySignToDurationSlot(
-			temporalDurationFromInternal(
-				differenceInstant(
-					zonedDateTime.$epochNanoseconds,
-					otherSlot.$epochNanoseconds,
-					settings.$roundingIncrement,
-					settings.$smallestUnit,
-					settings.$roundingMode,
+		return createTemporalDuration(
+			applySignToDurationSlot(
+				temporalDurationFromInternal(
+					differenceInstant(
+						zonedDateTime.$epochNanoseconds,
+						otherSlot.$epochNanoseconds,
+						settings.$roundingIncrement,
+						settings.$smallestUnit,
+						settings.$roundingMode,
+					),
+					settings.$largestUnit,
 				),
-				settings.$largestUnit,
+				operationSign,
 			),
-			operationSign,
 		);
 	}
 	if (!timeZoneEquals(zonedDateTime.$timeZone, otherSlot.$timeZone)) {
 		throw new RangeError();
 	}
 	if (!compareEpochNanoseconds(zonedDateTime.$epochNanoseconds, otherSlot.$epochNanoseconds)) {
-		return createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+		return createTemporalDuration(createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	}
-	return applySignToDurationSlot(
-		temporalDurationFromInternal(
-			differenceZonedDateTimeWithRounding(
-				zonedDateTime.$epochNanoseconds,
-				otherSlot.$epochNanoseconds,
-				zonedDateTime.$timeZone,
-				zonedDateTime.$calendar,
-				settings.$largestUnit,
-				settings.$roundingIncrement,
-				settings.$smallestUnit,
-				settings.$roundingMode,
+	return createTemporalDuration(
+		applySignToDurationSlot(
+			temporalDurationFromInternal(
+				differenceZonedDateTimeWithRounding(
+					zonedDateTime.$epochNanoseconds,
+					otherSlot.$epochNanoseconds,
+					zonedDateTime.$timeZone,
+					zonedDateTime.$calendar,
+					settings.$largestUnit,
+					settings.$roundingIncrement,
+					settings.$smallestUnit,
+					settings.$roundingMode,
+				),
+				"hour",
 			),
-			"hour",
+			operationSign,
 		),
-		operationSign,
 	);
 }
 
@@ -969,23 +973,19 @@ export class ZonedDateTime {
 		);
 	}
 	until(other: unknown, options: unknown = undefined) {
-		return createTemporalDuration(
-			differenceTemporalZonedDateTime(
-				1,
-				getInternalSlotOrThrowForZonedDateTime(this),
-				other,
-				options,
-			),
+		return differenceTemporalZonedDateTime(
+			1,
+			getInternalSlotOrThrowForZonedDateTime(this),
+			other,
+			options,
 		);
 	}
 	since(other: unknown, options: unknown = undefined) {
-		return createTemporalDuration(
-			differenceTemporalZonedDateTime(
-				1,
-				getInternalSlotOrThrowForZonedDateTime(this),
-				other,
-				options,
-			),
+		return differenceTemporalZonedDateTime(
+			-1,
+			getInternalSlotOrThrowForZonedDateTime(this),
+			other,
+			options,
 		);
 	}
 	round(roundTo: unknown) {
@@ -1091,9 +1091,14 @@ export class ZonedDateTime {
 	}
 	// oxlint-disable-next-line no-unused-vars
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
-		getInternalSlotOrThrowForZonedDateTime(this);
 		// TODO
-		return "";
+		return temporalZonedDateTimeToString(
+			getInternalSlotOrThrowForZonedDateTime(this),
+			undefined,
+			showCalendarName.$auto,
+			timeZoneNameOptions.$auto,
+			showOffsetOptions.$auto,
+		);
 	}
 	toJSON() {
 		return temporalZonedDateTimeToString(

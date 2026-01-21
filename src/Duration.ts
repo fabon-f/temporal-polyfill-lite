@@ -46,7 +46,7 @@ import {
 	differenceEpochNanoseconds,
 	type EpochNanoseconds,
 } from "./internal/epochNanoseconds.ts";
-import type { NumberSign } from "./internal/math.ts";
+import { sign, type NumberSign } from "./internal/math.ts";
 import { createNullPrototypeObject, isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import {
@@ -282,8 +282,8 @@ export function toTemporalDuration(item: unknown): DurationSlot {
 }
 
 /** `DurationSign` */
-function durationSign(duration: DurationSlot): NumberSign {
-	return Math.sign(
+export function durationSign(duration: DurationSlot): NumberSign {
+	return sign(
 		duration[unitIndices.$year] ||
 			duration[unitIndices.$month] ||
 			duration[unitIndices.$week] ||
@@ -294,14 +294,14 @@ function durationSign(duration: DurationSlot): NumberSign {
 			duration[unitIndices.$millisecond] ||
 			duration[unitIndices.$microsecond] ||
 			duration[unitIndices.$nanosecond],
-	) as NumberSign;
+	);
 }
 
 /** `DateDurationSign` */
 export function dateDurationSign(dateDuration: DateDurationRecord): NumberSign {
-	return Math.sign(
+	return sign(
 		dateDuration.$years || dateDuration.$months || dateDuration.$weeks || dateDuration.$days,
-	) as NumberSign;
+	);
 }
 
 /** `InternalDurationSign` */
@@ -798,7 +798,7 @@ function nudgeToDayOrTime(
 			addTimeDuration(roundedTime, negateTimeDuration(timeDuration)),
 		),
 		$didExpandCalendarUnit:
-			Math.sign(roundedWholeDays - timeDurationDaysAndRemainderNanoseconds(timeDuration)[0]) ===
+			sign(roundedWholeDays - timeDurationDaysAndRemainderNanoseconds(timeDuration)[0]) ===
 			timeDurationSign(timeDuration),
 	};
 }
@@ -1308,11 +1308,9 @@ export class Duration {
 								0,
 								0,
 								0,
-								roundNumberToIncrement(
-									totalTimeDuration(internalDuration.$time, "day"),
-									roundingIncrement,
-									roundingMode,
-								),
+								timeDurationDaysAndRemainderNanoseconds(
+									roundTimeDurationByDays(internalDuration.$time, roundingIncrement, roundingMode),
+								)[0],
 							),
 							createTimeDurationFromSeconds(0),
 						)
@@ -1416,11 +1414,9 @@ export class Duration {
 	toJSON() {
 		return temporalDurationToString(getInternalSlotOrThrowForDuration(this));
 	}
-	// oxlint-disable-next-line no-unused-vars
-	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
+	toLocaleString(locales: unknown = undefined, options: unknown = undefined): string {
 		getInternalSlotOrThrowForDuration(this);
-		// TODO
-		return "";
+		return new Intl.DurationFormat(locales, options).format(this);
 	}
 	valueOf() {
 		throw new TypeError();
