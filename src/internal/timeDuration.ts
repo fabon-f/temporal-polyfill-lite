@@ -8,7 +8,7 @@ import {
 import { toNumber } from "./ecmascript.ts";
 import type { RoundingMode } from "./enum.ts";
 import { compareEpochNanoseconds, normalizeEpochNanoseconds } from "./epochNanoseconds.ts";
-import { type NumberSign } from "./math.ts";
+import { compare, type NumberSign } from "./math.ts";
 import { toZeroPaddedDecimalString } from "./string.ts";
 
 const timeDurationBrand = /*#__PURE__*/ Symbol();
@@ -76,6 +76,10 @@ export function absTimeDuration(timeDuration: TimeDuration): TimeDuration {
 	return normalize(Math.abs(timeDuration[0]), Math.abs(timeDuration[1]));
 }
 
+export function negateTimeDuration(timeDuration: TimeDuration): TimeDuration {
+	return normalize(-timeDuration[0], -timeDuration[1]);
+}
+
 // @ts-expect-error
 export const compareTimeDuration = compareEpochNanoseconds as (
 	a: TimeDuration,
@@ -132,6 +136,47 @@ export function roundTimeDuration(
 		timeDuration[0],
 		roundNumberToIncrement(timeDuration[1], roundingIncrementNanoseconds, roundingMode),
 	);
+}
+
+export function roundTimeDurationByDays(
+	timeDuration: TimeDuration,
+	roundingIncrementDays: number,
+	roundingMode: RoundingMode,
+) {
+	const sign = signTimeDuration(timeDuration);
+	const remainderDayAbs = Math.abs(timeDuration[1] / nanosecondsPerDay);
+	// if day part is large and remainder nanoseconds is small, `timeDuration[0] + sign * remainderDayAbs` causes floating-point error
+	return normalize(
+		roundNumberToIncrement(
+			timeDuration[0] + sign * (remainderDayAbs ? compare(remainderDayAbs, 0.5) * 0.2 + 0.5 : 0),
+			roundingIncrementDays,
+			roundingMode,
+		),
+		0,
+	);
+}
+
+export function getApproximateRatioOfTimeDurationsForRounding(
+	target: TimeDuration,
+	divisor: TimeDuration,
+	sign: 1 | -1,
+) {
+	// actual value of the `target / divisor` isn't relevant for rounding, but comparison to threshold values (0, 0.5, and 1) should not change.
+	// TODO: consider remove duplication of logic in this function and `roundTimeDurationByDays`
+	const comparedToHalf = compareTimeDuration(addTimeDuration(target, target), divisor);
+	if (!compareTimeDuration(target, createTimeDurationFromSeconds(0))) {
+		return 0;
+	}
+	if (!compareTimeDuration(target, divisor)) {
+		return 1;
+	}
+	if (!comparedToHalf) {
+		return 0.5;
+	}
+	if (comparedToHalf !== sign) {
+		return 0.3;
+	}
+	return 0.7;
 }
 
 export function divideTimeDurationToFloatingPoint(timeDuration: TimeDuration, divisor: number) {

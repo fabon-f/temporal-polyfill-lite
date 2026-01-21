@@ -70,7 +70,7 @@ export function getUnitIndex(unit: SingularUnitKey): number {
 	return result;
 }
 
-export function nanosecondsForTimeUnit(unit: SingularUnitKey): number {
+export function nanosecondsForTimeUnit(unit: "day" | SingularTimeUnitKey): number {
 	const length = timeUnitLengths[getUnitIndex(unit) - 3];
 	assertNotUndefined(length);
 	return length;

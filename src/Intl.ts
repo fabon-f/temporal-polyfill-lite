@@ -1,9 +1,8 @@
 import { DateTimeFormat } from "./DateTimeFormat.ts";
 
-const originalIntl = globalThis.Intl;
+const intlPropertyDescriptors = Object.getOwnPropertyDescriptors(globalThis.Intl);
+intlPropertyDescriptors.DateTimeFormat.value = DateTimeFormat;
 
 export const Intl = {} as typeof globalThis.Intl;
-const intlPropertyDescriptors = Object.getOwnPropertyDescriptors(originalIntl);
-intlPropertyDescriptors.DateTimeFormat.value = DateTimeFormat;
 
 Object.defineProperties(Intl, intlPropertyDescriptors);

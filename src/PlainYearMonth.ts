@@ -1,12 +1,26 @@
 import {
+	adjustDateDurationRecord,
+	applySignToDurationSlot,
+	combineDateAndTimeDuration,
+	createTemporalDuration,
+	createTemporalDurationSlot,
+	Duration,
+	roundRelativeDuration,
+	temporalDurationFromInternal,
+} from "./Duration.ts";
+import {
+	getDifferenceSettings,
 	getTemporalOverflowOption,
 	getTemporalShowCalendarNameOption,
+	getUtcEpochNanoseconds,
 	isoDateToFields,
 	isPartialTemporalObject,
 } from "./internal/abstractOperations.ts";
 import { assertNotUndefined } from "./internal/assertion.ts";
 import {
 	calendarDateFromFields,
+	calendarDateUntil,
+	calendarEquals,
 	calendarFieldKeys,
 	calendarIsoToDate,
 	calendarMergeFields,
@@ -20,6 +34,7 @@ import {
 import { parseIsoDateTime, temporalYearMonthStringRegExp } from "./internal/dateTimeParser.ts";
 import { getOptionsObject, toIntegerWithTruncation } from "./internal/ecmascript.ts";
 import {
+	DATE,
 	overflowConstrain,
 	showCalendarName,
 	YEAR_MONTH,
@@ -29,6 +44,7 @@ import { divFloor, isWithin, modFloor } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
+import { createTimeDurationFromSeconds } from "./internal/timeDuration.ts";
 import { notImplementedYet } from "./internal/utils.ts";
 import {
 	compareIsoDate,
@@ -38,6 +54,8 @@ import {
 	padIsoYear,
 	type IsoDateRecord,
 } from "./PlainDate.ts";
+import { combineIsoDateAndTimeRecord } from "./PlainDateTime.ts";
+import { midnightTimeRecord } from "./PlainTime.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 interface PlainYearMonthSlot {
@@ -140,6 +158,63 @@ function temporalYearMonthToString(
 			? `-${toZeroPaddedDecimalString(yearMonthSlot.$isoDate.$day, 2)}`
 			: ""
 	}${formatCalendarAnnotation(yearMonthSlot.$calendar, showCalendar)}`;
+}
+
+/** `DifferenceTemporalPlainYearMonth` */
+function differenceTemporalPlainYearMonth(
+	operationSign: 1 | -1,
+	yearMonth: PlainYearMonthSlot,
+	other: unknown,
+	options: unknown,
+): Duration {
+	const otherSlot = getInternalSlotOrThrowForPlainYearMonth(toTemporalYearMonth(other));
+	if (!calendarEquals(yearMonth.$calendar, otherSlot.$calendar)) {
+		throw new RangeError();
+	}
+	const settings = getDifferenceSettings(
+		operationSign,
+		getOptionsObject(options),
+		DATE,
+		["week", "day"],
+		"month",
+		"year",
+	);
+	if (!compareIsoDate(yearMonth.$isoDate, otherSlot.$isoDate)) {
+		return createTemporalDuration(createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+	}
+	const thisFields = isoDateToFields(yearMonth.$calendar, yearMonth.$isoDate, YEAR_MONTH);
+	thisFields.day = 1;
+	const thisDate = calendarDateFromFields(yearMonth.$calendar, thisFields, overflowConstrain);
+	const otherFields = isoDateToFields(yearMonth.$calendar, otherSlot.$isoDate, YEAR_MONTH);
+	otherFields.day = 1;
+	const otherDate = calendarDateFromFields(yearMonth.$calendar, otherFields, overflowConstrain);
+
+	let duration = combineDateAndTimeDuration(
+		adjustDateDurationRecord(
+			calendarDateUntil(yearMonth.$calendar, thisDate, otherDate, settings.$largestUnit),
+			0,
+			0,
+		),
+		createTimeDurationFromSeconds(0),
+	);
+	if (settings.$smallestUnit !== "month" || settings.$roundingIncrement !== 1) {
+		const isoDateTime = combineIsoDateAndTimeRecord(thisDate, midnightTimeRecord());
+		duration = roundRelativeDuration(
+			duration,
+			getUtcEpochNanoseconds(isoDateTime),
+			getUtcEpochNanoseconds(combineIsoDateAndTimeRecord(otherDate, midnightTimeRecord())),
+			isoDateTime,
+			undefined,
+			yearMonth.$calendar,
+			settings.$largestUnit,
+			settings.$roundingIncrement,
+			settings.$smallestUnit,
+			settings.$roundingMode,
+		);
+	}
+	return createTemporalDuration(
+		applySignToDurationSlot(temporalDurationFromInternal(duration, "day"), operationSign),
+	);
 }
 
 function createPlainYearMonthSlot(
@@ -269,11 +344,21 @@ export class PlainYearMonth {
 	subtract() {
 		notImplementedYet();
 	}
-	until() {
-		notImplementedYet();
+	until(other: unknown, options: unknown = undefined) {
+		return differenceTemporalPlainYearMonth(
+			1,
+			getInternalSlotOrThrowForPlainYearMonth(this),
+			other,
+			options,
+		);
 	}
-	since() {
-		notImplementedYet();
+	since(other: unknown, options: unknown = undefined) {
+		return differenceTemporalPlainYearMonth(
+			-1,
+			getInternalSlotOrThrowForPlainYearMonth(this),
+			other,
+			options,
+		);
 	}
 	equals(other: unknown) {
 		const slot = getInternalSlotOrThrowForPlainYearMonth(this);

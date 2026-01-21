@@ -4,6 +4,7 @@ import {
 	createTemporalDuration,
 	createTemporalDurationSlot,
 	Duration,
+	roundRelativeDuration,
 	temporalDurationFromInternal,
 	toDateDurationRecordWithoutTime,
 	toTemporalDuration,
@@ -13,6 +14,7 @@ import {
 	getDifferenceSettings,
 	getTemporalOverflowOption,
 	getTemporalShowCalendarNameOption,
+	getUtcEpochNanoseconds,
 	isoDateRecordToEpochDays,
 	isoDateToEpochDays,
 	isoDateToFields,
@@ -58,7 +60,6 @@ import {
 	getStartOfDay,
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
-import { notImplementedYet } from "./internal/utils.ts";
 import {
 	combineIsoDateAndTimeRecord,
 	createTemporalDateTime,
@@ -69,6 +70,7 @@ import {
 import { createTemporalMonthDay } from "./PlainMonthDay.ts";
 import {
 	getInternalSlotOrThrowForPlainTime,
+	midnightTimeRecord,
 	noonTimeRecord,
 	toTemporalTime,
 	toTimeRecordOrMidnight,
@@ -231,7 +233,7 @@ function differenceTemporalPlainDate(
 	if (!compareIsoDate(temporalDate.$isoDate, otherSlot.$isoDate)) {
 		return createTemporalDuration(createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	}
-	const duration = combineDateAndTimeDuration(
+	let duration = combineDateAndTimeDuration(
 		calendarDateUntil(
 			temporalDate.$calendar,
 			temporalDate.$isoDate,
@@ -241,8 +243,19 @@ function differenceTemporalPlainDate(
 		createTimeDurationFromSeconds(0),
 	);
 	if (settings.$smallestUnit !== "day" || settings.$roundingIncrement !== 1) {
-		// TODO
-		notImplementedYet();
+		const isoDateTime = combineIsoDateAndTimeRecord(temporalDate.$isoDate, midnightTimeRecord());
+		duration = roundRelativeDuration(
+			duration,
+			getUtcEpochNanoseconds(isoDateTime),
+			getUtcEpochNanoseconds(combineIsoDateAndTimeRecord(otherSlot.$isoDate, midnightTimeRecord())),
+			isoDateTime,
+			undefined,
+			temporalDate.$calendar,
+			settings.$largestUnit,
+			settings.$roundingIncrement,
+			settings.$smallestUnit,
+			settings.$roundingMode,
+		);
 	}
 	return createTemporalDuration(
 		applySignToDurationSlot(temporalDurationFromInternal(duration, "day"), operationSign),

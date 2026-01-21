@@ -124,7 +124,7 @@ function parseAnnotationsAndGetCalendar(annotationsString: string): string | und
 	let calendarWasCritical = false;
 	const regexp = RegExp(annotation, "g");
 	let match: RegExpExecArray | null;
-	while ((match = regexp.exec(annotationsString)) !== null) {
+	while ((match = regexp.exec(annotationsString))) {
 		const isCritical = !!match[1];
 		if (match[2] === "u-ca") {
 			if (calendar === undefined) {

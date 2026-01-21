@@ -1,18 +1,31 @@
 import {
 	applySignToDurationSlot,
+	combineDateAndTimeDuration,
+	createTemporalDuration,
+	createTemporalDurationSlot,
 	dateDurationSign,
+	roundRelativeDuration,
+	temporalDurationFromInternal,
+	timeDurationFromEpochNanosecondsDifference,
+	timeDurationSign,
 	toInternalDurationRecord,
+	totalRelativeDuration,
+	totalTimeDuration,
 	toTemporalDuration,
+	zeroDateDuration,
+	type DurationSlot,
 	type InternalDurationRecord,
 } from "./Duration.ts";
 import {
 	addInstant,
 	createTemporalInstant,
+	differenceInstant,
 	isValidEpochNanoseconds,
 	roundTemporalInstant,
 } from "./Instant.ts";
 import {
 	checkIsoDaysRange,
+	getDifferenceSettings,
 	getDirectionOption,
 	getRoundingIncrementOption,
 	getRoundingModeOption,
@@ -25,8 +38,10 @@ import {
 	getTemporalShowTimeZoneNameOption,
 	getTemporalUnitValuedOption,
 	getUtcEpochNanoseconds,
+	isDateUnit,
 	isoDateToFields,
 	isPartialTemporalObject,
+	largerOfTwoTemporalUnits,
 	maximumTemporalDurationRoundingIncrement,
 	roundNumberToIncrement,
 	toSecondsStringPrecisionRecord,
@@ -36,6 +51,7 @@ import {
 import { assert, assertNotUndefined } from "./internal/assertion.ts";
 import {
 	calendarDateAdd,
+	calendarDateUntil,
 	calendarEquals,
 	calendarFieldKeys,
 	calendarIsoToDate,
@@ -58,6 +74,7 @@ import {
 import { getOptionsObject, getRoundToOptionsObject, toBigInt } from "./internal/ecmascript.ts";
 import {
 	DATE,
+	DATETIME,
 	disambiguationCompatible,
 	MINUTE,
 	offsetBehaviourExact,
@@ -96,7 +113,10 @@ import {
 } from "./internal/epochNanoseconds.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
-import { timeDurationToSubsecondsNumber } from "./internal/timeDuration.ts";
+import {
+	createTimeDurationFromSeconds,
+	timeDurationToSubsecondsNumber,
+} from "./internal/timeDuration.ts";
 import {
 	createOffsetCacheMap,
 	disambiguatePossibleEpochNanoseconds,
@@ -114,10 +134,10 @@ import {
 	timeZoneEquals,
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
-import type { SingularTimeUnitKey } from "./internal/unit.ts";
-import { notImplementedYet } from "./internal/utils.ts";
+import type { SingularDateUnitKey, SingularTimeUnitKey, SingularUnitKey } from "./internal/unit.ts";
 import {
 	addDaysToIsoDate,
+	compareIsoDate,
 	createIsoDateRecord,
 	createTemporalDate,
 	type IsoDateRecord,
@@ -134,6 +154,7 @@ import {
 } from "./PlainDateTime.ts";
 import {
 	createTemporalTime,
+	differenceTime,
 	getInternalSlotOrThrowForPlainTime,
 	toTemporalTime,
 	type TimeRecord,
@@ -410,6 +431,189 @@ export function addZonedDateTime(
 			offsetCacheMap,
 		),
 		duration.$time,
+	);
+}
+
+/** `DifferenceZonedDateTime` */
+function differenceZonedDateTime(
+	ns1: EpochNanoseconds,
+	ns2: EpochNanoseconds,
+	timeZone: string,
+	calendar: SupportedCalendars,
+	largestUnit: SingularUnitKey,
+	offsetCacheMap?: Map<number, number>,
+): InternalDurationRecord {
+	const sign = compareEpochNanoseconds(ns1, ns2);
+	if (!sign) {
+		return combineDateAndTimeDuration(zeroDateDuration(), createTimeDurationFromSeconds(0));
+	}
+	const startDateTime = getIsoDateTimeFromOffsetNanoseconds(
+		ns1,
+		getOffsetNanosecondsFor(timeZone, ns1, offsetCacheMap),
+	);
+	const endDateTime = getIsoDateTimeFromOffsetNanoseconds(
+		ns2,
+		getOffsetNanosecondsFor(timeZone, ns1, offsetCacheMap),
+	);
+	if (!compareIsoDate(startDateTime.$isoDate, endDateTime.$isoDate)) {
+		return combineDateAndTimeDuration(
+			zeroDateDuration(),
+			timeDurationFromEpochNanosecondsDifference(ns1, ns2),
+		);
+	}
+	let timeDuration = differenceTime(startDateTime.$time, endDateTime.$time);
+	let intermediateDateTime: IsoDateTimeRecord | undefined;
+	for (
+		let dayCorrection = timeDurationSign(timeDuration) === sign ? 1 : 0;
+		dayCorrection <= (3 - sign) / 2;
+		dayCorrection++
+	) {
+		intermediateDateTime = combineIsoDateAndTimeRecord(
+			addDaysToIsoDate(endDateTime.$isoDate, dayCorrection * sign),
+			startDateTime.$time,
+		);
+		timeDuration = timeDurationFromEpochNanosecondsDifference(
+			ns2,
+			getEpochNanosecondsFor(
+				timeZone,
+				intermediateDateTime,
+				disambiguationCompatible,
+				offsetCacheMap,
+			),
+		);
+		if (timeDurationSign(timeDuration) !== sign) {
+			break;
+		}
+	}
+	assertNotUndefined(intermediateDateTime);
+	return combineDateAndTimeDuration(
+		calendarDateUntil(
+			calendar,
+			startDateTime.$isoDate,
+			intermediateDateTime.$isoDate,
+			largerOfTwoTemporalUnits(largestUnit, "day") as SingularDateUnitKey,
+		),
+		timeDuration,
+	);
+}
+
+/** `DifferenceZonedDateTimeWithRounding` */
+export function differenceZonedDateTimeWithRounding(
+	ns1: EpochNanoseconds,
+	ns2: EpochNanoseconds,
+	timeZone: string,
+	calendar: SupportedCalendars,
+	largestUnit: SingularUnitKey,
+	roundingIncrement: number,
+	smallestUnit: SingularUnitKey,
+	roundingMode: RoundingMode,
+	offsetCacheMap?: Map<number, number>,
+): InternalDurationRecord {
+	if (!isDateUnit(largestUnit)) {
+		assert(!isDateUnit(smallestUnit));
+		return differenceInstant(ns1, ns2, roundingIncrement, smallestUnit, roundingMode);
+	}
+	const difference = differenceZonedDateTime(ns1, ns2, timeZone, calendar, largestUnit);
+	if (smallestUnit === "nanosecond" && roundingIncrement === 1) {
+		return difference;
+	}
+
+	return roundRelativeDuration(
+		difference,
+		ns1,
+		ns2,
+		getIsoDateTimeFromOffsetNanoseconds(
+			ns1,
+			getOffsetNanosecondsFor(timeZone, ns1, offsetCacheMap),
+		),
+		timeZone,
+		calendar,
+		largestUnit,
+		roundingIncrement,
+		smallestUnit,
+		roundingMode,
+	);
+}
+
+/** `DifferenceZonedDateTimeWithTotal` */
+export function differenceZonedDateTimeWithTotal(
+	ns1: EpochNanoseconds,
+	ns2: EpochNanoseconds,
+	timeZone: string,
+	calendar: SupportedCalendars,
+	unit: SingularUnitKey,
+) {
+	if (!isDateUnit(unit)) {
+		return totalTimeDuration(timeDurationFromEpochNanosecondsDifference(ns2, ns1), unit);
+	}
+
+	return totalRelativeDuration(
+		differenceZonedDateTime(ns1, ns2, timeZone, calendar, unit),
+		ns1,
+		ns2,
+		getIsoDateTimeFromOffsetNanoseconds(ns1, getOffsetNanosecondsFor(timeZone, ns1)),
+		timeZone,
+		calendar,
+		unit,
+	);
+}
+
+/** `DifferenceTemporalZonedDateTime` */
+function differenceTemporalZonedDateTime(
+	operationSign: 1 | -1,
+	zonedDateTime: ZonedDateTimeSlot,
+	other: unknown,
+	options: unknown,
+): DurationSlot {
+	const otherSlot = getInternalSlotOrThrowForZonedDateTime(toTemporalZonedDateTime(other));
+	if (!calendarEquals(zonedDateTime.$calendar, otherSlot.$calendar)) {
+		throw new RangeError();
+	}
+	const settings = getDifferenceSettings(
+		operationSign,
+		getOptionsObject(options),
+		DATETIME,
+		[],
+		"nanosecond",
+		"hour",
+	);
+	if (!isDateUnit(settings.$largestUnit)) {
+		assert(!isDateUnit(settings.$smallestUnit));
+		return applySignToDurationSlot(
+			temporalDurationFromInternal(
+				differenceInstant(
+					zonedDateTime.$epochNanoseconds,
+					otherSlot.$epochNanoseconds,
+					settings.$roundingIncrement,
+					settings.$smallestUnit,
+					settings.$roundingMode,
+				),
+				settings.$largestUnit,
+			),
+			operationSign,
+		);
+	}
+	if (!timeZoneEquals(zonedDateTime.$timeZone, otherSlot.$timeZone)) {
+		throw new RangeError();
+	}
+	if (!compareEpochNanoseconds(zonedDateTime.$epochNanoseconds, otherSlot.$epochNanoseconds)) {
+		return createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	}
+	return applySignToDurationSlot(
+		temporalDurationFromInternal(
+			differenceZonedDateTimeWithRounding(
+				zonedDateTime.$epochNanoseconds,
+				otherSlot.$epochNanoseconds,
+				zonedDateTime.$timeZone,
+				zonedDateTime.$calendar,
+				settings.$largestUnit,
+				settings.$roundingIncrement,
+				settings.$smallestUnit,
+				settings.$roundingMode,
+			),
+			"hour",
+		),
+		operationSign,
 	);
 }
 
@@ -764,11 +968,25 @@ export class ZonedDateTime {
 			options,
 		);
 	}
-	until() {
-		notImplementedYet();
+	until(other: unknown, options: unknown = undefined) {
+		return createTemporalDuration(
+			differenceTemporalZonedDateTime(
+				1,
+				getInternalSlotOrThrowForZonedDateTime(this),
+				other,
+				options,
+			),
+		);
 	}
-	since() {
-		notImplementedYet();
+	since(other: unknown, options: unknown = undefined) {
+		return createTemporalDuration(
+			differenceTemporalZonedDateTime(
+				1,
+				getInternalSlotOrThrowForZonedDateTime(this),
+				other,
+				options,
+			),
+		);
 	}
 	round(roundTo: unknown) {
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);

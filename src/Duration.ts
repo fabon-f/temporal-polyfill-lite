@@ -1,30 +1,47 @@
 import {
 	formatFractionalSeconds,
+	getRoundingIncrementOption,
 	getRoundingModeOption,
 	getTemporalFractionalSecondDigitsOption,
 	getTemporalRelativeToOption,
 	getTemporalUnitValuedOption,
+	getUtcEpochNanoseconds,
 	isCalendarUnit,
 	isDateUnit,
 	isoDateRecordToEpochDays,
 	largerOfTwoTemporalUnits,
+	maximumTemporalDurationRoundingIncrement,
 	parseTemporalDurationString,
+	roundNumberToIncrement,
 	toSecondsStringPrecisionRecord,
+	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
 import { assert, assertNotUndefined } from "./internal/assertion.ts";
-import { calendarDateAdd } from "./internal/calendars.ts";
-import { getOptionsObject, toIntegerIfIntegral, toString } from "./internal/ecmascript.ts";
+import {
+	calendarDateAdd,
+	calendarDateUntil,
+	type SupportedCalendars,
+} from "./internal/calendars.ts";
+import {
+	getOptionsObject,
+	getRoundToOptionsObject,
+	toIntegerIfIntegral,
+	toString,
+} from "./internal/ecmascript.ts";
 import {
 	DATETIME,
+	disambiguationCompatible,
 	MINUTE,
 	overflowConstrain,
 	REQUIRED,
+	roundingModeHalfExpand,
 	roundingModeTrunc,
 	TIME,
 	type RoundingMode,
 } from "./internal/enum.ts";
 import {
+	addTimeDurationToEpochNanoseconds,
 	compareEpochNanoseconds,
 	differenceEpochNanoseconds,
 	type EpochNanoseconds,
@@ -43,6 +60,9 @@ import {
 	createTimeDurationFromNanoseconds,
 	createTimeDurationFromSeconds,
 	divideTimeDurationToFloatingPoint,
+	getApproximateRatioOfTimeDurationsForRounding,
+	negateTimeDuration,
+	roundTimeDurationByDays,
 	roundTimeDuration as roundTimeDurationOriginal,
 	signTimeDuration,
 	sumTimeDuration,
@@ -51,18 +71,31 @@ import {
 	timeDurationToSubsecondsNumber,
 	type TimeDuration,
 } from "./internal/timeDuration.ts";
-import { createOffsetCacheMap } from "./internal/timeZones.ts";
+import { createOffsetCacheMap, getEpochNanosecondsFor } from "./internal/timeZones.ts";
 import {
+	getUnitIndex,
 	nanosecondsForTimeUnit,
 	pluralUnitKeys,
 	singularUnitKeys,
 	unitIndices,
+	type SingularDateUnitKey,
 	type SingularTimeUnitKey,
 	type SingularUnitKey,
 } from "./internal/unit.ts";
-import { mapUnlessUndefined, notImplementedYet } from "./internal/utils.ts";
-import type { PlainDateSlot } from "./PlainDate.ts";
-import { addZonedDateTime } from "./ZonedDateTime.ts";
+import { mapUnlessUndefined } from "./internal/utils.ts";
+import { addDaysToIsoDate, type PlainDateSlot } from "./PlainDate.ts";
+import {
+	combineIsoDateAndTimeRecord,
+	differencePlainDateTimeWithRounding,
+	differencePlainDateTimeWithTotal,
+	type IsoDateTimeRecord,
+} from "./PlainDateTime.ts";
+import { addTime, midnightTimeRecord } from "./PlainTime.ts";
+import {
+	addZonedDateTime,
+	differenceZonedDateTimeWithRounding,
+	differenceZonedDateTimeWithTotal,
+} from "./ZonedDateTime.ts";
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 
@@ -271,6 +304,11 @@ export function dateDurationSign(dateDuration: DateDurationRecord): NumberSign {
 	) as NumberSign;
 }
 
+/** `InternalDurationSign` */
+function internalDurationSign(internalDuration: InternalDurationRecord): NumberSign {
+	return dateDurationSign(internalDuration.$date) || timeDurationSign(internalDuration.$time);
+}
+
 /** `IsValidDuration` */
 function isValidDuration(...units: DurationTuple): boolean {
 	assert(units.every((v) => Number.isFinite(v)));
@@ -422,7 +460,7 @@ export function timeDurationFromComponents(
 }
 
 /** `Add24HourDaysToTimeDuration` */
-function add24HourDaysToTimeDuration(d: TimeDuration, days: number): TimeDuration {
+export function add24HourDaysToTimeDuration(d: TimeDuration, days: number): TimeDuration {
 	const result = addDaysToTimeDuration(d, days);
 	if (!timeDurationWithinLimits(result)) {
 		throw new RangeError();
@@ -454,7 +492,7 @@ function roundTimeDurationToIncrement(
 }
 
 /** `TimeDurationSign` */
-const timeDurationSign = signTimeDuration;
+export const timeDurationSign = signTimeDuration;
 
 /** `DateDurationDays` */
 function dateDurationDays(dateDuration: DateDurationRecord, plainRelativeTo: PlainDateSlot) {
@@ -491,8 +529,411 @@ export function roundTimeDuration(
 }
 
 /** `TotalTimeDuration` */
-function totalTimeDuration(timeDuration: TimeDuration, unit: SingularTimeUnitKey | "day"): number {
+export function totalTimeDuration(
+	timeDuration: TimeDuration,
+	unit: SingularTimeUnitKey | "day",
+): number {
 	return divideTimeDurationToFloatingPoint(timeDuration, nanosecondsForTimeUnit(unit));
+}
+
+interface NudgeWindowRecord {
+	$r1: number;
+	$r2: number;
+	$startEpochNs: EpochNanoseconds;
+	$endEpochNs: EpochNanoseconds;
+	$startDuration: DateDurationRecord;
+	$endDuration: DateDurationRecord;
+}
+
+/** `ComputeNudgeWindow` */
+function computeNudgeWindow(
+	sign: 1 | -1,
+	duration: InternalDurationRecord,
+	originEpochNs: EpochNanoseconds,
+	isoDateTime: IsoDateTimeRecord,
+	timeZone: string | undefined,
+	calendar: SupportedCalendars,
+	increment: number,
+	unit: SingularDateUnitKey,
+	additionalShift: boolean,
+): NudgeWindowRecord {
+	let r1: number;
+	let r2: number;
+	let startDuration: DateDurationRecord;
+	let endDuration: DateDurationRecord;
+	if (unit === "year") {
+		r1 =
+			roundNumberToIncrement(duration.$date.$years, increment, roundingModeTrunc) +
+			(additionalShift ? increment * sign : 0);
+		r2 = r1 + increment * sign;
+		startDuration = createDateDurationRecord(r1, 0, 0, 0);
+		endDuration = createDateDurationRecord(r2, 0, 0, 0);
+	} else if (unit === "month") {
+		r1 =
+			roundNumberToIncrement(duration.$date.$months, increment, roundingModeTrunc) +
+			(additionalShift ? increment * sign : 0);
+		r2 = r1 + increment * sign;
+		startDuration = adjustDateDurationRecord(duration.$date, 0, 0, r1);
+		endDuration = adjustDateDurationRecord(duration.$date, 0, 0, r2);
+	} else if (unit === "week") {
+		const weeksStart = calendarDateAdd(
+			calendar,
+			isoDateTime.$isoDate,
+			adjustDateDurationRecord(duration.$date, 0, 0),
+			overflowConstrain,
+		);
+		r1 = roundNumberToIncrement(
+			duration.$date.$weeks +
+				calendarDateUntil(
+					calendar,
+					weeksStart,
+					addDaysToIsoDate(weeksStart, duration.$date.$days),
+					"week",
+				).$weeks,
+			increment,
+			roundingModeTrunc,
+		);
+		r2 = r1 + increment * sign;
+		startDuration = adjustDateDurationRecord(duration.$date, 0, r1);
+		endDuration = adjustDateDurationRecord(duration.$date, 0, r2);
+	} else {
+		r1 = roundNumberToIncrement(duration.$date.$days, increment, roundingModeTrunc);
+		r2 = r1 + increment * sign;
+		startDuration = adjustDateDurationRecord(duration.$date, r1);
+		endDuration = adjustDateDurationRecord(duration.$date, r2);
+	}
+	let startEpochNs: EpochNanoseconds;
+	if (r1 === 0) {
+		startEpochNs = originEpochNs;
+	} else {
+		const startDateTime = combineIsoDateAndTimeRecord(
+			calendarDateAdd(calendar, isoDateTime.$isoDate, startDuration, overflowConstrain),
+			isoDateTime.$time,
+		);
+		startEpochNs = timeZone
+			? getEpochNanosecondsFor(timeZone, startDateTime, disambiguationCompatible)
+			: getUtcEpochNanoseconds(startDateTime);
+	}
+	const endDateTime = combineIsoDateAndTimeRecord(
+		calendarDateAdd(calendar, isoDateTime.$isoDate, endDuration, overflowConstrain),
+		isoDateTime.$time,
+	);
+	const endEpochNs = timeZone
+		? getEpochNanosecondsFor(timeZone, endDateTime, disambiguationCompatible)
+		: getUtcEpochNanoseconds(endDateTime);
+	return {
+		$r1: r1,
+		$r2: r2,
+		$startEpochNs: startEpochNs,
+		$endEpochNs: endEpochNs,
+		$startDuration: startDuration,
+		$endDuration: endDuration,
+	};
+}
+
+interface DurationNudgeResultRecord {
+	$duration: InternalDurationRecord;
+	$nudgedEpochNs: EpochNanoseconds;
+	$didExpandCalendarUnit: boolean;
+}
+
+/** `NudgeToCalendarUnit` */
+function nudgeToCalendarUnit(
+	sign: 1 | -1,
+	duration: InternalDurationRecord,
+	originEpochNs: EpochNanoseconds,
+	destEpochNs: EpochNanoseconds,
+	isoDateTime: IsoDateTimeRecord,
+	timeZone: string | undefined,
+	calendar: SupportedCalendars,
+	increment: number,
+	unit: SingularDateUnitKey,
+	roundingMode: RoundingMode,
+): { $nudgeResult: DurationNudgeResultRecord; $total: number } {
+	let didExpandCalendarUnit = false;
+	let nudgeWindow = computeNudgeWindow(
+		sign,
+		duration,
+		originEpochNs,
+		isoDateTime,
+		timeZone,
+		calendar,
+		increment,
+		unit,
+		false,
+	);
+	if (
+		compareEpochNanoseconds(nudgeWindow.$startEpochNs, destEpochNs) *
+			compareEpochNanoseconds(nudgeWindow.$endEpochNs, destEpochNs) >
+		0
+	) {
+		nudgeWindow = computeNudgeWindow(
+			sign,
+			duration,
+			originEpochNs,
+			isoDateTime,
+			timeZone,
+			calendar,
+			increment,
+			unit,
+			true,
+		);
+		didExpandCalendarUnit = true;
+	}
+	const d1 = differenceEpochNanoseconds(nudgeWindow.$startEpochNs, destEpochNs);
+	const d2 = differenceEpochNanoseconds(nudgeWindow.$startEpochNs, nudgeWindow.$endEpochNs);
+	let resultDuration = nudgeWindow.$startDuration;
+	let nudgedEpochNs = nudgeWindow.$startEpochNs;
+	if (
+		roundNumberToIncrement(
+			nudgeWindow.$r1 +
+				getApproximateRatioOfTimeDurationsForRounding(d1, d2, sign) * increment * sign,
+			increment,
+			roundingMode,
+		) === nudgeWindow.$r2
+	) {
+		didExpandCalendarUnit = true;
+		resultDuration = nudgeWindow.$endDuration;
+		nudgedEpochNs = nudgeWindow.$endEpochNs;
+	}
+	return {
+		$nudgeResult: {
+			$duration: combineDateAndTimeDuration(resultDuration, createTimeDurationFromSeconds(0)),
+			$nudgedEpochNs: nudgedEpochNs,
+			$didExpandCalendarUnit: didExpandCalendarUnit,
+		},
+		// TODO: investigate the way to achive better precision
+		$total:
+			nudgeWindow.$r1 +
+			(totalTimeDuration(d1, "day") / totalTimeDuration(d2, "day")) * increment * sign,
+	};
+}
+
+/** `NudgeToZonedTime` */
+function nudgeToZonedTime(
+	sign: 1 | -1,
+	duration: InternalDurationRecord,
+	isoDateTime: IsoDateTimeRecord,
+	timeZone: string,
+	calendar: SupportedCalendars,
+	increment: number,
+	unit: SingularTimeUnitKey,
+	roundingMode: RoundingMode,
+): DurationNudgeResultRecord {
+	const start = calendarDateAdd(calendar, isoDateTime.$isoDate, duration.$date, overflowConstrain);
+	const startDateTime = combineIsoDateAndTimeRecord(start, isoDateTime.$time);
+	const endDateTime = combineIsoDateAndTimeRecord(addDaysToIsoDate(start, sign), isoDateTime.$time);
+	const startEpochNs = getEpochNanosecondsFor(timeZone, startDateTime, disambiguationCompatible);
+	const endEpochNs = getEpochNanosecondsFor(timeZone, endDateTime, disambiguationCompatible);
+	const daySpan = timeDurationFromEpochNanosecondsDifference(endEpochNs, startEpochNs);
+	assert(timeDurationSign(daySpan) === sign);
+	const unitLength = nanosecondsForTimeUnit(unit);
+	let roundedTimeDuration = roundTimeDurationToIncrement(
+		duration.$time,
+		increment * unitLength,
+		roundingMode,
+	);
+	const beyondDaySpan = addTimeDuration(roundedTimeDuration, negateTimeDuration(daySpan));
+	let didRoundBeyondDay = false;
+	let dayDelta = 0;
+	let nudgedEpochNs: EpochNanoseconds;
+	if (timeDurationSign(beyondDaySpan) !== -sign) {
+		didRoundBeyondDay = true;
+		dayDelta = sign;
+		roundedTimeDuration = roundTimeDurationToIncrement(
+			beyondDaySpan,
+			increment * unitLength,
+			roundingMode,
+		);
+		nudgedEpochNs = addTimeDurationToEpochNanoseconds(endEpochNs, roundedTimeDuration);
+	} else {
+		nudgedEpochNs = addTimeDurationToEpochNanoseconds(endEpochNs, roundedTimeDuration);
+	}
+	const resultDuration = combineDateAndTimeDuration(
+		adjustDateDurationRecord(duration.$date, duration.$date.$days + dayDelta),
+		roundedTimeDuration,
+	);
+	return {
+		$duration: resultDuration,
+		$nudgedEpochNs: nudgedEpochNs,
+		$didExpandCalendarUnit: didRoundBeyondDay,
+	};
+}
+
+/** `NudgeToDayOrTime` */
+function nudgeToDayOrTime(
+	duration: InternalDurationRecord,
+	destEpochNs: EpochNanoseconds,
+	largestUnit: SingularUnitKey,
+	increment: number,
+	smallestUnit: SingularTimeUnitKey | "day",
+	roundingMode: RoundingMode,
+): DurationNudgeResultRecord {
+	const timeDuration = add24HourDaysToTimeDuration(duration.$time, duration.$date.$days);
+	const roundedTime =
+		smallestUnit === "day"
+			? roundTimeDurationByDays(timeDuration, increment, roundingMode)
+			: roundTimeDurationToIncrement(
+					timeDuration,
+					nanosecondsForTimeUnit(smallestUnit) * increment,
+					roundingMode,
+				);
+	const roundedWholeDays = timeDurationDaysAndRemainderNanoseconds(roundedTime)[0];
+	const [days, remainder] = isDateUnit(largestUnit)
+		? [
+				roundedWholeDays,
+				addTimeDuration(
+					roundedTime,
+					timeDurationFromComponents(-roundedWholeDays * 24, 0, 0, 0, 0, 0),
+				),
+			]
+		: [0, roundedTime];
+	return {
+		$duration: combineDateAndTimeDuration(
+			adjustDateDurationRecord(duration.$date, days),
+			remainder,
+		),
+		$nudgedEpochNs: addTimeDurationToEpochNanoseconds(
+			destEpochNs,
+			addTimeDuration(roundedTime, negateTimeDuration(timeDuration)),
+		),
+		$didExpandCalendarUnit:
+			Math.sign(roundedWholeDays - timeDurationDaysAndRemainderNanoseconds(timeDuration)[0]) ===
+			timeDurationSign(timeDuration),
+	};
+}
+
+/** `BubbleRelativeDuration */
+function bubbleRelativeDuration(
+	sign: 1 | -1,
+	duration: InternalDurationRecord,
+	nudgedEpochNs: EpochNanoseconds,
+	isoDateTime: IsoDateTimeRecord,
+	timeZone: string | undefined,
+	calendar: SupportedCalendars,
+	largestUnit: SingularUnitKey,
+	smallestUnit: SingularDateUnitKey,
+): InternalDurationRecord {
+	if (smallestUnit === largestUnit) {
+		return duration;
+	}
+	const largestUnitIndex = getUnitIndex(largestUnit);
+	const smallestUnitIndex = getUnitIndex(smallestUnit);
+	let endDuration: DateDurationRecord;
+	for (let unitIndex = smallestUnitIndex - 1; unitIndex >= largestUnitIndex; unitIndex--) {
+		if (unitIndex !== unitIndices.$week || largestUnitIndex === unitIndices.$week) {
+			if (unitIndex === unitIndices.$year) {
+				endDuration = createDateDurationRecord(duration.$date.$years + sign, 0, 0, 0);
+			} else if (unitIndex === unitIndices.$month) {
+				endDuration = adjustDateDurationRecord(duration.$date, 0, 0, duration.$date.$months + sign);
+			} else {
+				endDuration = adjustDateDurationRecord(duration.$date, 0, duration.$date.$weeks + sign);
+			}
+			const endDateTime = combineIsoDateAndTimeRecord(
+				calendarDateAdd(calendar, isoDateTime.$isoDate, endDuration, overflowConstrain),
+				isoDateTime.$time,
+			);
+			const endEpochNs = timeZone
+				? getEpochNanosecondsFor(timeZone, endDateTime, disambiguationCompatible)
+				: getUtcEpochNanoseconds(endDateTime);
+			if (timeDurationSign(differenceEpochNanoseconds(endEpochNs, nudgedEpochNs)) !== -sign) {
+				duration = combineDateAndTimeDuration(endDuration, createTimeDurationFromSeconds(0));
+			} else {
+				break;
+			}
+		}
+	}
+	return duration;
+}
+
+/** `RoundRelativeDuration` */
+export function roundRelativeDuration(
+	duration: InternalDurationRecord,
+	originEpochNs: EpochNanoseconds,
+	destEpochNs: EpochNanoseconds,
+	isoDateTime: IsoDateTimeRecord,
+	timeZone: string | undefined,
+	calendar: SupportedCalendars,
+	largestUnit: SingularUnitKey,
+	increment: number,
+	smallestUnit: SingularUnitKey,
+	roundingMode: RoundingMode,
+): InternalDurationRecord {
+	const sign = internalDurationSign(duration) || 1;
+	const nudgeResult =
+		isCalendarUnit(smallestUnit) || (timeZone && smallestUnit === "day")
+			? nudgeToCalendarUnit(
+					sign,
+					duration,
+					originEpochNs,
+					destEpochNs,
+					isoDateTime,
+					timeZone,
+					calendar,
+					increment,
+					smallestUnit,
+					roundingMode,
+				).$nudgeResult
+			: timeZone
+				? (assert(smallestUnit !== "day"),
+					nudgeToZonedTime(
+						sign,
+						duration,
+						isoDateTime,
+						timeZone,
+						calendar,
+						increment,
+						smallestUnit,
+						roundingMode,
+					))
+				: nudgeToDayOrTime(
+						duration,
+						destEpochNs,
+						largestUnit,
+						increment,
+						smallestUnit,
+						roundingMode,
+					);
+	if (nudgeResult.$didExpandCalendarUnit && smallestUnit !== "week") {
+		return bubbleRelativeDuration(
+			sign,
+			nudgeResult.$duration,
+			nudgeResult.$nudgedEpochNs,
+			isoDateTime,
+			timeZone,
+			calendar,
+			largestUnit,
+			largerOfTwoTemporalUnits(smallestUnit, "day") as SingularDateUnitKey,
+		);
+	}
+	return nudgeResult.$duration;
+}
+
+/** `TotalRelativeDuration` */
+export function totalRelativeDuration(
+	duration: InternalDurationRecord,
+	originEpochNs: EpochNanoseconds,
+	destEpochNs: EpochNanoseconds,
+	isoDateTime: IsoDateTimeRecord,
+	timeZone: string | undefined,
+	calendar: SupportedCalendars,
+	unit: SingularUnitKey,
+): number {
+	if (isCalendarUnit(unit) || (timeZone && unit === "day")) {
+		return nudgeToCalendarUnit(
+			internalDurationSign(duration) || 1,
+			duration,
+			originEpochNs,
+			destEpochNs,
+			isoDateTime,
+			timeZone,
+			calendar,
+			1,
+			unit,
+			roundingModeTrunc,
+		).$total;
+	}
+	return totalTimeDuration(add24HourDaysToTimeDuration(duration.$time, duration.$date.$days), unit);
 }
 
 /** `TemporalDurationToString` */
@@ -769,9 +1210,126 @@ export class Duration {
 	subtract(other: unknown) {
 		return addDurations(-1, getInternalSlotOrThrowForDuration(this), other);
 	}
-	round() {
-		notImplementedYet();
+	round(roundTo: unknown) {
+		const durationSlot = getInternalSlotOrThrowForDuration(this);
+		const options = getRoundToOptionsObject(roundTo);
+		let largestUnit = getTemporalUnitValuedOption(options, "largestUnit", undefined);
+		const relativeToRecord = getTemporalRelativeToOption(options);
+		const roundingIncrement = getRoundingIncrementOption(options);
+		const roundingMode = getRoundingModeOption(options, roundingModeHalfExpand);
+		let smallestUnit = getTemporalUnitValuedOption(options, "smallestUnit", undefined);
+		validateTemporalUnitValue(smallestUnit, DATETIME);
+		let smallestUnitPresent = true;
+		if (!smallestUnit) {
+			smallestUnitPresent = false;
+			smallestUnit = "nanosecond";
+		}
+		const existingLargestUnit = defaultTemporalLargestUnit(durationSlot);
+		const defaultLargestUnit = largerOfTwoTemporalUnits(existingLargestUnit, smallestUnit);
+		let largestUnitPresent = true;
+		if (!largestUnit) {
+			largestUnitPresent = false;
+			largestUnit = defaultLargestUnit;
+		} else if (largestUnit === "auto") {
+			largestUnit = defaultLargestUnit;
+		}
+		if (
+			(!smallestUnitPresent && !largestUnitPresent) ||
+			largerOfTwoTemporalUnits(largestUnit, smallestUnit) !== largestUnit
+		) {
+			throw new RangeError();
+		}
+		const maximum = maximumTemporalDurationRoundingIncrement(smallestUnit);
+		if (maximum) {
+			validateTemporalRoundingIncrement(roundingIncrement, maximum, false);
+		}
+		if (roundingIncrement > 1 && largestUnit !== smallestUnit && isDateUnit(smallestUnit)) {
+			throw new RangeError();
+		}
+		if (relativeToRecord.$zoned) {
+			return createTemporalDuration(
+				temporalDurationFromInternal(
+					differenceZonedDateTimeWithRounding(
+						relativeToRecord.$zoned.$epochNanoseconds,
+						addZonedDateTime(
+							relativeToRecord.$zoned.$epochNanoseconds,
+							relativeToRecord.$zoned.$timeZone,
+							relativeToRecord.$zoned.$calendar,
+							toInternalDurationRecord(durationSlot),
+							overflowConstrain,
+						),
+						relativeToRecord.$zoned.$timeZone,
+						relativeToRecord.$zoned.$calendar,
+						largestUnit,
+						roundingIncrement,
+						smallestUnit,
+						roundingMode,
+					),
+					isDateUnit(largestUnit) ? "hour" : largestUnit,
+				),
+			);
+		}
+		if (relativeToRecord.$plain) {
+			const internalDuration = toInternalDurationRecordWith24HourDays(durationSlot);
+			const targetTime = addTime(midnightTimeRecord(), internalDuration.$time);
+			return createTemporalDuration(
+				temporalDurationFromInternal(
+					differencePlainDateTimeWithRounding(
+						combineIsoDateAndTimeRecord(relativeToRecord.$plain.$isoDate, midnightTimeRecord()),
+						combineIsoDateAndTimeRecord(
+							calendarDateAdd(
+								relativeToRecord.$plain.$calendar,
+								relativeToRecord.$plain.$isoDate,
+								adjustDateDurationRecord(internalDuration.$date, targetTime.$days),
+								overflowConstrain,
+							),
+							targetTime,
+						),
+						relativeToRecord.$plain.$calendar,
+						largestUnit,
+						roundingIncrement,
+						smallestUnit,
+						roundingMode,
+					),
+					largestUnit,
+				),
+			);
+		}
+		if (isCalendarUnit(existingLargestUnit) || isCalendarUnit(largestUnit)) {
+			throw new RangeError();
+		}
+		assert(!isCalendarUnit(smallestUnit));
+		const internalDuration = toInternalDurationRecordWith24HourDays(durationSlot);
+		return createTemporalDuration(
+			temporalDurationFromInternal(
+				smallestUnit === "day"
+					? combineDateAndTimeDuration(
+							createDateDurationRecord(
+								0,
+								0,
+								0,
+								roundNumberToIncrement(
+									totalTimeDuration(internalDuration.$time, "day"),
+									roundingIncrement,
+									roundingMode,
+								),
+							),
+							createTimeDurationFromSeconds(0),
+						)
+					: combineDateAndTimeDuration(
+							zeroDateDuration(),
+							roundTimeDuration(
+								internalDuration.$time,
+								roundingIncrement,
+								smallestUnit,
+								roundingMode,
+							),
+						),
+				largestUnit,
+			),
+		);
 	}
+	// 34. Return ? TemporalDurationFromInternal(internalDuration, largestUnit).
 	total(totalOf: unknown) {
 		const duration = getInternalSlotOrThrowForDuration(this);
 		if (totalOf === undefined) {
@@ -785,10 +1343,37 @@ export class Duration {
 		const unit = getTemporalUnitValuedOption(totalOfOptions, "unit", REQUIRED);
 		validateTemporalUnitValue(unit, DATETIME);
 		if (relativeToRecord.$zoned) {
-			notImplementedYet();
+			return differenceZonedDateTimeWithTotal(
+				relativeToRecord.$zoned.$epochNanoseconds,
+				addZonedDateTime(
+					relativeToRecord.$zoned.$epochNanoseconds,
+					relativeToRecord.$zoned.$timeZone,
+					relativeToRecord.$zoned.$calendar,
+					toInternalDurationRecord(duration),
+					overflowConstrain,
+				),
+				relativeToRecord.$zoned.$timeZone,
+				relativeToRecord.$zoned.$calendar,
+				unit,
+			);
 		}
 		if (relativeToRecord.$plain) {
-			notImplementedYet();
+			const internalDuration = toInternalDurationRecordWith24HourDays(duration);
+			const targetTime = addTime(midnightTimeRecord(), internalDuration.$time);
+			return differencePlainDateTimeWithTotal(
+				combineIsoDateAndTimeRecord(relativeToRecord.$plain.$isoDate, midnightTimeRecord()),
+				combineIsoDateAndTimeRecord(
+					calendarDateAdd(
+						relativeToRecord.$plain.$calendar,
+						relativeToRecord.$plain.$isoDate,
+						adjustDateDurationRecord(internalDuration.$date, targetTime.$days),
+						overflowConstrain,
+					),
+					targetTime,
+				),
+				relativeToRecord.$plain.$calendar,
+				unit,
+			);
 		}
 		if (isCalendarUnit(defaultTemporalLargestUnit(duration)) || isCalendarUnit(unit)) {
 			throw new RangeError();

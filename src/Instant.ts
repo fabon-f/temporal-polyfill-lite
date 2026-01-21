@@ -162,7 +162,7 @@ export function addInstant(
 }
 
 /** `DifferenceInstant` */
-function differenceInstant(
+export function differenceInstant(
 	ns1: EpochNanoseconds,
 	ns2: EpochNanoseconds,
 	roundingIncrement: number,

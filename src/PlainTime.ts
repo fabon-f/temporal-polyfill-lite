@@ -126,7 +126,7 @@ export function noonTimeRecord(): TimeRecord {
 }
 
 /** `DifferenceTime` */
-function differenceTime(time1: TimeRecord, time2: TimeRecord): TimeDuration {
+export function differenceTime(time1: TimeRecord, time2: TimeRecord): TimeDuration {
 	return timeDurationFromComponents(
 		time2.$hour - time1.$hour,
 		time2.$minute - time1.$minute,

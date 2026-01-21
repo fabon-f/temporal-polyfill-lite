@@ -1,11 +1,22 @@
 import {
+	add24HourDaysToTimeDuration,
 	adjustDateDurationRecord,
 	applySignToDurationSlot,
+	combineDateAndTimeDuration,
+	createTemporalDurationSlot,
+	roundRelativeDuration,
+	temporalDurationFromInternal,
+	timeDurationSign,
 	toInternalDurationRecordWith24HourDays,
+	totalRelativeDuration,
 	toTemporalDuration,
+	zeroDateDuration,
+	type DurationSlot,
+	type InternalDurationRecord,
 } from "./Duration.ts";
 import {
 	formatTimeString,
+	getDifferenceSettings,
 	getRoundingIncrementOption,
 	getRoundingModeOption,
 	getTemporalDisambiguationOption,
@@ -13,9 +24,11 @@ import {
 	getTemporalOverflowOption,
 	getTemporalShowCalendarNameOption,
 	getTemporalUnitValuedOption,
+	getUtcEpochNanoseconds,
 	isoDateRecordToEpochDays,
 	isoDateToFields,
 	isPartialTemporalObject,
+	largerOfTwoTemporalUnits,
 	maximumTemporalDurationRoundingIncrement,
 	toSecondsStringPrecisionRecord,
 	validateTemporalRoundingIncrement,
@@ -25,6 +38,7 @@ import { assert, assertNotUndefined } from "./internal/assertion.ts";
 import {
 	calendarDateAdd,
 	calendarDateFromFields,
+	calendarDateUntil,
 	calendarEquals,
 	calendarFieldKeys,
 	calendarIsoToDate,
@@ -45,6 +59,7 @@ import {
 } from "./internal/ecmascript.ts";
 import {
 	DATE,
+	DATETIME,
 	MINUTE,
 	REQUIRED,
 	roundingModeTrunc,
@@ -58,13 +73,13 @@ import type { NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
+import { createTimeDurationFromSeconds } from "./internal/timeDuration.ts";
 import {
 	createOffsetCacheMap,
 	getEpochNanosecondsFor,
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
 import type { SingularUnitKey } from "./internal/unit.ts";
-import { notImplementedYet } from "./internal/utils.ts";
 import {
 	addDaysToIsoDate,
 	compareIsoDate,
@@ -82,6 +97,7 @@ import {
 	compareTimeRecord,
 	createTemporalTime,
 	createTimeRecord,
+	differenceTime,
 	isValidTime,
 	midnightTimeRecord,
 	regulateTime,
@@ -283,6 +299,136 @@ export function roundIsoDateTime(
 	assert(isoDateTimeWithinLimits(isoDateTime));
 	const time = roundTime(isoDateTime.$time, increment, unit, roundingMode);
 	return combineIsoDateAndTimeRecord(addDaysToIsoDate(isoDateTime.$isoDate, time.$days), time);
+}
+
+/** `DifferenceISODateTime` */
+function differenceISODateTime(
+	isoDateTime1: IsoDateTimeRecord,
+	isoDateTime2: IsoDateTimeRecord,
+	calendar: SupportedCalendars,
+	largestUnit: SingularUnitKey,
+): InternalDurationRecord {
+	let timeDuration = differenceTime(isoDateTime1.$time, isoDateTime2.$time);
+	const timeSign = timeDurationSign(timeDuration);
+	let adjustedDate = isoDateTime2.$isoDate;
+	if (timeSign === compareIsoDate(isoDateTime1.$isoDate, isoDateTime2.$isoDate)) {
+		adjustedDate = addDaysToIsoDate(adjustedDate, timeSign);
+		timeDuration = add24HourDaysToTimeDuration(timeDuration, -timeSign);
+	}
+	const dateLargestUnit = largerOfTwoTemporalUnits("day", largestUnit);
+	assert(
+		dateLargestUnit === "year" ||
+			dateLargestUnit === "month" ||
+			dateLargestUnit === "week" ||
+			dateLargestUnit === "day",
+	);
+	const dateDifference = calendarDateUntil(
+		calendar,
+		isoDateTime1.$isoDate,
+		adjustedDate,
+		dateLargestUnit,
+	);
+	if (largestUnit !== dateLargestUnit) {
+		timeDuration = add24HourDaysToTimeDuration(timeDuration, dateDifference.$days);
+		dateDifference.$days = 0;
+	}
+	return combineDateAndTimeDuration(dateDifference, timeDuration);
+}
+
+/** `DifferencePlainDateTimeWithRounding` */
+export function differencePlainDateTimeWithRounding(
+	isoDateTime1: IsoDateTimeRecord,
+	isoDateTime2: IsoDateTimeRecord,
+	calendar: SupportedCalendars,
+	largestUnit: SingularUnitKey,
+	roundingIncrement: number,
+	smallestUnit: SingularUnitKey,
+	roundingMode: RoundingMode,
+) {
+	if (!compareIsoDateTime(isoDateTime1, isoDateTime2)) {
+		return combineDateAndTimeDuration(zeroDateDuration(), createTimeDurationFromSeconds(0));
+	}
+	if (!isoDateTimeWithinLimits(isoDateTime1) || !isoDateTimeWithinLimits(isoDateTime2)) {
+		throw new RangeError();
+	}
+	const diff = differenceISODateTime(isoDateTime1, isoDateTime2, calendar, largestUnit);
+	if (smallestUnit === "nanosecond" && roundingIncrement === 1) {
+		return diff;
+	}
+	return roundRelativeDuration(
+		diff,
+		getUtcEpochNanoseconds(isoDateTime1),
+		getUtcEpochNanoseconds(isoDateTime2),
+		isoDateTime1,
+		undefined,
+		calendar,
+		largestUnit,
+		roundingIncrement,
+		smallestUnit,
+		roundingMode,
+	);
+}
+/** `DifferencePlainDateTimeWithTotal` */
+export function differencePlainDateTimeWithTotal(
+	isoDateTime1: IsoDateTimeRecord,
+	isoDateTime2: IsoDateTimeRecord,
+	calendar: SupportedCalendars,
+	unit: SingularUnitKey,
+): number {
+	if (!compareIsoDateTime(isoDateTime1, isoDateTime2)) {
+		return 0;
+	}
+	if (!isoDateTimeWithinLimits(isoDateTime1) || !isoDateTimeWithinLimits(isoDateTime2)) {
+		throw new RangeError();
+	}
+	return totalRelativeDuration(
+		differenceISODateTime(isoDateTime1, isoDateTime2, calendar, unit),
+		getUtcEpochNanoseconds(isoDateTime1),
+		getUtcEpochNanoseconds(isoDateTime2),
+		isoDateTime1,
+		undefined,
+		calendar,
+		unit,
+	);
+}
+
+/** `DifferenceTemporalPlainDateTime` */
+function differenceTemporalPlainDateTime(
+	operationSign: 1 | -1,
+	dateTime: PlainDateTimeSlot,
+	other: unknown,
+	options: unknown,
+): DurationSlot {
+	const otherSlot = getInternalSlotOrThrowForPlainDateTime(toTemporalDateTime(other));
+	if (!calendarEquals(dateTime.$calendar, otherSlot.$calendar)) {
+		throw new RangeError();
+	}
+	const settings = getDifferenceSettings(
+		operationSign,
+		getOptionsObject(options),
+		DATETIME,
+		[],
+		"nanosecond",
+		"day",
+	);
+	if (!compareIsoDateTime(dateTime.$isoDateTime, otherSlot.$isoDateTime)) {
+		return createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	}
+	return applySignToDurationSlot(
+		temporalDurationFromInternal(
+			differencePlainDateTimeWithRounding(
+				dateTime.$isoDateTime,
+				otherSlot.$isoDateTime,
+				dateTime.$calendar,
+				settings.$largestUnit,
+				settings.$roundingIncrement,
+				settings.$smallestUnit,
+				settings.$roundingMode,
+			),
+			settings.$largestUnit,
+		),
+		operationSign,
+	);
 }
 
 /** `AddDurationToDateTime` */
@@ -535,11 +681,21 @@ export class PlainDateTime {
 			options,
 		);
 	}
-	until() {
-		notImplementedYet();
+	until(other: unknown, options: unknown = undefined) {
+		return differenceTemporalPlainDateTime(
+			1,
+			getInternalSlotOrThrowForPlainDateTime(this),
+			other,
+			options,
+		);
 	}
-	since() {
-		notImplementedYet();
+	since(other: unknown, options: unknown = undefined) {
+		return differenceTemporalPlainDateTime(
+			-1,
+			getInternalSlotOrThrowForPlainDateTime(this),
+			other,
+			options,
+		);
 	}
 	round(roundTo: unknown) {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);
