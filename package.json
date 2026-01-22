@@ -8,6 +8,11 @@
 	],
 	"author": "fabon <syobon.hinata.public@gmail.com> (https://www.fabon.info/)",
 	"license": "MIT",
+	"exports": {
+		".": "./dist/index.js",
+		"./global": "./dist/global.js"
+	},
+	"files": ["README.md", "LICENSE", "dist"],
 	"devDependencies": {
 		"@js-temporal/temporal-test262-runner": "github:js-temporal/temporal-test262-runner#main",
 		"@rollup/plugin-strip": "^3.0.4",

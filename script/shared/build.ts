@@ -1,9 +1,13 @@
 import strip from "@rollup/plugin-strip";
 import terser from "@rollup/plugin-terser";
+import { copyFile } from "node:fs/promises";
 import { rolldown, type RolldownPluginOption } from "rolldown";
 
 // @ts-expect-error https://github.com/rollup/plugins/issues/1860
 const terserPlugin = terser({
+	compress: {
+		ecma: 2015,
+	},
 	mangle: {
 		properties: {
 			regex: /^(_|\$)/,
@@ -35,7 +39,7 @@ interface Options {
 	assertion: boolean;
 }
 
-export async function bundle({ minify, assertion }: Options) {
+function plugins({ minify, assertion }: Options) {
 	const inputPlugins = [];
 	const outputPlugins = [];
 	if (!assertion) {
@@ -45,13 +49,36 @@ export async function bundle({ minify, assertion }: Options) {
 		inputPlugins.push(terserPlugin);
 		outputPlugins.push(terserPlugin);
 	}
+	return {
+		input: inputPlugins,
+		output: outputPlugins,
+	};
+}
+
+export async function bundle(options: Options) {
+	const { input, output } = plugins(options);
 	await using bundle = await rolldown({
 		input: "src/global.ts",
-		plugins: inputPlugins,
+		plugins: input,
 	});
 	const result = await bundle.generate({
 		format: "iife",
-		plugins: outputPlugins,
+		plugins: output,
 	});
 	return result.output[0].code;
+}
+
+export async function build() {
+	const { input, output } = plugins({ assertion: false, minify: true });
+	await using bundle = await rolldown({
+		input: ["src/index.ts", "src/global.ts"],
+		plugins: input,
+	});
+	await bundle.write({
+		dir: "dist",
+		cleanDir: true,
+		plugins: output,
+	});
+	await copyFile("src/types/index.d.ts", "dist/index.d.ts");
+	await copyFile("src/types/global.d.ts", "dist/global.d.ts");
 }
