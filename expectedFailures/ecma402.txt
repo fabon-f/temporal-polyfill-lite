@@ -19,7 +19,6 @@ intl402/DateTimeFormat/timezone-case-insensitive.js
 intl402/DateTimeFormat/timezone-legacy-non-iana.js
 intl402/DateTimeFormat/timezone-not-canonicalized.js
 
-intl402/Temporal/Duration/prototype/toLocaleString/taint-duration-prototype.js
 intl402/Temporal/PlainDate/prototype/toLocaleString/calendar-mismatch.js
 intl402/Temporal/PlainDate/prototype/toLocaleString/dateStyle.js
 intl402/Temporal/PlainDateTime/prototype/toLocaleString/calendar-mismatch.js

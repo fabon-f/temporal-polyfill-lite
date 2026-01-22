@@ -78,6 +78,7 @@ import {
 	pluralUnitKeys,
 	singularUnitKeys,
 	unitIndices,
+	type PluralUnitKey,
 	type SingularDateUnitKey,
 	type SingularTimeUnitKey,
 	type SingularUnitKey,
@@ -1415,8 +1416,12 @@ export class Duration {
 		return temporalDurationToString(getInternalSlotOrThrowForDuration(this));
 	}
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined): string {
-		getInternalSlotOrThrowForDuration(this);
-		return new Intl.DurationFormat(locales, options).format(this);
+		const slot = getInternalSlotOrThrowForDuration(this);
+		const record: Partial<Record<PluralUnitKey, number>> = createNullPrototypeObject({});
+		pluralUnitKeys.forEach((k, i) => {
+			record[k] = slot[i]!;
+		});
+		return new Intl.DurationFormat(locales, options).format(record);
 	}
 	valueOf() {
 		throw new TypeError();
