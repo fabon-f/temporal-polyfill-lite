@@ -1004,6 +1004,9 @@ export class ZonedDateTime {
 			smallestUnit === "day" ? 1 : maximumTemporalDurationRoundingIncrement(smallestUnit);
 		assertNotUndefined(maximum);
 		validateTemporalRoundingIncrement(roundingIncrement, maximum, smallestUnit === "day");
+		if (smallestUnit === "nanosecond" && roundingIncrement === 1) {
+			return createTemporalZonedDateTimeFromSlot(slot);
+		}
 		const isoDateTime = getIsoDateTimeForZonedDateTimeSlot(slot);
 
 		const cache = createOffsetCacheMap();
