@@ -1099,7 +1099,7 @@ export class ZonedDateTime {
 		const dtf = createDateTimeFormat(locales, options, slot.$timeZone);
 		const dtfSlot = getInternalSlotOrThrowForDateTimeFormat(dtf);
 		if (
-			slot.$calendar !== "iso8601" ||
+			slot.$calendar !== "iso8601" &&
 			!calendarEquals(slot.$calendar, dtfSlot.$originalOptions.calendar as SupportedCalendars)
 		) {
 			throw new RangeError();
