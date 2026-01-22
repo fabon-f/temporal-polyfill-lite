@@ -458,7 +458,7 @@ function differenceZonedDateTime(
 	);
 	const endDateTime = getIsoDateTimeFromOffsetNanoseconds(
 		ns2,
-		getOffsetNanosecondsFor(timeZone, ns1, offsetCacheMap),
+		getOffsetNanosecondsFor(timeZone, ns2, offsetCacheMap),
 	);
 	if (!compareIsoDate(startDateTime.$isoDate, endDateTime.$isoDate)) {
 		return combineDateAndTimeDuration(

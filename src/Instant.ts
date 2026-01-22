@@ -84,19 +84,16 @@ interface InstantSlot {
 	[internalSlotBrand]: unknown;
 }
 
+const minEpochNanoseconds = createEpochNanosecondsFromEpochMilliseconds(-8.64e15);
+const maxEpochNanoseconds = createEpochNanosecondsFromEpochMilliseconds(8.64e15);
+
 const slots = new WeakMap<any, InstantSlot>();
 
 /** `IsValidEpochNanoseconds` */
 export function isValidEpochNanoseconds(epochNanoseconds: EpochNanoseconds): boolean {
 	return (
-		compareEpochNanoseconds(
-			createEpochNanosecondsFromEpochMilliseconds(8.64e15),
-			epochNanoseconds,
-		) *
-			compareEpochNanoseconds(
-				createEpochNanosecondsFromEpochMilliseconds(-8.64e15),
-				epochNanoseconds,
-			) <=
+		compareEpochNanoseconds(minEpochNanoseconds, epochNanoseconds) *
+			compareEpochNanoseconds(maxEpochNanoseconds, epochNanoseconds) <=
 		0
 	);
 }
@@ -277,6 +274,14 @@ function createInternalSlot(epoch: EpochNanoseconds): InstantSlot {
 	return {
 		$epochNanoseconds: epoch,
 	} as InstantSlot;
+}
+
+export function clampEpochNanoseconds(epoch: EpochNanoseconds) {
+	return compareEpochNanoseconds(epoch, maxEpochNanoseconds) > 0
+		? maxEpochNanoseconds
+		: compareEpochNanoseconds(epoch, minEpochNanoseconds) < 0
+			? minEpochNanoseconds
+			: epoch;
 }
 
 export class Instant {

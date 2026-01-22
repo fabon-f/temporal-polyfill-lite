@@ -1,5 +1,5 @@
 import { OriginalDateTimeFormat } from "../DateTimeFormat.ts";
-import { isValidEpochNanoseconds } from "../Instant.ts";
+import { clampEpochNanoseconds, isValidEpochNanoseconds } from "../Instant.ts";
 import { type IsoDateRecord } from "../PlainDate.ts";
 import {
 	balanceIsoDateTime,
@@ -153,6 +153,7 @@ function searchTimeZoneTransition(
 	direction: -1 | 1,
 	offsetCacheMap: Map<number, number>,
 ): EpochNanoseconds | null {
+	endEpochSeconds = clamp(endEpochSeconds, -8.64e12, 8.64e12);
 	// 48 hours for the initial scan
 	let window = secondsPerDay * 2 * direction;
 	let currentStart = startEpochSeconds;
@@ -170,7 +171,7 @@ function searchTimeZoneTransition(
 		}
 		window = adjustWindowForEpoch(currentStart) * direction;
 		currentStart = currentEnd;
-		currentEnd += window;
+		currentEnd = clamp(currentEnd + window, -8.64e12, 8.64e12);
 	}
 	return null;
 }
@@ -487,14 +488,19 @@ function getNamedTimeZoneEpochCandidates(
 	if (timeZone === "UTC") {
 		return [utcEpoch];
 	}
+	// clamp to upper limit (+275760-09-13T00:00:00Z) to avoid error in `getOffsetNanosecondsFor`
 	const offsetNanoseconds1 = getOffsetNanosecondsFor(
 		timeZone,
-		addNanosecondsToEpochSeconds(utcEpoch, -millisecondsPerDay * nanosecondsPerMilliseconds),
+		clampEpochNanoseconds(
+			addNanosecondsToEpochSeconds(utcEpoch, -millisecondsPerDay * nanosecondsPerMilliseconds),
+		),
 		offsetCacheMap,
 	);
 	const offsetNanoseconds2 = getOffsetNanosecondsFor(
 		timeZone,
-		addNanosecondsToEpochSeconds(utcEpoch, millisecondsPerDay * nanosecondsPerMilliseconds),
+		clampEpochNanoseconds(
+			addNanosecondsToEpochSeconds(utcEpoch, millisecondsPerDay * nanosecondsPerMilliseconds),
+		),
 		offsetCacheMap,
 	);
 	const epoch1 = addNanosecondsToEpochSeconds(utcEpoch, -offsetNanoseconds1);
