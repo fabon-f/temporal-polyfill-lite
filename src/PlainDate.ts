@@ -1,4 +1,4 @@
-import { DateTimeFormat } from "./DateTimeFormat.ts";
+import { createDateTimeFormat, formatDateTime } from "./DateTimeFormat.ts";
 import {
 	applySignToDurationSlot,
 	combineDateAndTimeDuration,
@@ -534,7 +534,7 @@ export class PlainDate {
 	}
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
 		getInternalSlotOrThrowForPlainDate(this);
-		return new DateTimeFormat(locales as any, options as any).format(this as any);
+		return formatDateTime(createDateTimeFormat(locales, options, DATE), this);
 	}
 	toJSON() {
 		return temporalDateToString(getInternalSlotOrThrowForPlainDate(this), showCalendarName.$auto);

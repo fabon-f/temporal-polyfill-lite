@@ -24,6 +24,7 @@ const result = await runTest262({
 					"test262/test/built-ins/Temporal/**/*.js",
 					"test262/test/built-ins/Date/prototype/toTemporalInstant/*.js",
 					"test262/test/intl402/DateTimeFormat/**/*.js",
+					"test262/test/intl402/Temporal/**/toLocaleString/**/*.js",
 				]
 			: files,
 	expectedFailureFiles:

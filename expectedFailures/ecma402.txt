@@ -5,8 +5,6 @@ intl402/DateTimeFormat/offset-timezone-no-unicode-minus-sign.js
 intl402/DateTimeFormat/proto-from-ctor-realm.js
 intl402/DateTimeFormat/prototype/format/format-function-builtin.js
 intl402/DateTimeFormat/prototype/format/temporal-objects-resolved-time-zone.js
-intl402/DateTimeFormat/prototype/format/temporal-plainmonthday-formatting-datetime-style.js
-intl402/DateTimeFormat/prototype/format/temporal-plainyearmonth-formatting-datetime-style.js
 intl402/DateTimeFormat/prototype/format/timedatestyle-en.js
 intl402/DateTimeFormat/prototype/formatRange/to-datetime-formattable-with-different-arg-kinds.js
 intl402/DateTimeFormat/prototype/formatRangeToParts/to-datetime-formattable-with-different-arg-kinds.js
@@ -20,3 +18,15 @@ intl402/DateTimeFormat/prototype/resolvedOptions/resolved-numbering-system-unico
 intl402/DateTimeFormat/timezone-case-insensitive.js
 intl402/DateTimeFormat/timezone-legacy-non-iana.js
 intl402/DateTimeFormat/timezone-not-canonicalized.js
+
+intl402/Temporal/Duration/prototype/toLocaleString/taint-duration-prototype.js
+intl402/Temporal/PlainDate/prototype/toLocaleString/calendar-mismatch.js
+intl402/Temporal/PlainDate/prototype/toLocaleString/dateStyle.js
+intl402/Temporal/PlainDateTime/prototype/toLocaleString/calendar-mismatch.js
+intl402/Temporal/PlainDateTime/prototype/toLocaleString/dateStyle.js
+intl402/Temporal/PlainMonthDay/prototype/toLocaleString/calendar-mismatch.js
+intl402/Temporal/PlainMonthDay/prototype/toLocaleString/dateStyle.js
+intl402/Temporal/PlainYearMonth/prototype/toLocaleString/calendar-mismatch.js
+intl402/Temporal/PlainYearMonth/prototype/toLocaleString/dateStyle.js
+intl402/Temporal/ZonedDateTime/prototype/toLocaleString/calendar-mismatch.js
+intl402/Temporal/ZonedDateTime/prototype/toLocaleString/dateStyle.js

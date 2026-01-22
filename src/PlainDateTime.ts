@@ -1,4 +1,4 @@
-import { DateTimeFormat } from "./DateTimeFormat.ts";
+import { createDateTimeFormat, formatDateTime } from "./DateTimeFormat.ts";
 import {
 	add24HourDaysToTimeDuration,
 	adjustDateDurationRecord,
@@ -750,7 +750,7 @@ export class PlainDateTime {
 	}
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
 		getInternalSlotOrThrowForPlainDateTime(this);
-		return new DateTimeFormat(locales as any, options as any).format(this as any);
+		return formatDateTime(createDateTimeFormat(locales, options, DATETIME), this);
 	}
 	toJSON() {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);

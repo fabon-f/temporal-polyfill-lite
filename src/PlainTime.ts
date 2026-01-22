@@ -65,7 +65,7 @@ import {
 	toTemporalDuration,
 	zeroDateDuration,
 } from "./Duration.ts";
-import { DateTimeFormat } from "./DateTimeFormat.ts";
+import { createDateTimeFormat, formatDateTime } from "./DateTimeFormat.ts";
 
 export interface TimeRecord {
 	$hour: number;
@@ -575,7 +575,7 @@ export class PlainTime {
 	}
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
 		getInternalSlotOrThrowForPlainTime(this);
-		return new DateTimeFormat(locales as any, options as any).format(this as any);
+		return formatDateTime(createDateTimeFormat(locales, options, TIME), this);
 	}
 	toJSON() {
 		return timeRecordToString(getInternalSlotOrThrowForPlainTime(this), undefined);

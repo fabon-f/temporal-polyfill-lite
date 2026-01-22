@@ -1,4 +1,4 @@
-import { DateTimeFormat } from "./DateTimeFormat.ts";
+import { createDateTimeFormat, formatDateTime } from "./DateTimeFormat.ts";
 import {
 	adjustDateDurationRecord,
 	applySignToDurationSlot,
@@ -431,10 +431,9 @@ export class PlainYearMonth {
 			getTemporalShowCalendarNameOption(getOptionsObject(options)),
 		);
 	}
-
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
 		getInternalSlotOrThrowForPlainYearMonth(this);
-		return new DateTimeFormat(locales as any, options as any).format(this as any);
+		return formatDateTime(createDateTimeFormat(locales, options, DATE), this);
 	}
 	toJSON() {
 		return temporalYearMonthToString(

@@ -1,6 +1,7 @@
 import { getInternalSlotForInstant, isInstant } from "./Instant.ts";
 import { getUtcEpochNanoseconds } from "./internal/abstractOperations.ts";
 import { toBoolean, toString } from "./internal/ecmascript.ts";
+import { DATE, DATETIME, TIME } from "./internal/enum.ts";
 import { epochMilliseconds } from "./internal/epochNanoseconds.ts";
 import { createNullPrototypeObject, pickObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
@@ -70,8 +71,7 @@ export function getInternalSlotOrThrowForDateTimeFormat(dtf: any): DateTimeForma
 }
 
 export function formatDateTime(dtf: DateTimeFormatImpl, date: unknown): string {
-	const slot = getInternalSlotOrThrowForDateTimeFormat(dtf);
-	const [rawDtf, value] = handleDateTimeValue(slot, date);
+	const [rawDtf, value] = handleDateTimeValue(getInternalSlotOrThrowForDateTimeFormat(dtf), date);
 	return rawDtf.format(value as any);
 }
 
@@ -231,7 +231,7 @@ function amendOptionsForPlainYearMonth(
 			month: dateStyleToMonthStyle(originalOptions.dateStyle),
 		});
 	}
-	if (!hasAnyOptions(originalOptions, ["year", "month"])) {
+	if (!hasAnyOptions(originalOptions, ["year", "month", "dateStyle"])) {
 		if (hasAnyOptions(originalOptions, [...dateKeys, ...timeKeys, "timeStyle"])) {
 			throw new TypeError();
 		}
@@ -265,7 +265,7 @@ function amendOptionsForPlainMonthDay(
 			day: "numeric",
 		});
 	}
-	if (!hasAnyOptions(originalOptions, ["month", "day"])) {
+	if (!hasAnyOptions(originalOptions, ["month", "day", "dateStyle"])) {
 		if (hasAnyOptions(originalOptions, [...dateKeys, ...timeKeys, "timeStyle"])) {
 			throw new TypeError();
 		}
@@ -317,6 +317,7 @@ function hasAnyOptions(
 export function createDateTimeFormat(
 	locales: unknown,
 	options: {} | null = Object.create(null),
+	required: typeof DATE | typeof TIME | typeof DATETIME,
 	toLocaleStringTimeZone?: string,
 	instance = Object.create(DateTimeFormatImpl.prototype) as DateTimeFormatImpl,
 ): DateTimeFormatImpl {
@@ -334,7 +335,15 @@ export function createDateTimeFormat(
 			throw new TypeError();
 		}
 		copiedOptions["timeZone"] = toLocaleStringTimeZone;
-		if (!hasAnyOptions(copiedOptions, [...dateKeys, ...timeKeys, "dateStyle", "timeStyle"])) {
+		if (
+			!hasAnyOptions(copiedOptions, [
+				...dateKeys,
+				...timeKeys,
+				"dateStyle",
+				"timeStyle",
+				"timeZoneName",
+			])
+		) {
 			copiedOptions["timeZoneName"] = "short";
 		}
 	}
@@ -352,6 +361,14 @@ export function createDateTimeFormat(
 	coercedOriginalOptions.formatMatcher = copiedOptions["formatMatcher"];
 	coercedOriginalOptions.timeZone = resolvedOptions.timeZone;
 	coercedOriginalOptions.calendar = resolvedOptions.calendar;
+
+	if (
+		(required === DATE && coercedOriginalOptions["timeStyle"]) ||
+		(required === TIME && coercedOriginalOptions["dateStyle"])
+	) {
+		throw new TypeError();
+	}
+
 	slots.set(
 		instance,
 		createInternalSlot(rawDtf, coercedOriginalOptions as Intl.DateTimeFormatOptions),
@@ -472,12 +489,15 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 			epochMilliseconds(instantSlot.$epochNanoseconds),
 		];
 	}
+	if (isZonedDateTime(x)) {
+		throw new TypeError();
+	}
 	return [dateTimeFormat.$rawDtf, x as any];
 }
 
 export class DateTimeFormatImpl {
 	constructor(locales: unknown, options: unknown) {
-		createDateTimeFormat(locales, options, undefined, this);
+		createDateTimeFormat(locales, options, DATETIME, undefined, this);
 	}
 	get format() {
 		return Object.defineProperty(

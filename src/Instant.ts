@@ -1,4 +1,4 @@
-import { DateTimeFormat } from "./DateTimeFormat.ts";
+import { createDateTimeFormat, formatDateTime } from "./DateTimeFormat.ts";
 import {
 	applySignToDurationSlot,
 	combineDateAndTimeDuration,
@@ -40,6 +40,7 @@ import {
 	toPrimitive,
 } from "./internal/ecmascript.ts";
 import {
+	DATETIME,
 	MINUTE,
 	REQUIRED,
 	roundingModeHalfExpand,
@@ -383,7 +384,7 @@ export class Instant {
 	}
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
 		getInternalSlotOrThrowForInstant(this);
-		return new DateTimeFormat(locales as any, options as any).format(this as any);
+		return formatDateTime(createDateTimeFormat(locales, options, DATETIME), this);
 	}
 	toJSON() {
 		return temporalInstantToString(

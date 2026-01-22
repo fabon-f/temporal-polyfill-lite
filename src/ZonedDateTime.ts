@@ -1096,7 +1096,7 @@ export class ZonedDateTime {
 	}
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
-		const dtf = createDateTimeFormat(locales, options, slot.$timeZone);
+		const dtf = createDateTimeFormat(locales, options, DATETIME, slot.$timeZone);
 		const dtfSlot = getInternalSlotOrThrowForDateTimeFormat(dtf);
 		if (
 			slot.$calendar !== "iso8601" &&

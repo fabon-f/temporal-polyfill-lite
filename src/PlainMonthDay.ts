@@ -1,4 +1,4 @@
-import { DateTimeFormat } from "./DateTimeFormat.ts";
+import { createDateTimeFormat, formatDateTime } from "./DateTimeFormat.ts";
 import {
 	getTemporalOverflowOption,
 	getTemporalShowCalendarNameOption,
@@ -22,6 +22,7 @@ import {
 import { parseIsoDateTime, temporalMonthDayStringRegExp } from "./internal/dateTimeParser.ts";
 import { getOptionsObject, toIntegerWithTruncation } from "./internal/ecmascript.ts";
 import {
+	DATE,
 	MONTH_DAY,
 	overflowConstrain,
 	showCalendarName,
@@ -227,7 +228,7 @@ export class PlainMonthDay {
 	}
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
 		getInternalSlotOrThrowForPlainMonthDay(this);
-		return new DateTimeFormat(locales as any, options as any).format(this as any);
+		return formatDateTime(createDateTimeFormat(locales, options, DATE), this);
 	}
 	toJSON() {
 		return temporalMonthDayToString(
