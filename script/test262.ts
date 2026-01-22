@@ -13,7 +13,7 @@ const { values, positionals: files } = parseArgs({
 
 await rm("dist", { recursive: true });
 await mkdir("dist", {});
-await writeFile("dist/bundle.js", await bundle());
+await writeFile("dist/bundle.js", await bundle({ assertion: false, minify: false }));
 
 const result = await runTest262({
 	test262Dir: "test262",
@@ -23,9 +23,11 @@ const result = await runTest262({
 			? [
 					"test262/test/built-ins/Temporal/**/*.js",
 					"test262/test/built-ins/Date/prototype/toTemporalInstant/*.js",
+					"test262/test/intl402/DateTimeFormat/**/*.js",
 				]
 			: files,
-	expectedFailureFiles: files.length === 0 ? ["expectedFailures/ecma262.txt"] : [],
+	expectedFailureFiles:
+		files.length === 0 ? ["expectedFailures/ecma262.txt", "expectedFailures/ecma402.txt"] : [],
 	updateExpectedFailureFiles: values.update,
 });
 

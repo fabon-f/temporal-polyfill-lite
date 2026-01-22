@@ -30,14 +30,28 @@ const wrappedStripPlugin = {
 	},
 } satisfies RolldownPluginOption;
 
-export async function bundle() {
+interface Options {
+	minify: boolean;
+	assertion: boolean;
+}
+
+export async function bundle({ minify, assertion }: Options) {
+	const inputPlugins = [];
+	const outputPlugins = [];
+	if (!assertion) {
+		inputPlugins.push(wrappedStripPlugin);
+	}
+	if (minify) {
+		inputPlugins.push(terserPlugin);
+		outputPlugins.push(terserPlugin);
+	}
 	await using bundle = await rolldown({
 		input: "src/global.ts",
-		plugins: [wrappedStripPlugin, terserPlugin],
+		plugins: inputPlugins,
 	});
 	const result = await bundle.generate({
 		format: "iife",
-		plugins: [terserPlugin],
+		plugins: outputPlugins,
 	});
 	return result.output[0].code;
 }
