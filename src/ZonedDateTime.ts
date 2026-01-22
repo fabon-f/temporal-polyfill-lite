@@ -76,7 +76,12 @@ import {
 	parseIsoDateTime,
 	temporalZonedDateTimeStringRegExp,
 } from "./internal/dateTimeParser.ts";
-import { getOptionsObject, getRoundToOptionsObject, toBigInt } from "./internal/ecmascript.ts";
+import {
+	getOptionsObject,
+	getRoundToOptionsObject,
+	toBigInt,
+	validateString,
+} from "./internal/ecmascript.ts";
 import {
 	DATE,
 	DATETIME,
@@ -116,6 +121,12 @@ import {
 	epochSeconds,
 	type EpochNanoseconds,
 } from "./internal/epochNanoseconds.ts";
+import {
+	calendarMismatch,
+	invalidField,
+	outOfBoundsDate,
+	timeZoneMismatch,
+} from "./internal/errorMessages.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import {
@@ -220,7 +231,7 @@ export function interpretISODateTimeOffset(
 		checkIsoDaysRange(balanced.$isoDate);
 		const epoch = getUtcEpochNanoseconds(balanced);
 		if (!isValidEpochNanoseconds(epoch)) {
-			throw new RangeError();
+			throw new RangeError(outOfBoundsDate);
 		}
 		return epoch;
 	}
@@ -302,9 +313,7 @@ function toTemporalZonedDateTime(item: unknown, options?: unknown): ZonedDateTim
 		isoDate = result.$isoDate;
 		time = result.$time;
 	} else {
-		if (typeof item !== "string") {
-			throw new TypeError();
-		}
+		validateString(item);
 		const result = parseIsoDateTime(item, [temporalZonedDateTimeStringRegExp]);
 		assertNotUndefined(result.$year);
 		timeZone = toTemporalTimeZoneIdentifier(result.$timeZone.$timeZoneAnnotation);
@@ -426,7 +435,7 @@ export function addZonedDateTime(
 		isoDateTime.$time,
 	);
 	if (!isoDateTimeWithinLimits(intermediateDateTime)) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDate);
 	}
 	return addInstant(
 		getEpochNanosecondsFor(
@@ -572,7 +581,7 @@ function differenceTemporalZonedDateTime(
 ): Duration {
 	const otherSlot = getInternalSlotOrThrowForZonedDateTime(toTemporalZonedDateTime(other));
 	if (!calendarEquals(zonedDateTime.$calendar, otherSlot.$calendar)) {
-		throw new RangeError();
+		throw new RangeError(calendarMismatch);
 	}
 	const settings = getDifferenceSettings(
 		operationSign,
@@ -601,7 +610,7 @@ function differenceTemporalZonedDateTime(
 		);
 	}
 	if (!timeZoneEquals(zonedDateTime.$timeZone, otherSlot.$timeZone)) {
-		throw new RangeError();
+		throw new RangeError(timeZoneMismatch);
 	}
 	if (!compareEpochNanoseconds(zonedDateTime.$epochNanoseconds, otherSlot.$epochNanoseconds)) {
 		return createTemporalDuration(createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
@@ -715,19 +724,15 @@ export class ZonedDateTime {
 		}
 		const epoch = createEpochNanosecondsFromBigInt(toBigInt(epochNanoseconds));
 		if (!isValidEpochNanoseconds(epoch)) {
-			throw new RangeError();
+			throw new RangeError(outOfBoundsDate);
 		}
-		if (typeof timeZone !== "string") {
-			throw new TypeError();
-		}
+		validateString(timeZone);
 		const result = parseTimeZoneIdentifier(timeZone);
 		const timeZoneString =
 			result.$name !== undefined
 				? getAvailableNamedTimeZoneIdentifier(result.$name)
 				: formatOffsetTimeZoneIdentifier(result.$offsetMinutes);
-		if (typeof calendar !== "string") {
-			throw new TypeError();
-		}
+		validateString(calendar);
 		createTemporalZonedDateTime(epoch, timeZoneString, canonicalizeCalendar(calendar), this);
 	}
 	static from(item: unknown, options: unknown = undefined) {
@@ -1083,7 +1088,7 @@ export class ZonedDateTime {
 		const showTimeZone = getTemporalShowTimeZoneNameOption(resolvedOptions);
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === "hour") {
-			throw new RangeError();
+			throw new RangeError(invalidField("smallestUnit"));
 		}
 		const precisionRecord = toSecondsStringPrecisionRecord(smallestUnit, digits);
 		return temporalZonedDateTimeToString(
@@ -1105,7 +1110,7 @@ export class ZonedDateTime {
 			slot.$calendar !== "iso8601" &&
 			!calendarEquals(slot.$calendar, dtfSlot.$originalOptions.calendar as SupportedCalendars)
 		) {
-			throw new RangeError();
+			throw new RangeError(calendarMismatch);
 		}
 		return formatDateTime(dtf, createTemporalInstant(slot.$epochNanoseconds));
 	}

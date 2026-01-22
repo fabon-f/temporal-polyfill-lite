@@ -53,7 +53,13 @@ import {
 	temporalYearMonthStringRegExp,
 	temporalZonedDateTimeStringRegExp,
 } from "./dateTimeParser.ts";
-import { getOption, toIntegerWithTruncation, toPrimitive, toString } from "./ecmascript.ts";
+import {
+	getOption,
+	toIntegerWithTruncation,
+	toPrimitive,
+	toString,
+	validateString,
+} from "./ecmascript.ts";
 import {
 	DATE,
 	DATETIME,
@@ -101,6 +107,7 @@ import {
 	createEpochNanosecondsFromEpochMilliseconds,
 	type EpochNanoseconds,
 } from "./epochNanoseconds.ts";
+import { disallowedUnit, invalidField, outOfBoundsDate, parseError } from "./errorMessages.ts";
 import { divFloor, isWithin, modFloor, type NumberSign } from "./math.ts";
 import { createNullPrototypeObject, isObject } from "./object.ts";
 import {
@@ -160,7 +167,7 @@ export function mathematicalInLeapYear(year: number): number {
 /** `CheckISODaysRange` */
 export function checkIsoDaysRange(isoDate: IsoDateRecord) {
 	if (Math.abs(isoDateToEpochDays(isoDate.$year, isoDate.$month - 1, isoDate.$day)) > 1e8) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDate);
 	}
 }
 
@@ -257,28 +264,29 @@ export function validateTemporalRoundingIncrement(
 ) {
 	const maximum = inclusive ? dividend : dividend - 1;
 	if (increment > maximum || dividend % increment !== 0) {
-		throw new RangeError();
+		throw new RangeError(invalidField("roundingIncrement"));
 	}
 }
 
 /** `GetTemporalFractionalSecondDigitsOption` */
 export function getTemporalFractionalSecondDigitsOption(options: object): number | undefined {
-	const digitsValue = (options as Record<string, unknown>)["fractionalSecondDigits"];
+	const property = "fractionalSecondDigits";
+	const digitsValue = (options as Record<string, unknown>)[property];
 	if (digitsValue === undefined) {
 		return undefined;
 	}
 	if (typeof digitsValue !== "number") {
 		if (toString(digitsValue) !== "auto") {
-			throw new RangeError();
+			throw new RangeError(invalidField(property));
 		}
-		return;
+		return undefined;
 	}
 	if (!Number.isFinite(digitsValue) || isNaN(digitsValue)) {
-		throw new RangeError();
+		throw new RangeError(invalidField(property));
 	}
 	const digitCount = Math.floor(digitsValue);
 	if (digitCount < 0 || digitCount > 9) {
-		throw new RangeError();
+		throw new RangeError(invalidField(property));
 	}
 	return digitCount;
 }
@@ -399,12 +407,12 @@ export function validateTemporalUnitValue(
 		return;
 	}
 	if (value === "auto") {
-		throw new RangeError();
+		throw new RangeError(disallowedUnit(value));
 	}
 	const index = singularUnitKeys.indexOf(value);
 	const dayIndex = singularUnitKeys.indexOf("day");
 	if ((index <= dayIndex && unitGroup === TIME) || (index > dayIndex && unitGroup === DATE)) {
-		throw new RangeError();
+		throw new RangeError(disallowedUnit(value));
 	}
 }
 
@@ -479,9 +487,7 @@ export function getTemporalRelativeToOption(options: object): RelativeToOptionRe
 		offsetString = fields.offset;
 		offsetBehaviour = offsetString ? offsetBehaviourOption : offsetBehaviourWall;
 	} else {
-		if (typeof value !== "string") {
-			throw new TypeError();
-		}
+		validateString(value);
 		const result = parseIsoDateTime(value, [
 			temporalZonedDateTimeStringRegExp,
 			temporalDateTimeStringRegExp,
@@ -684,10 +690,11 @@ export function getRoundingModeOption(options: object, fallback: RoundingMode): 
 
 /** `GetRoundingIncrementOption` */
 export function getRoundingIncrementOption(options: object): number {
-	const value = (options as Record<string, unknown>)["roundingIncrement"];
+	const property = "roundingIncrement";
+	const value = (options as Record<string, unknown>)[property];
 	const integerIncrement = value === undefined ? 1 : toIntegerWithTruncation(value);
 	if (integerIncrement < 1 || integerIncrement > 1e9) {
-		throw new RangeError();
+		throw new RangeError(invalidField(property));
 	}
 	return integerIncrement;
 }
@@ -727,7 +734,7 @@ export function parseTemporalDurationString(isoString: string): DurationSlot {
 	isoString = asciiLowerCase(isoString);
 	const result = isoString.match(durationRegExp);
 	if (!result || invalidDurationRegExp.test(isoString)) {
-		throw new RangeError();
+		throw new RangeError(parseError);
 	}
 	assertNotUndefined(result[1]);
 	const fracPart = balanceTime(
@@ -760,9 +767,7 @@ export function parseTemporalDurationString(isoString: string): DurationSlot {
 /** `ToOffsetString` */
 export function toOffsetString(arg: unknown): string {
 	const offset = toPrimitive(arg);
-	if (typeof offset !== "string") {
-		throw new TypeError();
-	}
+	validateString(offset);
 	parseDateTimeUtcOffset(offset);
 	return offset;
 }
@@ -814,11 +819,11 @@ export function getDifferenceSettings<
 		getTemporalUnitValuedOption(options, "smallestUnit", undefined) || fallbackSmallestUnit;
 	validateTemporalUnitValue(largestUnit, unitGroup, ["auto"]);
 	if (disallowedUnits.includes(largestUnit as any)) {
-		throw new RangeError();
+		throw new RangeError(disallowedUnit(largestUnit));
 	}
 	validateTemporalUnitValue(smallestUnit, unitGroup);
 	if (disallowedUnits.includes(smallestUnit as any)) {
-		throw new RangeError();
+		throw new RangeError(disallowedUnit(smallestUnit));
 	}
 	const defaultLargestUnit = largerOfTwoTemporalUnits(smallestLargestDefaultUnit, smallestUnit);
 	if (largestUnit === "auto") {

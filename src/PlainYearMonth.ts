@@ -38,7 +38,11 @@ import {
 	type SupportedCalendars,
 } from "./internal/calendars.ts";
 import { parseIsoDateTime, temporalYearMonthStringRegExp } from "./internal/dateTimeParser.ts";
-import { getOptionsObject, toIntegerWithTruncation } from "./internal/ecmascript.ts";
+import {
+	getOptionsObject,
+	toIntegerWithTruncation,
+	validateString,
+} from "./internal/ecmascript.ts";
 import {
 	DATE,
 	overflowConstrain,
@@ -46,6 +50,7 @@ import {
 	YEAR_MONTH,
 	type ShowCalendarName,
 } from "./internal/enum.ts";
+import { calendarMismatch, invalidDateTime, outOfBoundsDate } from "./internal/errorMessages.ts";
 import { divFloor, isWithin, modFloor } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
@@ -101,16 +106,14 @@ function toTemporalYearMonth(item: unknown, options?: unknown): PlainYearMonth {
 			calendar,
 		);
 	}
-	if (typeof item !== "string") {
-		throw new TypeError();
-	}
+	validateString(item);
 	const result = parseIsoDateTime(item, [temporalYearMonthStringRegExp]);
 	const calendar = canonicalizeCalendar(result.$calendar || "iso8601");
 	getTemporalOverflowOption(getOptionsObject(options));
 	assertNotUndefined(result.$year);
 	const isoDate = createIsoDateRecord(result.$year, result.$month, result.$day);
 	if (!isoYearMonthWithinLimits(isoDate)) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDate);
 	}
 	return createTemporalYearMonth(
 		calendarYearMonthFromFields(
@@ -146,7 +149,7 @@ export function createTemporalYearMonth(
 	instance = Object.create(PlainYearMonth.prototype) as PlainYearMonth,
 ): PlainYearMonth {
 	if (!isoYearMonthWithinLimits(isoDate)) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDate);
 	}
 	slots.set(instance, createPlainYearMonthSlot(isoDate, calendar));
 	return instance;
@@ -175,7 +178,7 @@ function differenceTemporalPlainYearMonth(
 ): Duration {
 	const otherSlot = getInternalSlotOrThrowForPlainYearMonth(toTemporalYearMonth(other));
 	if (!calendarEquals(yearMonth.$calendar, otherSlot.$calendar)) {
-		throw new RangeError();
+		throw new RangeError(calendarMismatch);
 	}
 	const settings = getDifferenceSettings(
 		operationSign,
@@ -304,13 +307,11 @@ export class PlainYearMonth {
 		}
 		const y = toIntegerWithTruncation(isoYear);
 		const m = toIntegerWithTruncation(isoMonth);
-		if (typeof calendar !== "string") {
-			throw new TypeError();
-		}
+		validateString(calendar);
 		const canonicalizedCalendar = canonicalizeCalendar(calendar);
 		const ref = toIntegerWithTruncation(referenceIsoDay);
 		if (!isValidIsoDate(y, m, ref)) {
-			throw new RangeError();
+			throw new RangeError(invalidDateTime);
 		}
 		createTemporalYearMonth(createIsoDateRecord(y, m, ref), canonicalizedCalendar, this);
 	}

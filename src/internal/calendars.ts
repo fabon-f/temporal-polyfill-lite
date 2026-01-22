@@ -35,6 +35,7 @@ import {
 	toPositiveIntegerWithTruncation,
 	toPrimitive,
 	toString,
+	validateString,
 } from "./ecmascript.ts";
 import {
 	MONTH_DAY,
@@ -45,7 +46,12 @@ import {
 	showCalendarName,
 	overflowConstrain,
 } from "./enum.ts";
-import { calendarNotSupported } from "./errorMessages.ts";
+import {
+	calendarNotSupported,
+	invalidEra,
+	missingField,
+	outOfBoundsDate,
+} from "./errorMessages.ts";
 import { divFloor, modFloor } from "./math.ts";
 import { asciiLowerCase, toZeroPaddedDecimalString } from "./string.ts";
 import { toTemporalTimeZoneIdentifier } from "./timeZones.ts";
@@ -146,9 +152,7 @@ export function canonicalizeCalendar(id: string): SupportedCalendars {
 /** `ParseMonthCode` */
 function parseMonthCode(arg: unknown): [monthNumber: number, isLeapMonth: boolean] {
 	const monthCode = toPrimitive(arg);
-	if (typeof monthCode !== "string") {
-		throw new TypeError();
-	}
+	validateString(monthCode);
 	const result = monthCode.match(/M(\d\d)L?/);
 	if (!result || monthCode === "M00") {
 		throw new RangeError();
@@ -197,7 +201,7 @@ export function prepareCalendarFields(
 			result[property] = fieldValues[property][0](value);
 		} else if (requiredFieldNames) {
 			if (requiredFieldNames.includes(property)) {
-				throw new TypeError();
+				throw new TypeError(missingField(property));
 			}
 			result[property] = fieldValues[property][1];
 		}
@@ -252,7 +256,7 @@ export function calendarDateAdd(
 		duration.$weeks * 7 + duration.$days,
 	);
 	if (!isoDateWithinLimits(result)) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDate);
 	}
 	return result;
 }
@@ -311,9 +315,7 @@ export function toTemporalCalendarIdentifier(temporalCalendarLike: unknown): Sup
 	if (slot) {
 		return slot.$calendar;
 	}
-	if (typeof temporalCalendarLike !== "string") {
-		throw new TypeError();
-	}
+	validateString(temporalCalendarLike);
 	return canonicalizeCalendar(parseTemporalCalendarString(temporalCalendarLike));
 }
 
@@ -344,7 +346,7 @@ export function calendarDateFromFields(
 	calendarResolveFields(calendar, fields);
 	const result = calendarDateToISO(calendar, fields, overflow);
 	if (!isoDateWithinLimits(result)) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDate);
 	}
 	return result;
 }
@@ -359,7 +361,7 @@ export function calendarYearMonthFromFields(
 	calendarResolveFields(calendar, fields, YEAR_MONTH);
 	const result = calendarDateToISO(calendar, fields, overflow);
 	if (!isoYearMonthWithinLimits(result)) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDate);
 	}
 	return result;
 }
@@ -581,16 +583,18 @@ function isoResolveFields(
 	type: typeof DATE | typeof YEAR_MONTH | typeof MONTH_DAY,
 ) {
 	if (type !== MONTH_DAY && fields[calendarFieldKeys.$year] === undefined) {
-		throw new TypeError();
+		throw new TypeError(missingField(calendarFieldKeys.$year));
 	}
 	if (type !== YEAR_MONTH && fields[calendarFieldKeys.$day] === undefined) {
-		throw new TypeError();
+		throw new TypeError(missingField(calendarFieldKeys.$day));
 	}
 	if (
 		fields[calendarFieldKeys.$monthCode] === undefined &&
 		fields[calendarFieldKeys.$month] === undefined
 	) {
-		throw new TypeError();
+		throw new TypeError(
+			missingField(`${calendarFieldKeys.$month}, ${calendarFieldKeys.$monthCode}`),
+		);
 	}
 	const monthCode = mapUnlessUndefined(fields[calendarFieldKeys.$monthCode], parseMonthCode);
 	if (monthCode) {
@@ -612,22 +616,17 @@ function nonIsoResolveFields(
 	fields: CalendarFieldsRecord,
 	type: typeof DATE | typeof YEAR_MONTH | typeof MONTH_DAY = DATE,
 ) {
-	if (
-		(fields[calendarFieldKeys.$era] === undefined) !==
-		(fields[calendarFieldKeys.$eraYear] === undefined)
-	) {
+	const era = fields[calendarFieldKeys.$era];
+	const eraYear = fields[calendarFieldKeys.$eraYear];
+	if ((era === undefined) !== (eraYear === undefined)) {
 		throw new TypeError();
 	}
 	if (calendar === "gregory") {
-		if (fields[calendarFieldKeys.$era] !== undefined) {
-			if (!["ce", "ad", "bce", "bc"].includes(fields[calendarFieldKeys.$era]!)) {
-				throw new RangeError();
+		if (era !== undefined) {
+			if (!["ce", "ad", "bce", "bc"].includes(era)) {
+				throw new RangeError(invalidEra(era));
 			}
-			const year = calendarDateArithmeticYearForEraYear(
-				calendar,
-				fields[calendarFieldKeys.$era]!,
-				fields[calendarFieldKeys.$eraYear]!,
-			);
+			const year = calendarDateArithmeticYearForEraYear(calendar, era, eraYear!);
 			if (
 				fields[calendarFieldKeys.$year] !== undefined &&
 				fields[calendarFieldKeys.$year] !== year

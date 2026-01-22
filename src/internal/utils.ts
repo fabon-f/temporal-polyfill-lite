@@ -4,7 +4,3 @@ export function mapUnlessUndefined<T, R>(
 ): R | undefined {
 	return value === undefined ? undefined : func(value);
 }
-
-export function notImplementedYet(): never {
-	throw new Error("Not implemented yet");
-}

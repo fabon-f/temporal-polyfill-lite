@@ -38,6 +38,7 @@ import {
 	toBigInt,
 	toIntegerIfIntegral,
 	toPrimitive,
+	validateString,
 } from "./internal/ecmascript.ts";
 import {
 	DATETIME,
@@ -59,6 +60,7 @@ import {
 	roundEpochNanoseconds,
 	type EpochNanoseconds,
 } from "./internal/epochNanoseconds.ts";
+import { invalidField, outOfBoundsDate } from "./internal/errorMessages.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import type { TimeDuration } from "./internal/timeDuration.ts";
@@ -118,9 +120,7 @@ function toTemporalInstant(item: unknown): Instant {
 		}
 		item = toPrimitive(item);
 	}
-	if (typeof item !== "string") {
-		throw new TypeError();
-	}
+	validateString(item);
 	const parsed = parseIsoDateTime(item, [temporalInstantStringRegExp]);
 	assert(parsed.$timeZone.$z || parsed.$timeZone.$offsetString !== undefined);
 	const offsetNanoseconds = parsed.$timeZone.$z
@@ -143,7 +143,7 @@ function toTemporalInstant(item: unknown): Instant {
 	checkIsoDaysRange(balanced.$isoDate);
 	const epoch = getUtcEpochNanoseconds(balanced);
 	if (!isValidEpochNanoseconds(epoch)) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDate);
 	}
 	return createTemporalInstant(epoch);
 }
@@ -155,7 +155,7 @@ export function addInstant(
 ): EpochNanoseconds {
 	const result = addTimeDurationToEpochNanoseconds(epochNanoseconds, timeDuration);
 	if (!isValidEpochNanoseconds(result)) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDate);
 	}
 	return result;
 }
@@ -291,7 +291,7 @@ export class Instant {
 		}
 		const epoch = createEpochNanosecondsFromBigInt(toBigInt(epochNanoseconds));
 		if (!isValidEpochNanoseconds(epoch)) {
-			throw new RangeError();
+			throw new RangeError(outOfBoundsDate);
 		}
 		createTemporalInstant(epoch, this);
 	}
@@ -303,14 +303,14 @@ export class Instant {
 			toIntegerIfIntegral(epochMilliseconds),
 		);
 		if (!isValidEpochNanoseconds(epoch)) {
-			throw new RangeError();
+			throw new RangeError(outOfBoundsDate);
 		}
 		return createTemporalInstant(epoch);
 	}
 	static fromEpochNanoseconds(epochNanoseconds: unknown) {
 		const epoch = createEpochNanosecondsFromBigInt(toBigInt(epochNanoseconds));
 		if (!isValidEpochNanoseconds(epoch)) {
-			throw new RangeError();
+			throw new RangeError(outOfBoundsDate);
 		}
 		return createTemporalInstant(epoch);
 	}
@@ -369,7 +369,7 @@ export class Instant {
 		const rawTz = (resolvedOptions as Record<string, unknown>)["timeZone"];
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === "hour") {
-			throw new RangeError();
+			throw new RangeError(invalidField("smallestUnit"));
 		}
 		if (rawTz !== undefined) {
 			timeZone = toTemporalTimeZoneIdentifier(rawTz);

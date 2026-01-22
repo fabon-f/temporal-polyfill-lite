@@ -20,7 +20,11 @@ import {
 	type SupportedCalendars,
 } from "./internal/calendars.ts";
 import { parseIsoDateTime, temporalMonthDayStringRegExp } from "./internal/dateTimeParser.ts";
-import { getOptionsObject, toIntegerWithTruncation } from "./internal/ecmascript.ts";
+import {
+	getOptionsObject,
+	toIntegerWithTruncation,
+	validateString,
+} from "./internal/ecmascript.ts";
 import {
 	DATE,
 	MONTH_DAY,
@@ -28,6 +32,7 @@ import {
 	showCalendarName,
 	type ShowCalendarName,
 } from "./internal/enum.ts";
+import { invalidDateTime, outOfBoundsDate } from "./internal/errorMessages.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
@@ -73,9 +78,7 @@ function toTemporalMonthDay(item: unknown, options?: unknown): PlainMonthDay {
 		const overflow = getTemporalOverflowOption(getOptionsObject(options));
 		return createTemporalMonthDay(calendarMonthDayFromFields(calendar, fields, overflow), calendar);
 	}
-	if (typeof item !== "string") {
-		throw new TypeError();
-	}
+	validateString(item);
 	const result = parseIsoDateTime(item, [temporalMonthDayStringRegExp]);
 	const calendar = canonicalizeCalendar(result.$calendar || "iso8601");
 	getTemporalOverflowOption(getOptionsObject(options));
@@ -86,7 +89,7 @@ function toTemporalMonthDay(item: unknown, options?: unknown): PlainMonthDay {
 	assertNotUndefined(result.$year);
 	const isoDate = createIsoDateRecord(result.$year, result.$month, result.$day);
 	if (!isoDateWithinLimits(isoDate)) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDate);
 	}
 	return createTemporalMonthDay(
 		calendarMonthDayFromFields(
@@ -105,7 +108,7 @@ export function createTemporalMonthDay(
 	instance = Object.create(PlainMonthDay.prototype) as PlainMonthDay,
 ): PlainMonthDay {
 	if (!isoDateWithinLimits(isoDate)) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDate);
 	}
 	slots.set(instance, createPlainMonthDaySlot(isoDate, calendar));
 	return instance;
@@ -165,13 +168,11 @@ export class PlainMonthDay {
 		}
 		const m = toIntegerWithTruncation(isoMonth);
 		const d = toIntegerWithTruncation(isoDay);
-		if (typeof calendar !== "string") {
-			throw new TypeError();
-		}
+		validateString(calendar);
 		const canonicalizedCalendar = canonicalizeCalendar(calendar);
 		const y = toIntegerWithTruncation(referenceIsoYear);
 		if (!isValidIsoDate(y, m, d)) {
-			throw new RangeError();
+			throw new RangeError(invalidDateTime);
 		}
 		createTemporalMonthDay(createIsoDateRecord(y, m, d), canonicalizedCalendar, this);
 	}

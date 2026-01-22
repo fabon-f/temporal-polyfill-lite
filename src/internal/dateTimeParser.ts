@@ -3,6 +3,7 @@ import { createTimeRecord, type TimeRecord } from "../PlainTime.ts";
 import { assertNotUndefined } from "./assertion.ts";
 import { nanosecondsPerMinute } from "./constants.ts";
 import { toNumber } from "./ecmascript.ts";
+import { parseError } from "./errorMessages.ts";
 import { clamp } from "./math.ts";
 import { asciiLowerCase } from "./string.ts";
 import { mapUnlessUndefined } from "./utils.ts";
@@ -134,12 +135,12 @@ function parseAnnotationsAndGetCalendar(annotationsString: string): string | und
 				}
 			} else {
 				if (isCritical || calendarWasCritical) {
-					throw new RangeError();
+					throw new RangeError(parseError);
 				}
 			}
 		} else if (isCritical) {
 			// unknown annotation with critical flag
-			throw new RangeError();
+			throw new RangeError(parseError);
 		}
 	}
 	return calendar;
@@ -190,13 +191,13 @@ export function parseIsoDateTime(
 		calendar = parseAnnotationsAndGetCalendar(matchedGroups["k"] || "");
 		if (matchedGroups["m"]) {
 			if (calendar !== undefined && asciiLowerCase(calendar) !== "iso8601") {
-				throw new RangeError();
+				throw new RangeError(parseError);
 			}
 		}
 		break;
 	}
 	if (!matchedGroups) {
-		throw new RangeError();
+		throw new RangeError(parseError);
 	}
 	return {
 		$year: mapUnlessUndefined(matchedGroups["a"] || matchedGroups["l"], toNumber),
@@ -229,7 +230,7 @@ export function parseTemporalCalendarString(item: string): string {
 		);
 	} catch {
 		if (!annotationValueRegExp.test(item)) {
-			throw new RangeError();
+			throw new RangeError(parseError);
 		}
 		return item;
 	}
@@ -241,7 +242,7 @@ const utcOffsetWithSubMinuteRegExp = createRegExp(utcOffsetWithSubMinute);
 export function parseDateTimeUtcOffset(offset: string): number {
 	const result = offset.match(utcOffsetWithSubMinuteRegExp);
 	if (!result) {
-		throw new RangeError();
+		throw new RangeError(parseError);
 	}
 	assertNotUndefined(result[1]);
 	assertNotUndefined(result[2]);

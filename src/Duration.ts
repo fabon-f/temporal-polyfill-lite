@@ -28,6 +28,7 @@ import {
 	getRoundToOptionsObject,
 	toIntegerIfIntegral,
 	toString,
+	validateString,
 } from "./internal/ecmascript.ts";
 import {
 	DATETIME,
@@ -46,6 +47,7 @@ import {
 	differenceEpochNanoseconds,
 	type EpochNanoseconds,
 } from "./internal/epochNanoseconds.ts";
+import { invalidDuration, missingField } from "./internal/errorMessages.ts";
 import { sign, type NumberSign } from "./internal/math.ts";
 import { createNullPrototypeObject, isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
@@ -234,7 +236,7 @@ export function createDateDurationRecord(
 	days: number,
 ): DateDurationRecord {
 	if (!isValidDuration(years, months, weeks, days, 0, 0, 0, 0, 0, 0)) {
-		throw new RangeError();
+		throw new RangeError(invalidDuration);
 	}
 	return {
 		$years: years,
@@ -272,9 +274,7 @@ export function toTemporalDuration(item: unknown): DurationSlot {
 		return getInternalSlotOrThrowForDuration(item);
 	}
 	if (!isObject(item)) {
-		if (typeof item !== "string") {
-			throw new TypeError();
-		}
+		validateString(item);
 		return parseTemporalDurationString(item);
 	}
 	return createTemporalDurationSlot(
@@ -413,7 +413,7 @@ export function createTemporalDurationSlot(
 			nanoseconds,
 		)
 	) {
-		throw new RangeError();
+		throw new RangeError(invalidDuration);
 	}
 	return [
 		years,
@@ -1134,7 +1134,7 @@ export class Duration {
 		let days2: number;
 		if (isCalendarUnit(largestUnit1) || isCalendarUnit(largestUnit2)) {
 			if (!relativeToRecord.$plain) {
-				throw new RangeError();
+				throw new RangeError(missingField("relativeTo"));
 			}
 			days1 = dateDurationDays(duration1.$date, relativeToRecord.$plain);
 			days2 = dateDurationDays(duration2.$date, relativeToRecord.$plain);

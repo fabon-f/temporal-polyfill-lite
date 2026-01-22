@@ -58,6 +58,7 @@ import {
 	getOptionsObject,
 	getRoundToOptionsObject,
 	toIntegerWithTruncation,
+	validateString,
 } from "./internal/ecmascript.ts";
 import {
 	DATE,
@@ -71,6 +72,12 @@ import {
 	type RoundingMode,
 	type ShowCalendarName,
 } from "./internal/enum.ts";
+import {
+	calendarMismatch,
+	invalidDateTime,
+	invalidField,
+	outOfBoundsDate,
+} from "./internal/errorMessages.ts";
 import type { NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
@@ -213,9 +220,7 @@ function toTemporalDateTime(item: unknown, options?: unknown): PlainDateTime {
 			calendar,
 		);
 	}
-	if (typeof item !== "string") {
-		throw new TypeError();
-	}
+	validateString(item);
 	const result = parseIsoDateTime(item, [temporalDateTimeStringRegExp]);
 	assertNotUndefined(result.$year);
 	const calendar = canonicalizeCalendar(result.$calendar || "iso8601");
@@ -255,7 +260,7 @@ export function createTemporalDateTime(
 	instance = Object.create(PlainDateTime.prototype) as PlainDateTime,
 ): PlainDateTime {
 	if (!isoDateTimeWithinLimits(isoDateTime)) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDate);
 	}
 	const slot = createPlainDateTimeSlot(isoDateTime, calendar);
 	slots.set(instance, slot);
@@ -351,7 +356,7 @@ export function differencePlainDateTimeWithRounding(
 		return combineDateAndTimeDuration(zeroDateDuration(), createTimeDurationFromSeconds(0));
 	}
 	if (!isoDateTimeWithinLimits(isoDateTime1) || !isoDateTimeWithinLimits(isoDateTime2)) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDate);
 	}
 	const diff = differenceISODateTime(isoDateTime1, isoDateTime2, calendar, largestUnit);
 	if (smallestUnit === "nanosecond" && roundingIncrement === 1) {
@@ -381,7 +386,7 @@ export function differencePlainDateTimeWithTotal(
 		return 0;
 	}
 	if (!isoDateTimeWithinLimits(isoDateTime1) || !isoDateTimeWithinLimits(isoDateTime2)) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDate);
 	}
 	return totalRelativeDuration(
 		differenceISODateTime(isoDateTime1, isoDateTime2, calendar, unit),
@@ -403,7 +408,7 @@ function differenceTemporalPlainDateTime(
 ): Duration {
 	const otherSlot = getInternalSlotOrThrowForPlainDateTime(toTemporalDateTime(other));
 	if (!calendarEquals(dateTime.$calendar, otherSlot.$calendar)) {
-		throw new RangeError();
+		throw new RangeError(calendarMismatch);
 	}
 	const settings = getDifferenceSettings(
 		operationSign,
@@ -508,12 +513,10 @@ export class PlainDateTime {
 		const timeUnits = [hour, minute, second, millisecond, microsecond, nanosecond].map(
 			toIntegerWithTruncation,
 		) as [number, number, number, number, number, number];
-		if (typeof calendar !== "string") {
-			throw new TypeError();
-		}
+		validateString(calendar);
 		const canonicalizedCalendar = canonicalizeCalendar(calendar);
 		if (!isValidIsoDate(...dateUnits) || !isValidTime(...timeUnits)) {
-			throw new RangeError();
+			throw new RangeError(invalidDateTime);
 		}
 		createTemporalDateTime(
 			combineIsoDateAndTimeRecord(
@@ -734,7 +737,7 @@ export class PlainDateTime {
 		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === "hour") {
-			throw new RangeError();
+			throw new RangeError(invalidField("smallestUnit"));
 		}
 		const record = toSecondsStringPrecisionRecord(smallestUnit, digits);
 		const result = roundIsoDateTime(
@@ -744,7 +747,7 @@ export class PlainDateTime {
 			roundingMode,
 		);
 		if (!isoDateTimeWithinLimits(result)) {
-			throw new RangeError();
+			throw new RangeError(outOfBoundsDate);
 		}
 		return isoDateTimeToString(result, slot.$calendar, record.$precision, showCalendar);
 	}

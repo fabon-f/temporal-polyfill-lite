@@ -1,4 +1,5 @@
 import { REQUIRED } from "./enum.ts";
+import { invalidField, invalidOptionsObject, missingField, notString } from "./errorMessages.ts";
 import { createNullPrototypeObject, isObject } from "./object.ts";
 
 /** `ToPrimitive` when `preferredType` is string */
@@ -83,7 +84,7 @@ export function toPositiveIntegerWithTruncation(arg: unknown): number {
 /** `GetOptionsObject` */
 export function getOptionsObject(options: unknown = Object.create(null)): object {
 	if (!isObject(options)) {
-		throw new TypeError();
+		throw new TypeError(invalidOptionsObject);
 	}
 	return options;
 }
@@ -98,13 +99,13 @@ export function getOption<V extends string | undefined>(
 	const rawValue = (options as Record<string, unknown>)[property];
 	if (rawValue === undefined) {
 		if (defaultValue === REQUIRED) {
-			throw new RangeError();
+			throw new RangeError(missingField(property));
 		}
 		return defaultValue;
 	}
 	const value = toString(rawValue);
 	if (!values.includes(value as any)) {
-		throw new RangeError();
+		throw new RangeError(invalidField(property));
 	}
 	return value as V;
 }
@@ -116,4 +117,10 @@ export function getRoundToOptionsObject(roundTo: unknown): object {
 	return typeof roundTo === "string"
 		? createNullPrototypeObject({ smallestUnit: roundTo })
 		: getOptionsObject(roundTo);
+}
+
+export function validateString(value: unknown): asserts value is string {
+	if (typeof value !== "string") {
+		throw new TypeError(notString(value));
+	}
 }

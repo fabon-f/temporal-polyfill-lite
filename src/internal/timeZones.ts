@@ -26,7 +26,7 @@ import {
 	secondsPerDay,
 } from "./constants.ts";
 import { isTimeZoneIdentifier, parseDateTimeUtcOffset } from "./dateTimeParser.ts";
-import { toIntegerIfIntegral } from "./ecmascript.ts";
+import { toIntegerIfIntegral, validateString } from "./ecmascript.ts";
 import {
 	disambiguationCompatible,
 	disambiguationLater,
@@ -43,6 +43,7 @@ import {
 	epochSeconds,
 	type EpochNanoseconds,
 } from "./epochNanoseconds.ts";
+import { outOfBoundsDate } from "./errorMessages.ts";
 import { clamp, divFloor, isWithin, modFloor } from "./math.ts";
 import { asciiCapitalize, asciiLowerCase, asciiUpperCase } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
@@ -290,9 +291,7 @@ export function toTemporalTimeZoneIdentifier(temporalTimeZoneLike: unknown): str
 	if (isZonedDateTime(temporalTimeZoneLike)) {
 		return getInternalSlotOrThrowForZonedDateTime(temporalTimeZoneLike).$timeZone;
 	}
-	if (typeof temporalTimeZoneLike !== "string") {
-		throw new TypeError();
-	}
+	validateString(temporalTimeZoneLike);
 	const result = parseTemporalTimeZoneString(temporalTimeZoneLike);
 	if (result.$name === undefined) {
 		return formatOffsetTimeZoneIdentifier(result.$offsetMinutes);
@@ -354,7 +353,7 @@ export function disambiguatePossibleEpochNanoseconds(
 	possibleEpochNs = getNamedTimeZoneEpochCandidates(timeZone, isoDateTime, offsetCacheMap);
 	for (const epoch of possibleEpochNs) {
 		if (!isValidEpochNanoseconds(epoch)) {
-			throw new RangeError();
+			throw new RangeError(outOfBoundsDate);
 		}
 	}
 	if (disambiguation === disambiguationCompatible) {
@@ -397,7 +396,7 @@ export function getPossibleEpochNanoseconds(
 	}
 	for (const epoch of possibleEpochNanoseconds) {
 		if (!isValidEpochNanoseconds(epoch)) {
-			throw new RangeError();
+			throw new RangeError(outOfBoundsDate);
 		}
 	}
 	return possibleEpochNanoseconds;

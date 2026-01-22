@@ -41,7 +41,11 @@ import {
 	type SupportedCalendars,
 } from "./internal/calendars.ts";
 import { parseIsoDateTime, temporalDateTimeStringRegExp } from "./internal/dateTimeParser.ts";
-import { getOptionsObject, toIntegerWithTruncation } from "./internal/ecmascript.ts";
+import {
+	getOptionsObject,
+	toIntegerWithTruncation,
+	validateString,
+} from "./internal/ecmascript.ts";
 import {
 	DATE,
 	disambiguationCompatible,
@@ -50,6 +54,7 @@ import {
 	type Overflow,
 	type ShowCalendarName,
 } from "./internal/enum.ts";
+import { calendarMismatch, invalidDateTime, outOfBoundsDate } from "./internal/errorMessages.ts";
 import { clamp, compare, isWithin, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
@@ -117,7 +122,7 @@ export function createTemporalDate(
 	instance = Object.create(PlainDate.prototype) as PlainDate,
 ): PlainDate {
 	if (!isoDateWithinLimits(date)) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDate);
 	}
 	const slot = createPlainDateSlot(date, calendar);
 	slots.set(instance, slot);
@@ -147,9 +152,7 @@ function toTemporalDate(item: unknown, options?: unknown): PlainDate {
 		const oveflow = getTemporalOverflowOption(getOptionsObject(options));
 		return createTemporalDate(calendarDateFromFields(calendar, fields, oveflow), calendar);
 	}
-	if (typeof item !== "string") {
-		throw new TypeError();
-	}
+	validateString(item);
 	const result = parseIsoDateTime(item, [temporalDateTimeStringRegExp]);
 	assertNotUndefined(result.$year);
 	const calendar = canonicalizeCalendar(result.$calendar || "iso8601");
@@ -172,7 +175,7 @@ export function regulateIsoDate(
 		return createIsoDateRecord(year, month, clamp(day, 1, isoDaysInMonth(year, month)));
 	}
 	if (!isValidIsoDate(year, month, day)) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDate);
 	}
 	return createIsoDateRecord(year, month, day);
 }
@@ -221,7 +224,7 @@ function differenceTemporalPlainDate(
 ): Duration {
 	const otherSlot = getInternalSlotOrThrowForPlainDate(toTemporalDate(other));
 	if (!calendarEquals(temporalDate.$calendar, otherSlot.$calendar)) {
-		throw new RangeError();
+		throw new RangeError(calendarMismatch);
 	}
 	const settings = getDifferenceSettings(
 		operationSign,
@@ -314,12 +317,10 @@ export class PlainDate {
 		const y = toIntegerWithTruncation(isoYear);
 		const m = toIntegerWithTruncation(isoMonth);
 		const d = toIntegerWithTruncation(isoDay);
-		if (typeof calendar !== "string") {
-			throw new TypeError();
-		}
+		validateString(calendar);
 		const canonicalizedCalendar = canonicalizeCalendar(calendar);
 		if (!isValidIsoDate(y, m, d)) {
-			throw new RangeError();
+			throw new RangeError(invalidDateTime);
 		}
 		createTemporalDate(createIsoDateRecord(y, m, d), canonicalizedCalendar, this);
 	}
@@ -516,7 +517,7 @@ export class PlainDate {
 			getInternalSlotOrThrowForPlainTime(toTemporalTime(temporalTime)),
 		);
 		if (!isoDateTimeWithinLimits(isoDateTime)) {
-			throw new RangeError();
+			throw new RangeError(outOfBoundsDate);
 		}
 		return createTemporalZonedDateTime(
 			getEpochNanosecondsFor(timeZone, isoDateTime, disambiguationCompatible, cache),

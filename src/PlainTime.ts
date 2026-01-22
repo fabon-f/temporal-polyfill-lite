@@ -22,6 +22,7 @@ import {
 	getOptionsObject,
 	getRoundToOptionsObject,
 	toIntegerWithTruncation,
+	validateString,
 } from "./internal/ecmascript.ts";
 import {
 	MINUTE,
@@ -66,6 +67,7 @@ import {
 	zeroDateDuration,
 } from "./Duration.ts";
 import { createDateTimeFormat, formatDateTime } from "./DateTimeFormat.ts";
+import { invalidDateTime, invalidField } from "./internal/errorMessages.ts";
 
 export interface TimeRecord {
 	$hour: number;
@@ -169,9 +171,7 @@ export function toTemporalTime(item: unknown, options?: unknown): PlainTime {
 			),
 		);
 	}
-	if (typeof item !== "string") {
-		throw new TypeError();
-	}
+	validateString(item);
 	const result = parseIsoDateTime(item, [temporalTimeStringRegExp]);
 	assert(result.$time !== undefined);
 	if (isAmbiguousTemporalTimeString(item)) {
@@ -209,7 +209,7 @@ export function regulateTime(
 		);
 	}
 	if (!isValidTime(hour, minute, second, millisecond, microsecond, nanosecond)) {
-		throw new RangeError();
+		throw new RangeError(invalidDateTime);
 	}
 	return createTimeRecord(hour, minute, second, millisecond, microsecond, nanosecond);
 }
@@ -466,7 +466,7 @@ export class PlainTime {
 			toIntegerWithTruncation,
 		) as TimeRecordTupleWithoutDays;
 		if (!isValidTime(...units)) {
-			throw new RangeError();
+			throw new RangeError(invalidDateTime);
 		}
 		createTemporalTime(createTimeRecord(...units), this);
 	}
@@ -565,7 +565,7 @@ export class PlainTime {
 		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === "hour") {
-			throw new RangeError();
+			throw new RangeError(invalidField("smallestUnit"));
 		}
 		const record = toSecondsStringPrecisionRecord(smallestUnit, digits);
 		return timeRecordToString(
