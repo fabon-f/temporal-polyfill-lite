@@ -316,9 +316,6 @@ function createPlainDateSlot(date: IsoDateRecord, calendar: SupportedCalendars):
 
 export class PlainDate {
 	constructor(isoYear: unknown, isoMonth: unknown, isoDay: unknown, calendar: unknown = "iso8601") {
-		if (!new.target) {
-			throw new TypeError();
-		}
 		const y = toIntegerWithTruncation(isoYear);
 		const m = toIntegerWithTruncation(isoMonth);
 		const d = toIntegerWithTruncation(isoDay);

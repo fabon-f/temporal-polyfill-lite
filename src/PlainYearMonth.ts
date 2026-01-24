@@ -307,9 +307,6 @@ export class PlainYearMonth {
 		calendar: unknown = "iso8601",
 		referenceIsoDay: unknown = 1,
 	) {
-		if (!new.target) {
-			throw new TypeError();
-		}
 		const y = toIntegerWithTruncation(isoYear);
 		const m = toIntegerWithTruncation(isoMonth);
 		validateString(calendar);

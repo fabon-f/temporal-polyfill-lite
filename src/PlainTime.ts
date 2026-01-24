@@ -459,9 +459,6 @@ export class PlainTime {
 		microsecond: unknown = 0,
 		nanosecond: unknown = 0,
 	) {
-		if (!new.target) {
-			throw new TypeError();
-		}
 		const units = [hour, minute, second, millisecond, microsecond, nanosecond].map(
 			toIntegerWithTruncation,
 		) as TimeRecordTupleWithoutDays;

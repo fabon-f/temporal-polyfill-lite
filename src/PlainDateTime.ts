@@ -503,9 +503,6 @@ export class PlainDateTime {
 		nanosecond: unknown = 0,
 		calendar: unknown = "iso8601",
 	) {
-		if (!new.target) {
-			throw new TypeError();
-		}
 		const dateUnits = [isoYear, isoMonth, isoDay].map(toIntegerWithTruncation) as [
 			number,
 			number,

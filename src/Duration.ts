@@ -1083,9 +1083,6 @@ export class Duration {
 		microseconds: unknown = 0,
 		nanoseconds: unknown = 0,
 	) {
-		if (!new.target) {
-			throw new TypeError();
-		}
 		createTemporalDuration(
 			createTemporalDurationSlot(
 				...([

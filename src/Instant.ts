@@ -286,9 +286,6 @@ export function clampEpochNanoseconds(epoch: EpochNanoseconds) {
 
 export class Instant {
 	constructor(epochNanoseconds: unknown) {
-		if (!new.target) {
-			throw new TypeError();
-		}
 		const epoch = createEpochNanosecondsFromBigInt(toBigInt(epochNanoseconds));
 		if (!isValidEpochNanoseconds(epoch)) {
 			throw new RangeError(outOfBoundsDate);
