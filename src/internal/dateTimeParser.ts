@@ -88,7 +88,7 @@ const ambiguousTemporalTimeStringRegExp = [
 	createRegExp(`${dateSpecYearMonth}(${timeZoneAnnotation})?(${annotation})*`),
 ];
 
-export function isAmbiguousTemporalTimeString(isoString: string): boolean {
+function isAmbiguousTemporalTimeString(isoString: string): boolean {
 	for (const regexp of ambiguousTemporalTimeStringRegExp) {
 		const result = isoString.match(regexp);
 		if (result && isSemanticallyValid(result.groups!)) {
@@ -183,10 +183,14 @@ export function parseIsoDateTime(
 	let calendar: string | undefined;
 	for (const format of allowedFormats) {
 		const result = isoString.match(format);
-		if (!result || !isSemanticallyValid((matchedGroups = result.groups!))) {
-			matchedGroups = undefined;
+		if (
+			!result ||
+			!isSemanticallyValid(result.groups!) ||
+			(format === temporalTimeStringRegExp && isAmbiguousTemporalTimeString(isoString))
+		) {
 			continue;
 		}
+		matchedGroups = result.groups!;
 
 		calendar = parseAnnotationsAndGetCalendar(matchedGroups["k"] || "");
 		if (matchedGroups["m"]) {

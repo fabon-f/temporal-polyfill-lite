@@ -13,11 +13,7 @@ import {
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
-import {
-	isAmbiguousTemporalTimeString,
-	parseIsoDateTime,
-	temporalTimeStringRegExp,
-} from "./internal/dateTimeParser.ts";
+import { parseIsoDateTime, temporalTimeStringRegExp } from "./internal/dateTimeParser.ts";
 import {
 	getOptionsObject,
 	getRoundToOptionsObject,
@@ -174,9 +170,6 @@ export function toTemporalTime(item: unknown, options?: unknown): PlainTime {
 	validateString(item);
 	const result = parseIsoDateTime(item, [temporalTimeStringRegExp]);
 	assert(result.$time !== undefined);
-	if (isAmbiguousTemporalTimeString(item)) {
-		throw new RangeError();
-	}
 	getTemporalOverflowOption(getOptionsObject(options));
 	return createTemporalTime(result.$time);
 }
