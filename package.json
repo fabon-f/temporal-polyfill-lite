@@ -18,13 +18,13 @@
 		"@rollup/plugin-strip": "^3.0.4",
 		"@rollup/plugin-terser": "^0.4.4",
 		"@tsconfig/strictest": "^2.0.8",
-		"@types/node": "^25.0.9",
-		"@typescript/native-preview": "7.0.0-dev.20260119.1",
+		"@types/node": "^25.0.10",
+		"@typescript/native-preview": "7.0.0-dev.20260124.1",
 		"oxfmt": "0.26.0",
 		"oxlint": "^1.41.0",
-		"rolldown": "1.0.0-beta.60",
+		"rolldown": "1.0.0-rc.1",
 		"tzdata": "^1.0.47",
-		"vitest": "^4.0.17"
+		"vitest": "^4.0.18"
 	},
 	"scripts": {
 		"test": "vitest",
