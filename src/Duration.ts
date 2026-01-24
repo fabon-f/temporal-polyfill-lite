@@ -49,8 +49,10 @@ import {
 } from "./internal/epochNanoseconds.ts";
 import {
 	disallowedUnit,
+	durationWithDateUnit,
 	invalidDuration,
 	invalidMethodCall,
+	invalidLargestAndSmallestUnitOptions,
 	missingField,
 	outOfBoundsDuration,
 } from "./internal/errorMessages.ts";
@@ -997,7 +999,7 @@ function addDurations(operationSign: 1 | -1, duration: DurationSlot, other: unkn
 		defaultTemporalLargestUnit(otherSlot),
 	);
 	if (isCalendarUnit(largestUnit)) {
-		throw new RangeError();
+		throw new RangeError(durationWithDateUnit(largestUnit));
 	}
 	return createTemporalDuration(
 		temporalDurationFromInternal(
@@ -1244,14 +1246,14 @@ export class Duration {
 			(!smallestUnitPresent && !largestUnitPresent) ||
 			largerOfTwoTemporalUnits(largestUnit, smallestUnit) !== largestUnit
 		) {
-			throw new RangeError();
+			throw new RangeError(invalidLargestAndSmallestUnitOptions);
 		}
 		const maximum = maximumTemporalDurationRoundingIncrement(smallestUnit);
 		if (maximum) {
 			validateTemporalRoundingIncrement(roundingIncrement, maximum, false);
 		}
 		if (roundingIncrement > 1 && largestUnit !== smallestUnit && isDateUnit(smallestUnit)) {
-			throw new RangeError();
+			throw new RangeError(invalidLargestAndSmallestUnitOptions);
 		}
 		if (relativeToRecord.$zoned) {
 			return createTemporalDuration(
@@ -1303,7 +1305,7 @@ export class Duration {
 			);
 		}
 		if (isCalendarUnit(existingLargestUnit) || isCalendarUnit(largestUnit)) {
-			throw new RangeError();
+			throw new RangeError(missingField("relativeTo"));
 		}
 		assert(!isCalendarUnit(smallestUnit));
 		const internalDuration = toInternalDurationRecordWith24HourDays(durationSlot);
@@ -1381,7 +1383,7 @@ export class Duration {
 			);
 		}
 		if (isCalendarUnit(defaultTemporalLargestUnit(duration)) || isCalendarUnit(unit)) {
-			throw new RangeError();
+			throw new RangeError(missingField("relativeTo"));
 		}
 		return totalTimeDuration(toInternalDurationRecordWith24HourDays(duration).$time, unit);
 	}

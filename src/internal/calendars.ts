@@ -51,7 +51,9 @@ import {
 	invalidEra,
 	invalidMonthCode,
 	missingField,
+	monthMismatch,
 	outOfBoundsDate,
+	yearMismatch,
 } from "./errorMessages.ts";
 import { divFloor, modFloor } from "./math.ts";
 import { asciiLowerCase, toZeroPaddedDecimalString } from "./string.ts";
@@ -603,7 +605,7 @@ function isoResolveFields(
 			(fields[calendarFieldKeys.$month] !== undefined &&
 				monthCode[0] !== fields[calendarFieldKeys.$month])
 		) {
-			throw new RangeError();
+			throw new RangeError(monthMismatch);
 		}
 		fields[calendarFieldKeys.$month] = monthCode[0];
 	}
@@ -650,7 +652,7 @@ function nonIsoResolveFields(
 			eraYear,
 		);
 		if (year !== undefined && year !== arithmeticYear) {
-			throw new RangeError();
+			throw new RangeError(yearMismatch);
 		}
 		fields[calendarFieldKeys.$year] = arithmeticYear;
 	}

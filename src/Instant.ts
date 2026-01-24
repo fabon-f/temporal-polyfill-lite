@@ -60,7 +60,12 @@ import {
 	roundEpochNanoseconds,
 	type EpochNanoseconds,
 } from "./internal/epochNanoseconds.ts";
-import { invalidField, invalidMethodCall, outOfBoundsDate } from "./internal/errorMessages.ts";
+import {
+	durationWithDateUnit,
+	invalidField,
+	invalidMethodCall,
+	outOfBoundsDate,
+} from "./internal/errorMessages.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import type { TimeDuration } from "./internal/timeDuration.ts";
@@ -247,7 +252,7 @@ function addDurationToInstant(
 ): Instant {
 	const duration = applySignToDurationSlot(toTemporalDuration(temporalDurationLike), operationSign);
 	if (isDateUnit(defaultTemporalLargestUnit(duration))) {
-		throw new RangeError();
+		throw new RangeError(durationWithDateUnit(defaultTemporalLargestUnit(duration)));
 	}
 	return createTemporalInstant(
 		addInstant(instant.$epochNanoseconds, toInternalDurationRecordWith24HourDays(duration).$time),

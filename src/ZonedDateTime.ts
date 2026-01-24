@@ -125,6 +125,7 @@ import {
 	calendarMismatch,
 	invalidField,
 	invalidMethodCall,
+	offsetMismatch,
 	outOfBoundsDate,
 	timeZoneMismatch,
 } from "./internal/errorMessages.ts";
@@ -253,7 +254,7 @@ export function interpretISODateTimeOffset(
 		}
 	}
 	if (offsetOption === offsetReject) {
-		throw new RangeError();
+		throw new RangeError(offsetMismatch);
 	}
 	return disambiguatePossibleEpochNanoseconds(
 		possibleEpochNs,

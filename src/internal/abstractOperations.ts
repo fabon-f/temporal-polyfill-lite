@@ -107,7 +107,14 @@ import {
 	createEpochNanosecondsFromEpochMilliseconds,
 	type EpochNanoseconds,
 } from "./epochNanoseconds.ts";
-import { disallowedUnit, invalidField, outOfBoundsDate, parseError } from "./errorMessages.ts";
+import {
+	disallowedUnit,
+	invalidField,
+	invalidLargestAndSmallestUnitOptions,
+	invalidTimeZone,
+	outOfBoundsDate,
+	parseError,
+} from "./errorMessages.ts";
 import { divFloor, isWithin, modFloor, type NumberSign } from "./math.ts";
 import { createNullPrototypeObject, isObject } from "./object.ts";
 import {
@@ -715,7 +722,7 @@ export function parseTemporalTimeZoneString(timeZoneString: string): TimeZoneIde
 	const timeZoneId =
 		timeZone.$timeZoneAnnotation || (timeZone.$z && "UTC") || timeZone.$offsetString;
 	if (!timeZoneId) {
-		throw new RangeError();
+		throw new RangeError(invalidTimeZone(timeZoneString));
 	}
 	return parseTimeZoneIdentifier(timeZoneId);
 }
@@ -830,7 +837,7 @@ export function getDifferenceSettings<
 		largestUnit = defaultLargestUnit;
 	}
 	if (largerOfTwoTemporalUnits(largestUnit, smallestUnit) !== largestUnit) {
-		throw new RangeError();
+		throw new RangeError(invalidLargestAndSmallestUnitOptions);
 	}
 	const maximum = maximumTemporalDurationRoundingIncrement(smallestUnit);
 	if (maximum) {

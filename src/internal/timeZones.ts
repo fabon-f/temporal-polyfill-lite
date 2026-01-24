@@ -43,7 +43,7 @@ import {
 	epochSeconds,
 	type EpochNanoseconds,
 } from "./epochNanoseconds.ts";
-import { invalidTimeZone, outOfBoundsDate } from "./errorMessages.ts";
+import { ambiguousTime, invalidTimeZone, outOfBoundsDate } from "./errorMessages.ts";
 import { clamp, divFloor, isWithin, modFloor } from "./math.ts";
 import { asciiCapitalize, asciiLowerCase, asciiUpperCase } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
@@ -351,7 +351,7 @@ export function disambiguatePossibleEpochNanoseconds(
 		return possibleEpochNs[0];
 	}
 	if (disambiguation === disambiguationReject) {
-		throw new RangeError();
+		throw new RangeError(ambiguousTime);
 	}
 	const isForwardTransition = possibleEpochNs.length === 0;
 

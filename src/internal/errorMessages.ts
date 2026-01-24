@@ -21,3 +21,10 @@ export const invalidTimeZone = (id: string) => `invalid time zone: ${id}`;
 export const invalidMethodCall = "invalid method call";
 export const invalidDate = "invalid date";
 export const invalidMonthCode = (code: string) => `invalid month code:${code}`;
+export const durationWithDateUnit = (unit: string) => `duration has a date unit: ${unit}`;
+export const invalidLargestAndSmallestUnitOptions =
+	"invalid `largestUnit` and `smallestUnit` options";
+export const monthMismatch = "mismatch of `month` and `monthCode`";
+export const yearMismatch = "mismatch of `year`, `era` and `eraYear`";
+export const offsetMismatch = "time zone offset mismatch";
+export const ambiguousTime = "ambiguity / gaps in local time";
