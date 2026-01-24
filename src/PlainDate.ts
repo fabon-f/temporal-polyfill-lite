@@ -473,9 +473,11 @@ export class PlainDate {
 		);
 	}
 	equals(other: unknown) {
-		return !compareIsoDate(
-			getInternalSlotOrThrowForPlainDate(this).$isoDate,
-			getInternalSlotOrThrowForPlainDate(toTemporalDate(other)).$isoDate,
+		const thisSlot = getInternalSlotOrThrowForPlainDate(this);
+		const otherSlot = getInternalSlotOrThrowForPlainDate(toTemporalDate(other));
+		return (
+			!compareIsoDate(thisSlot.$isoDate, otherSlot.$isoDate) &&
+			calendarEquals(thisSlot.$calendar, otherSlot.$calendar)
 		);
 	}
 	toPlainDateTime(temporalTime: unknown = undefined) {

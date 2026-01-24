@@ -703,10 +703,13 @@ function nudgeToCalendarUnit(
 			$nudgedEpochNs: nudgedEpochNs,
 			$didExpandCalendarUnit: didExpandCalendarUnit,
 		},
+		// `total` is only used when `increment` is 1.
 		// TODO: investigate the way to achive better precision
 		$total:
 			nudgeWindow.$r1 +
-			(totalTimeDuration(d1, "day") / totalTimeDuration(d2, "day")) * increment * sign,
+			(divideTimeDurationToFloatingPoint(d1, 1e9) / divideTimeDurationToFloatingPoint(d2, 1e9)) *
+				increment *
+				sign,
 	};
 }
 

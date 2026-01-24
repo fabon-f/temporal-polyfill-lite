@@ -24,12 +24,13 @@ const result = await runTest262({
 					"test262/test/built-ins/Temporal/**/*.js",
 					"test262/test/built-ins/Date/prototype/toTemporalInstant/*.js",
 					"test262/test/intl402/DateTimeFormat/**/*.js",
-					"test262/test/intl402/Temporal/**/toLocaleString/**/*.js",
+					"test262/test/intl402/Temporal/**/*.js",
 				]
 			: files,
 	expectedFailureFiles:
 		files.length === 0 ? ["expectedFailures/ecma262.txt", "expectedFailures/ecma402.txt"] : [],
 	updateExpectedFailureFiles: values.update,
+	timeoutMsecs: 30000,
 });
 
 // if result is `true`, all tests succeeded

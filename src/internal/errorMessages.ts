@@ -15,3 +15,4 @@ export const disallowedUnit = (unit: string) => `disallowed unit: ${unit}`;
 export const invalidEra = (era: string) => `invalid era: ${era}`;
 export const notString = (value: unknown) => `${value} is not a string`;
 export const invalidOptionsObject = "invalid options object";
+export const invalidTimeZone = (id: string) => `invalid time zone: ${id}`;

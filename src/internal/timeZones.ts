@@ -43,7 +43,7 @@ import {
 	epochSeconds,
 	type EpochNanoseconds,
 } from "./epochNanoseconds.ts";
-import { outOfBoundsDate } from "./errorMessages.ts";
+import { invalidTimeZone, outOfBoundsDate } from "./errorMessages.ts";
 import { clamp, divFloor, isWithin, modFloor } from "./math.ts";
 import { asciiCapitalize, asciiLowerCase, asciiUpperCase } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
@@ -241,9 +241,16 @@ export function normalizeIanaTimeZoneId(id: string): string {
 	});
 }
 
+export function rejectNonIanaTimeZoneId(id: string) {
+	if (/^(?![cemw]et|[emh]st|prc|ro[ck]|uct|utc|gmt)[a-z]{3}$|systemv|^us.*w$/i.test(id)) {
+		throw new RangeError(invalidTimeZone(id));
+	}
+}
+
 /** `GetAvailableNamedTimeZoneIdentifier` + throwing `RangeError` */
 export function getAvailableNamedTimeZoneIdentifier(timeZone: string): string {
 	timeZone = normalizeIanaTimeZoneId(timeZone);
+	rejectNonIanaTimeZoneId(timeZone);
 	getFormatterForTimeZone(timeZone);
 	return timeZone;
 }
@@ -267,8 +274,8 @@ export function formatOffsetTimeZoneIdentifier(offsetMinutes: number): string {
 /** `FormatUTCOffsetNanoseconds` */
 export function formatUtcOffsetNanoseconds(offsetNanoseconds: number): string {
 	const abs = Math.abs(offsetNanoseconds);
-	const second = modFloor(divFloor(offsetNanoseconds, 1e9), 60);
-	const nanosecond = modFloor(offsetNanoseconds, 1e9);
+	const second = modFloor(divFloor(abs, 1e9), 60);
+	const nanosecond = modFloor(abs, 1e9);
 	return `${offsetNanoseconds < 0 ? "-" : "+"}${formatTimeString(
 		divFloor(abs, nanosecondsPerHour),
 		modFloor(divFloor(abs, nanosecondsPerMinute), 60),

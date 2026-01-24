@@ -65,7 +65,7 @@ import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import type { TimeDuration } from "./internal/timeDuration.ts";
 import {
-	formatUtcOffsetNanoseconds,
+	formatDateTimeUtcOffsetRounded,
 	getIsoDateTimeFromOffsetNanoseconds,
 	getOffsetNanosecondsFor,
 	toTemporalTimeZoneIdentifier,
@@ -203,7 +203,7 @@ function temporalInstantToString(
 		"iso8601",
 		precision,
 		showCalendarName.$never,
-	)}${timeZone === undefined ? "Z" : formatUtcOffsetNanoseconds(offsetNanoseconds)}`;
+	)}${timeZone === undefined ? "Z" : formatDateTimeUtcOffsetRounded(offsetNanoseconds)}`;
 }
 
 /** `DifferenceTemporalInstant` */

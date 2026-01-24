@@ -1,6 +1,6 @@
 import { getInternalSlotForInstant, isInstant } from "./Instant.ts";
 import { getUtcEpochNanoseconds } from "./internal/abstractOperations.ts";
-import { toBoolean, toString } from "./internal/ecmascript.ts";
+import { toBoolean, toNumber, toString } from "./internal/ecmascript.ts";
 import { DATE, DATETIME, TIME } from "./internal/enum.ts";
 import { epochMilliseconds } from "./internal/epochNanoseconds.ts";
 import {
@@ -8,7 +8,7 @@ import {
 	disallowedField,
 	invalidFormattingOptions,
 } from "./internal/errorMessages.ts";
-import { createNullPrototypeObject, pickObject } from "./internal/object.ts";
+import { createNullPrototypeObject, isObject, pickObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
 import { mapUnlessUndefined } from "./internal/utils.ts";
 import { createIsoDateRecord, getInternalSlotForPlainDate, isPlainDate } from "./PlainDate.ts";
@@ -78,11 +78,6 @@ export function getInternalSlotOrThrowForDateTimeFormat(dtf: any): DateTimeForma
 export function formatDateTime(dtf: DateTimeFormatImpl, date: unknown): string {
 	const [rawDtf, value] = handleDateTimeValue(getInternalSlotOrThrowForDateTimeFormat(dtf), date);
 	return rawDtf.format(value as any);
-}
-
-/** DateTime Format Functions */
-function dateTimeFormatFunction(this: DateTimeFormatImpl, date: unknown): string {
-	return formatDateTime(this, date);
 }
 
 function formatDateTimeToParts(dtf: DateTimeFormatImpl, date: unknown): Intl.DateTimeFormatPart[] {
@@ -398,6 +393,25 @@ function validateSameTemporalType(x: unknown, y: unknown) {
 	}
 }
 
+/** `IsTemporalObject` */
+function isTemporalObject(x: unknown) {
+	return (
+		isObject(x) &&
+		(isPlainDate(x) ||
+			isPlainTime(x) ||
+			isPlainDateTime(x) ||
+			isZonedDateTime(x) ||
+			isPlainYearMonth(x) ||
+			isPlainMonthDay(x) ||
+			isInstant(x))
+	);
+}
+
+/** `ToDateTimeFormattable` */
+function toDateTimeFormattable(x: unknown) {
+	return isTemporalObject(x) ? x : toNumber(x);
+}
+
 /** `HandleDateTimeValue` */
 function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [RawDTF, number] {
 	const plainTimeSlot = getInternalSlotForPlainTime(x);
@@ -500,6 +514,14 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 	return [dateTimeFormat.$rawDtf, x as any];
 }
 
+class TmpClass {
+	// make `format` function not work as constructor
+	/** DateTime Format Functions */
+	$dateTimeFormatFunction(this: DateTimeFormatImpl, date: unknown): string {
+		return formatDateTime(this, date);
+	}
+}
+
 export class DateTimeFormatImpl {
 	constructor(locales: unknown, options: unknown) {
 		createDateTimeFormat(locales, options, DATETIME, undefined, this);
@@ -507,7 +529,7 @@ export class DateTimeFormatImpl {
 	get format() {
 		return Object.defineProperty(
 			(getInternalSlotOrThrowForDateTimeFormat(this).$boundFormatFunction ||=
-				dateTimeFormatFunction.bind(this)),
+				TmpClass.prototype.$dateTimeFormatFunction.bind(this)),
 			"name",
 			{ value: "" },
 		);
@@ -516,10 +538,24 @@ export class DateTimeFormatImpl {
 		return formatDateTimeToParts(this, date);
 	}
 	formatRange(startDate: unknown, endDate: unknown) {
-		return formatDateTimeRange(this, startDate, endDate);
+		if (startDate === undefined || endDate === undefined) {
+			throw new TypeError();
+		}
+		return formatDateTimeRange(
+			this,
+			toDateTimeFormattable(startDate),
+			toDateTimeFormattable(endDate),
+		);
 	}
 	formatRangeToParts(startDate: unknown, endDate: unknown) {
-		return formatDateTimeRangeToParts(this, startDate, endDate);
+		if (startDate === undefined || endDate === undefined) {
+			throw new TypeError();
+		}
+		return formatDateTimeRangeToParts(
+			this,
+			toDateTimeFormattable(startDate),
+			toDateTimeFormattable(endDate),
+		);
 	}
 	resolvedOptions() {
 		return getInternalSlotOrThrowForDateTimeFormat(this).$rawDtf.resolvedOptions();
