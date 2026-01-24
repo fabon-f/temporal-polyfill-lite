@@ -1,5 +1,6 @@
 import { createTemporalInstant, type Instant } from "./Instant.ts";
 import { createEpochNanosecondsFromEpochMilliseconds } from "./internal/epochNanoseconds.ts";
+import { invalidDate } from "./internal/errorMessages.ts";
 
 class TmpClass {
 	// make `toTemporalInstant` not work as constructor
@@ -7,7 +8,7 @@ class TmpClass {
 		// brand check
 		const epochMilliseconds = Date.prototype.valueOf.call(this);
 		if (isNaN(epochMilliseconds)) {
-			throw new RangeError();
+			throw new RangeError(invalidDate);
 		}
 		return createTemporalInstant(createEpochNanosecondsFromEpochMilliseconds(epochMilliseconds));
 	}

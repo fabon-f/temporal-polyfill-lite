@@ -76,6 +76,7 @@ import {
 	calendarMismatch,
 	invalidDateTime,
 	invalidField,
+	invalidMethodCall,
 	outOfBoundsDate,
 } from "./internal/errorMessages.ts";
 import type { NumberSign } from "./internal/math.ts";
@@ -480,7 +481,7 @@ export function getInternalSlotForPlainDateTime(
 export function getInternalSlotOrThrowForPlainDateTime(plainDateTime: unknown): PlainDateTimeSlot {
 	const slot = getInternalSlotForPlainDateTime(plainDateTime);
 	if (!slot) {
-		throw new TypeError();
+		throw new TypeError(invalidMethodCall);
 	}
 	return slot;
 }

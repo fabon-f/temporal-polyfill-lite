@@ -457,7 +457,7 @@ export type TimeZoneIdentifierParseRecord =
 /** `ParseTimeZoneIdentifier` */
 export function parseTimeZoneIdentifier(identifier: string): TimeZoneIdentifierParseRecord {
 	if (!isTimeZoneIdentifier(identifier)) {
-		throw new RangeError();
+		throw new RangeError(invalidTimeZone(identifier));
 	}
 	return /^[+-]/.test(identifier)
 		? {

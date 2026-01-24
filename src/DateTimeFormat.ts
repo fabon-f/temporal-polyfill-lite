@@ -7,6 +7,7 @@ import {
 	calendarMismatch,
 	disallowedField,
 	invalidFormattingOptions,
+	invalidMethodCall,
 } from "./internal/errorMessages.ts";
 import { createNullPrototypeObject, isObject, pickObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
@@ -70,7 +71,7 @@ function createInternalSlot(
 export function getInternalSlotOrThrowForDateTimeFormat(dtf: any): DateTimeFormatSlot {
 	const slot = slots.get(dtf);
 	if (!slot) {
-		throw new TypeError();
+		throw new TypeError(invalidMethodCall);
 	}
 	return slot;
 }

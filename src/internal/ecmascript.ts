@@ -1,5 +1,11 @@
 import { REQUIRED } from "./enum.ts";
-import { invalidField, invalidOptionsObject, missingField, notString } from "./errorMessages.ts";
+import {
+	invalidField,
+	invalidNumber,
+	invalidOptionsObject,
+	missingField,
+	notString,
+} from "./errorMessages.ts";
 import { createNullPrototypeObject, isObject } from "./object.ts";
 
 /** `ToPrimitive` when `preferredType` is string */
@@ -58,7 +64,7 @@ export function toBigInt(arg: unknown): bigint {
 export function toIntegerIfIntegral(arg: unknown): number {
 	const num = toNumber(arg);
 	if (!Number.isInteger(num)) {
-		throw new RangeError();
+		throw new RangeError(invalidNumber(num));
 	}
 	return num + 0;
 }
@@ -67,7 +73,7 @@ export function toIntegerIfIntegral(arg: unknown): number {
 export function toIntegerWithTruncation(arg: unknown): number {
 	const num = toNumber(arg);
 	if (isNaN(num) || !isFinite(num)) {
-		throw new RangeError();
+		throw new RangeError(invalidNumber(num));
 	}
 	return Math.trunc(num) + 0;
 }
@@ -76,7 +82,7 @@ export function toIntegerWithTruncation(arg: unknown): number {
 export function toPositiveIntegerWithTruncation(arg: unknown): number {
 	const integer = toIntegerWithTruncation(arg);
 	if (integer <= 0) {
-		throw new RangeError();
+		throw new RangeError(invalidNumber(integer));
 	}
 	return integer;
 }

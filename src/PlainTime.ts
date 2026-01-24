@@ -67,7 +67,7 @@ import {
 	zeroDateDuration,
 } from "./Duration.ts";
 import { createDateTimeFormat, formatDateTime } from "./DateTimeFormat.ts";
-import { invalidDateTime, invalidField } from "./internal/errorMessages.ts";
+import { invalidDateTime, invalidField, invalidMethodCall } from "./internal/errorMessages.ts";
 
 export interface TimeRecord {
 	$hour: number;
@@ -437,7 +437,7 @@ function createPlainTimeSlot(time: TimeRecord): PlainTimeSlot {
 export function getInternalSlotOrThrowForPlainTime(plainTime: unknown): PlainTimeSlot {
 	const slot = slots.get(plainTime);
 	if (!slot) {
-		throw new TypeError();
+		throw new TypeError(invalidMethodCall);
 	}
 	return slot;
 }

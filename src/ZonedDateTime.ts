@@ -124,6 +124,7 @@ import {
 import {
 	calendarMismatch,
 	invalidField,
+	invalidMethodCall,
 	outOfBoundsDate,
 	timeZoneMismatch,
 } from "./internal/errorMessages.ts";
@@ -708,7 +709,7 @@ export function getInternalSlotForZonedDateTime(
 export function getInternalSlotOrThrowForZonedDateTime(zonedDateTime: unknown): ZonedDateTimeSlot {
 	const slot = getInternalSlotForZonedDateTime(zonedDateTime);
 	if (!slot) {
-		throw new TypeError();
+		throw new TypeError(invalidMethodCall);
 	}
 	return slot;
 }

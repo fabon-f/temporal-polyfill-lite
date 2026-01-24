@@ -47,7 +47,13 @@ import {
 	differenceEpochNanoseconds,
 	type EpochNanoseconds,
 } from "./internal/epochNanoseconds.ts";
-import { invalidDuration, missingField } from "./internal/errorMessages.ts";
+import {
+	disallowedUnit,
+	invalidDuration,
+	invalidMethodCall,
+	missingField,
+	outOfBoundsDuration,
+} from "./internal/errorMessages.ts";
 import { sign, type NumberSign } from "./internal/math.ts";
 import { createNullPrototypeObject, isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
@@ -235,9 +241,7 @@ export function createDateDurationRecord(
 	weeks: number,
 	days: number,
 ): DateDurationRecord {
-	if (!isValidDuration(years, months, weeks, days, 0, 0, 0, 0, 0, 0)) {
-		throw new RangeError(invalidDuration);
-	}
+	validateDuration(years, months, weeks, days, 0, 0, 0, 0, 0, 0);
 	return {
 		$years: years,
 		$months: months,
@@ -310,32 +314,38 @@ function internalDurationSign(internalDuration: InternalDurationRecord): NumberS
 	return dateDurationSign(internalDuration.$date) || timeDurationSign(internalDuration.$time);
 }
 
-/** `IsValidDuration` */
-function isValidDuration(...units: DurationTuple): boolean {
+/** `IsValidDuration` + throwing `RangeError` */
+function validateDuration(...units: DurationTuple): void {
 	assert(units.every((v) => Number.isFinite(v)));
+	if (units.some((n) => n < 0) && units.some((n) => n > 0)) {
+		throw new RangeError(invalidDuration);
+	}
 	const timeDurationAboveSecond =
 		units[unitIndices.$day] * 86400 +
 		units[unitIndices.$hour] * 3600 +
 		units[unitIndices.$minute] * 60 +
 		units[unitIndices.$second];
-	return (
-		(units.every((n) => n <= 0) || units.every((n) => n >= 0)) &&
-		Math.abs(units[unitIndices.$year]) < 2 ** 32 &&
-		Math.abs(units[unitIndices.$month]) < 2 ** 32 &&
-		Math.abs(units[unitIndices.$week]) < 2 ** 32 &&
-		// TODO: verify whether `isSafeInteger` guard is necessary or not
-		Number.isSafeInteger(timeDurationAboveSecond) &&
-		timeDurationWithinLimits(
-			timeDurationFromComponents(
-				units[unitIndices.$day] * 24 + units[unitIndices.$hour],
-				units[unitIndices.$minute],
-				units[unitIndices.$second],
-				units[unitIndices.$millisecond],
-				units[unitIndices.$microsecond],
-				units[unitIndices.$nanosecond],
-			),
+	if (
+		!(
+			Math.abs(units[unitIndices.$year]) < 2 ** 32 &&
+			Math.abs(units[unitIndices.$month]) < 2 ** 32 &&
+			Math.abs(units[unitIndices.$week]) < 2 ** 32 &&
+			// TODO: verify whether `isSafeInteger` guard is necessary or not
+			Number.isSafeInteger(timeDurationAboveSecond) &&
+			timeDurationWithinLimits(
+				timeDurationFromComponents(
+					units[unitIndices.$day] * 24 + units[unitIndices.$hour],
+					units[unitIndices.$minute],
+					units[unitIndices.$second],
+					units[unitIndices.$millisecond],
+					units[unitIndices.$microsecond],
+					units[unitIndices.$nanosecond],
+				),
+			)
 		)
-	);
+	) {
+		throw new RangeError(outOfBoundsDuration);
+	}
 }
 
 /** `DefaultTemporalLargestUnit` */
@@ -399,22 +409,18 @@ export function createTemporalDurationSlot(
 	microseconds: number,
 	nanoseconds: number,
 ): DurationSlot {
-	if (
-		!isValidDuration(
-			years,
-			months,
-			weeks,
-			days,
-			hours,
-			minutes,
-			seconds,
-			milliseconds,
-			microseconds,
-			nanoseconds,
-		)
-	) {
-		throw new RangeError(invalidDuration);
-	}
+	validateDuration(
+		years,
+		months,
+		weeks,
+		days,
+		hours,
+		minutes,
+		seconds,
+		milliseconds,
+		microseconds,
+		nanoseconds,
+	);
 	return [
 		years,
 		months,
@@ -464,7 +470,7 @@ export function timeDurationFromComponents(
 export function add24HourDaysToTimeDuration(d: TimeDuration, days: number): TimeDuration {
 	const result = addDaysToTimeDuration(d, days);
 	if (!timeDurationWithinLimits(result)) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDuration);
 	}
 	return result;
 }
@@ -487,7 +493,7 @@ function roundTimeDurationToIncrement(
 ): TimeDuration {
 	const rounded = roundTimeDurationOriginal(d, increment, roundingMode);
 	if (!timeDurationWithinLimits(rounded)) {
-		throw new RangeError();
+		throw new RangeError(outOfBoundsDuration);
 	}
 	return rounded;
 }
@@ -1014,7 +1020,7 @@ function isDuration(duration: unknown): boolean {
 function getInternalSlotOrThrowForDuration(duration: unknown): DurationSlot {
 	const slot = slots.get(duration);
 	if (!slot) {
-		throw new TypeError();
+		throw new TypeError(invalidMethodCall);
 	}
 	return slot;
 }
@@ -1390,7 +1396,7 @@ export class Duration {
 		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === "hour" || smallestUnit === "minute") {
-			throw new RangeError();
+			throw new RangeError(disallowedUnit(smallestUnit));
 		}
 		const precisionRecord = toSecondsStringPrecisionRecord(smallestUnit, digits);
 		assert(precisionRecord.$precision !== MINUTE);

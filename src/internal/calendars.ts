@@ -49,6 +49,7 @@ import {
 import {
 	calendarNotSupported,
 	invalidEra,
+	invalidMonthCode,
 	missingField,
 	outOfBoundsDate,
 } from "./errorMessages.ts";
@@ -155,7 +156,7 @@ function parseMonthCode(arg: unknown): [monthNumber: number, isLeapMonth: boolea
 	validateString(monthCode);
 	const result = monthCode.match(/M(\d\d)L?/);
 	if (!result || monthCode === "M00") {
-		throw new RangeError();
+		throw new RangeError(invalidMonthCode(monthCode));
 	}
 	assert(result[1] !== undefined);
 	return [toNumber(result[1]), monthCode.length === 4];

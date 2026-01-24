@@ -50,7 +50,12 @@ import {
 	YEAR_MONTH,
 	type ShowCalendarName,
 } from "./internal/enum.ts";
-import { calendarMismatch, invalidDateTime, outOfBoundsDate } from "./internal/errorMessages.ts";
+import {
+	calendarMismatch,
+	invalidDateTime,
+	invalidMethodCall,
+	outOfBoundsDate,
+} from "./internal/errorMessages.ts";
 import { divFloor, isWithin, modFloor } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
@@ -286,7 +291,7 @@ export function getInternalSlotForPlainYearMonth(
 function getInternalSlotOrThrowForPlainYearMonth(plainDateTime: unknown): PlainYearMonthSlot {
 	const slot = getInternalSlotForPlainYearMonth(plainDateTime);
 	if (!slot) {
-		throw new TypeError();
+		throw new TypeError(invalidMethodCall);
 	}
 	return slot;
 }

@@ -32,7 +32,7 @@ import {
 	showCalendarName,
 	type ShowCalendarName,
 } from "./internal/enum.ts";
-import { invalidDateTime, outOfBoundsDate } from "./internal/errorMessages.ts";
+import { invalidDateTime, invalidMethodCall, outOfBoundsDate } from "./internal/errorMessages.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
@@ -147,7 +147,7 @@ export function getInternalSlotForPlainMonthDay(
 function getInternalSlotOrThrowForPlainMonthDay(plainDateTime: unknown): PlainMonthDaySlot {
 	const slot = getInternalSlotForPlainMonthDay(plainDateTime);
 	if (!slot) {
-		throw new TypeError();
+		throw new TypeError(invalidMethodCall);
 	}
 	return slot;
 }

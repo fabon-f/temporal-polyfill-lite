@@ -60,7 +60,7 @@ import {
 	roundEpochNanoseconds,
 	type EpochNanoseconds,
 } from "./internal/epochNanoseconds.ts";
-import { invalidField, outOfBoundsDate } from "./internal/errorMessages.ts";
+import { invalidField, invalidMethodCall, outOfBoundsDate } from "./internal/errorMessages.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import type { TimeDuration } from "./internal/timeDuration.ts";
@@ -261,7 +261,7 @@ export function getInternalSlotForInstant(instant: unknown): InstantSlot | undef
 function getInternalSlotOrThrowForInstant(instant: unknown): InstantSlot {
 	const slot = getInternalSlotForInstant(instant);
 	if (!slot) {
-		throw new TypeError();
+		throw new TypeError(invalidMethodCall);
 	}
 	return slot;
 }
