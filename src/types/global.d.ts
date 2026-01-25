@@ -1313,87 +1313,90 @@ declare global {
 			readonly [Symbol.toStringTag]: "Temporal.Now";
 		};
 	}
-}
 
-namespace Intl {
-	type Formattable =
-		| Date
-		| Temporal.Instant
-		| Temporal.PlainDate
-		| Temporal.PlainTime
-		| Temporal.PlainDateTime
-		| Temporal.PlainYearMonth
-		| Temporal.PlainMonthDay;
+	namespace Intl {
+		type Formattable =
+			| Date
+			| Temporal.Instant
+			| Temporal.PlainDate
+			| Temporal.PlainTime
+			| Temporal.PlainDateTime
+			| Temporal.PlainYearMonth
+			| Temporal.PlainMonthDay;
 
-	export interface DateTimeFormat extends globalThis.Intl.DateTimeFormat {
-		/**
-		 * Format a date into a string according to the locale and formatting
-		 * options of this `Intl.DateTimeFormat` object.
-		 *
-		 * @param date The date to format.
-		 */
-		format(date?: Formattable | number): string;
+		export interface DateTimeFormat extends globalThis.Intl.DateTimeFormat {
+			/**
+			 * Format a date into a string according to the locale and formatting
+			 * options of this `Intl.DateTimeFormat` object.
+			 *
+			 * @param date The date to format.
+			 */
+			format(date?: Formattable | number): string;
 
-		/**
-		 * Allow locale-aware formatting of strings produced by
-		 * `Intl.DateTimeFormat` formatters.
-		 *
-		 * @param date The date to format.
-		 */
-		formatToParts(date?: Formattable | number): globalThis.Intl.DateTimeFormatPart[];
+			/**
+			 * Allow locale-aware formatting of strings produced by
+			 * `Intl.DateTimeFormat` formatters.
+			 *
+			 * @param date The date to format.
+			 */
+			formatToParts(date?: Formattable | number): globalThis.Intl.DateTimeFormatPart[];
 
-		/**
-		 * Format a date range in the most concise way based on the locale and
-		 * options provided when instantiating this `Intl.DateTimeFormat` object.
-		 *
-		 * @param startDate The start date of the range to format.
-		 * @param endDate The start date of the range to format. Must be the same
-		 * type as `startRange`.
-		 */
-		formatRange<T extends Formattable>(startDate: T, endDate: T): string;
-		formatRange(startDate: Date | number, endDate: Date | number): string;
+			/**
+			 * Format a date range in the most concise way based on the locale and
+			 * options provided when instantiating this `Intl.DateTimeFormat` object.
+			 *
+			 * @param startDate The start date of the range to format.
+			 * @param endDate The start date of the range to format. Must be the same
+			 * type as `startRange`.
+			 */
+			formatRange<T extends Formattable>(startDate: T, endDate: T): string;
+			formatRange(startDate: Date | number, endDate: Date | number): string;
 
-		/**
-		 * Allow locale-aware formatting of tokens representing each part of the
-		 * formatted date range produced by `Intl.DateTimeFormat` formatters.
-		 *
-		 * @param startDate The start date of the range to format.
-		 * @param endDate The start date of the range to format. Must be the same
-		 * type as `startRange`.
-		 */
-		formatRangeToParts<T extends Formattable>(
-			startDate: T,
-			endDate: T,
-		): globalThis.Intl.DateTimeRangeFormatPart[];
-		formatRangeToParts(
-			startDate: Date | number,
-			endDate: Date | number,
-		): globalThis.Intl.DateTimeRangeFormatPart[];
+			/**
+			 * Allow locale-aware formatting of tokens representing each part of the
+			 * formatted date range produced by `Intl.DateTimeFormat` formatters.
+			 *
+			 * @param startDate The start date of the range to format.
+			 * @param endDate The start date of the range to format. Must be the same
+			 * type as `startRange`.
+			 */
+			formatRangeToParts<T extends Formattable>(
+				startDate: T,
+				endDate: T,
+			): globalThis.Intl.DateTimeRangeFormatPart[];
+			formatRangeToParts(
+				startDate: Date | number,
+				endDate: Date | number,
+			): globalThis.Intl.DateTimeRangeFormatPart[];
+		}
+
+		export const DateTimeFormat: {
+			/**
+			 * Creates `Intl.DateTimeFormat` objects that enable language-sensitive
+			 * date and time formatting.
+			 */
+			new (
+				locales?: string | string[],
+				options?: globalThis.Intl.DateTimeFormatOptions,
+			): DateTimeFormat;
+			(
+				locales?: string | string[],
+				options?: globalThis.Intl.DateTimeFormatOptions,
+			): DateTimeFormat;
+
+			/**
+			 * Get an array containing those of the provided locales that are supported
+			 * in date and time formatting without having to fall back to the runtime's
+			 * default locale.
+			 */
+			supportedLocalesOf(
+				locales: string | string[],
+				options?: globalThis.Intl.DateTimeFormatOptions,
+			): string[];
+		};
 	}
 
-	export const DateTimeFormat: {
-		/**
-		 * Creates `Intl.DateTimeFormat` objects that enable language-sensitive
-		 * date and time formatting.
-		 */
-		new (
-			locales?: string | string[],
-			options?: globalThis.Intl.DateTimeFormatOptions,
-		): DateTimeFormat;
-		(locales?: string | string[], options?: globalThis.Intl.DateTimeFormatOptions): DateTimeFormat;
-
-		/**
-		 * Get an array containing those of the provided locales that are supported
-		 * in date and time formatting without having to fall back to the runtime's
-		 * default locale.
-		 */
-		supportedLocalesOf(
-			locales: string | string[],
-			options?: globalThis.Intl.DateTimeFormatOptions,
-		): string[];
-	};
-}
-
-interface Date {
-	toTemporalInstant(): Temporal.Instant;
+	interface Date {
+		toTemporalInstant(): Temporal.Instant;
+	}
 }
