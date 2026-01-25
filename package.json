@@ -19,15 +19,17 @@
 		"README.md",
 		"dist"
 	],
-	"sideEffects": ["./dist/global.js"],
+	"sideEffects": [
+		"./dist/global.js"
+	],
 	"homepage": "https://github.com/fabon-f/temporal-polyfill-lite#readme",
-  "bugs": {
-    "url": "https://github.com/fabon-f/temporal-polyfill-lite/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/fabon-f/temporal-polyfill-lite.git"
-  },
+	"bugs": {
+		"url": "https://github.com/fabon-f/temporal-polyfill-lite/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/fabon-f/temporal-polyfill-lite.git"
+	},
 	"devDependencies": {
 		"@js-temporal/temporal-test262-runner": "github:js-temporal/temporal-test262-runner#main",
 		"@rollup/plugin-strip": "^3.0.4",
@@ -35,6 +37,7 @@
 		"@tsconfig/strictest": "^2.0.8",
 		"@types/node": "^25.0.10",
 		"@typescript/native-preview": "7.0.0-dev.20260124.1",
+		"clean-pkg-json": "^1.3.0",
 		"oxfmt": "0.26.0",
 		"oxlint": "^1.41.0",
 		"rolldown": "1.0.0-rc.1",
@@ -47,7 +50,8 @@
 		"test": "vitest",
 		"test262": "node script/test262.ts",
 		"typecheck": "tsgo",
-		"lint": "oxfmt --check . && oxlint . --report-unused-disable-directives"
+		"lint": "oxfmt --check . && oxlint . --report-unused-disable-directives",
+		"prepack": "clean-pkg-json"
 	},
 	"pnpm": {
 		"overrides": {
