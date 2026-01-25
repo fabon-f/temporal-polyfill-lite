@@ -13,7 +13,12 @@
 		"./global": "./dist/global.js",
 		"./shim": "./dist/shim.js"
 	},
-	"files": ["README.md", "LICENSE", "dist"],
+	"files": [
+		"CHANGELOG.md",
+		"LICENSE",
+		"README.md",
+		"dist"
+	],
 	"sideEffects": ["./dist/global.js"],
 	"homepage": "https://github.com/fabon-f/temporal-polyfill-lite#readme",
   "bugs": {
@@ -38,6 +43,7 @@
 		"vitest": "^4.0.18"
 	},
 	"scripts": {
+		"build": "node script/build.ts",
 		"test": "vitest",
 		"test262": "node script/test262.ts",
 		"typecheck": "tsgo",
