@@ -2,7 +2,7 @@
 	"type": "module",
 	"name": "temporal-polyfill-lite",
 	"version": "0.1.0",
-	"description": "",
+	"description": "Lightweight Temporal polyfill supporting all time zones and basic calendars",
 	"keywords": [
 		"Temporal"
 	],
@@ -14,6 +14,15 @@
 		"./shim": "./dist/shim.js"
 	},
 	"files": ["README.md", "LICENSE", "dist"],
+	"sideEffects": ["./dist/global.js"],
+	"homepage": "https://github.com/fabon-f/temporal-polyfill-lite#readme",
+  "bugs": {
+    "url": "https://github.com/fabon-f/temporal-polyfill-lite/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fabon-f/temporal-polyfill-lite.git"
+  },
 	"devDependencies": {
 		"@js-temporal/temporal-test262-runner": "github:js-temporal/temporal-test262-runner#main",
 		"@rollup/plugin-strip": "^3.0.4",
