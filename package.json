@@ -10,7 +10,8 @@
 	"license": "MIT",
 	"exports": {
 		".": "./dist/index.js",
-		"./global": "./dist/global.js"
+		"./global": "./dist/global.js",
+		"./shim": "./dist/shim.js"
 	},
 	"files": ["README.md", "LICENSE", "dist"],
 	"devDependencies": {
@@ -24,6 +25,7 @@
 		"oxlint": "^1.41.0",
 		"rolldown": "1.0.0-rc.1",
 		"tzdata": "^1.0.47",
+		"unplugin-isolated-decl": "^0.15.7",
 		"vitest": "^4.0.18"
 	},
 	"scripts": {

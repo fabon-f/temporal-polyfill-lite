@@ -2,6 +2,7 @@ import strip from "@rollup/plugin-strip";
 import terser from "@rollup/plugin-terser";
 import { copyFile } from "node:fs/promises";
 import { rolldown, type RolldownPluginOption } from "rolldown";
+import unpluginIsolatedDecl from "unplugin-isolated-decl/rolldown";
 
 // @ts-expect-error https://github.com/rollup/plugins/issues/1860
 const terserPlugin = terser({
@@ -71,8 +72,8 @@ export async function bundle(options: Options) {
 export async function build() {
 	const { input, output } = plugins({ assertion: false, minify: true });
 	await using bundle = await rolldown({
-		input: ["src/index.ts", "src/global.ts"],
-		plugins: input,
+		input: ["src/index.ts", "src/global.ts", "src/shim.ts"],
+		plugins: [...input, unpluginIsolatedDecl({ include: "src/shim.ts" })],
 	});
 	await bundle.write({
 		dir: "dist",
