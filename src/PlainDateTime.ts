@@ -230,7 +230,7 @@ function toTemporalDateTime(item: unknown, options?: unknown): PlainDateTime {
 	return createTemporalDateTime(
 		combineIsoDateAndTimeRecord(
 			createIsoDateRecord(result.$year, result.$month, result.$day),
-			result.$time ?? midnightTimeRecord(),
+			result.$time || midnightTimeRecord(),
 		),
 		calendar,
 	);
