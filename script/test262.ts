@@ -26,7 +26,7 @@ const { values, positionals: files } = parseArgs({
 	allowPositionals: true,
 });
 
-await rm("dist", { recursive: true });
+await rm("dist", { recursive: true, force: true });
 await mkdir("dist", {});
 await writeFile("dist/bundle.js", await bundle({ assertion: false, minify: false }));
 
