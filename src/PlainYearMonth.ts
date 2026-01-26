@@ -132,11 +132,7 @@ function toTemporalYearMonth(item: unknown, options?: unknown): PlainYearMonth {
 
 /** `ISOYearMonthWithinLimits` */
 export function isoYearMonthWithinLimits(isoDate: IsoDateRecord): boolean {
-	return (
-		isWithin(isoDate.$year, -271821, 275760) &&
-		(isoDate.$year !== -271821 || isoDate.$month >= 4) &&
-		(isoDate.$year !== 275760 || isoDate.$month <= 9)
-	);
+	return isWithin(isoDate.$year * 12 + isoDate.$month, -3261848, 3309129);
 }
 
 /** `BalanceISOYearMonth` */
