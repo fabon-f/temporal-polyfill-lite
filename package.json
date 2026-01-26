@@ -48,7 +48,7 @@
 	"scripts": {
 		"build": "node script/build.ts",
 		"test": "vitest",
-		"test262": "node script/test262.ts",
+		"test262": "LANG=en_GB node script/test262.ts",
 		"typecheck": "tsgo",
 		"lint": "oxfmt --check . && oxlint . --report-unused-disable-directives",
 		"prepack": "clean-pkg-json"
