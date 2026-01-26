@@ -1,0 +1,14 @@
+# $262 not supported in the test runner
+intl402/DateTimeFormat/proto-from-ctor-realm.js
+# not implemented yet in JSC
+intl402/DateTimeFormat/constructor-options-calendar-islamic-fallback.js
+# time zone canonicalization issues in `Intl.DateTimeFormat`
+intl402/Temporal/ZonedDateTime/links.js
+intl402/Temporal/ZonedDateTime/prototype/equals/argument-object.js
+intl402/Temporal/ZonedDateTime/prototype/equals/argument-valid.js
+intl402/Temporal/ZonedDateTime/prototype/equals/canonical-iana-names.js
+intl402/Temporal/ZonedDateTime/prototype/equals/canonicalize-iana-identifiers-before-comparing.js
+intl402/Temporal/ZonedDateTime/prototype/equals/canonicalize-timezone.js
+intl402/Temporal/ZonedDateTime/prototype/equals/canonicalize-utc-timezone.js
+intl402/Temporal/ZonedDateTime/prototype/since/canonicalize-iana-identifiers-before-comparing.js
+intl402/Temporal/ZonedDateTime/prototype/until/canonicalize-iana-identifiers-before-comparing.js

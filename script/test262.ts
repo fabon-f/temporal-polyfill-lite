@@ -3,6 +3,21 @@ import { parseArgs } from "node:util";
 import runTest262 from "@js-temporal/temporal-test262-runner";
 import { bundle } from "./shared/build.ts";
 
+function expectedFailureFiles() {
+	if (process.versions["bun"]) {
+		return [
+			"expectedFailures/ecma262.txt",
+			"expectedFailures/ecma402-bun.txt",
+			"expectedFailures/ecma402-unsupported.txt",
+		];
+	}
+	return [
+		"expectedFailures/ecma262.txt",
+		"expectedFailures/ecma402-node.txt",
+		"expectedFailures/ecma402-unsupported.txt",
+	];
+}
+
 const { values, positionals: files } = parseArgs({
 	args: process.argv.slice(2),
 	options: {
@@ -27,8 +42,7 @@ const result = await runTest262({
 					"test262/test/intl402/Temporal/**/*.js",
 				]
 			: files,
-	expectedFailureFiles:
-		files.length === 0 ? ["expectedFailures/ecma262.txt", "expectedFailures/ecma402.txt"] : [],
+	expectedFailureFiles: files.length === 0 ? expectedFailureFiles() : [],
 	updateExpectedFailureFiles: values.update,
 	timeoutMsecs: 30000,
 });
