@@ -17,7 +17,7 @@ import {
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
-import { assert, assertNotUndefined } from "./internal/assertion.ts";
+import { assert, assertUnitIndex } from "./internal/assertion.ts";
 import {
 	calendarDateAdd,
 	calendarDateUntil,
@@ -83,15 +83,13 @@ import {
 } from "./internal/timeDuration.ts";
 import { createOffsetCacheMap, getEpochNanosecondsFor } from "./internal/timeZones.ts";
 import {
-	getUnitIndex,
+	getIndexFromUnit,
+	getUnitFromIndex,
 	nanosecondsForTimeUnit,
 	pluralUnitKeys,
-	singularUnitKeys,
+	Unit,
 	unitIndices,
 	type PluralUnitKey,
-	type SingularDateUnitKey,
-	type SingularTimeUnitKey,
-	type SingularUnitKey,
 } from "./internal/unit.ts";
 import { mapUnlessUndefined } from "./internal/utils.ts";
 import { addDaysToIsoDate, type PlainDateSlot } from "./PlainDate.ts";
@@ -224,7 +222,7 @@ export function toDateDurationRecordWithoutTime(duration: DurationSlot): DateDur
 /** `TemporalDurationFromInternal` */
 export function temporalDurationFromInternal(
 	internalDuration: InternalDurationRecord,
-	largestUnit: SingularUnitKey,
+	largestUnit: Unit,
 ): DurationSlot {
 	const [days, ...timeUnits] = balanceTimeDuration(internalDuration.$time, largestUnit);
 	return createTemporalDurationSlot(
@@ -351,10 +349,10 @@ function validateDuration(...units: DurationTuple): void {
 }
 
 /** `DefaultTemporalLargestUnit` */
-export function defaultTemporalLargestUnit(duration: DurationSlot): SingularUnitKey {
-	const unit = singularUnitKeys[(duration.findIndex((v) => v !== 0) + 10) % 10];
-	assertNotUndefined(unit);
-	return unit;
+export function defaultTemporalLargestUnit(duration: DurationSlot): Unit {
+	const index = (duration.findIndex((v) => v !== 0) + 10) % 10;
+	assertUnitIndex(index);
+	return getUnitFromIndex(index);
 }
 
 /** `ToTemporalPartialDurationRecord` */
@@ -527,7 +525,7 @@ function dateDurationDays(dateDuration: DateDurationRecord, plainRelativeTo: Pla
 export function roundTimeDuration(
 	timeDuration: TimeDuration,
 	increment: number,
-	unit: SingularTimeUnitKey,
+	unit: Unit.Time,
 	roundingMode: RoundingMode,
 ): TimeDuration {
 	return roundTimeDurationToIncrement(
@@ -538,10 +536,7 @@ export function roundTimeDuration(
 }
 
 /** `TotalTimeDuration` */
-export function totalTimeDuration(
-	timeDuration: TimeDuration,
-	unit: SingularTimeUnitKey | "day",
-): number {
+export function totalTimeDuration(timeDuration: TimeDuration, unit: Unit.Time | Unit.Day): number {
 	return divideTimeDurationToFloatingPoint(timeDuration, nanosecondsForTimeUnit(unit));
 }
 
@@ -563,28 +558,28 @@ function computeNudgeWindow(
 	timeZone: string | undefined,
 	calendar: SupportedCalendars,
 	increment: number,
-	unit: SingularDateUnitKey,
+	unit: Unit.Date,
 	additionalShift: boolean,
 ): NudgeWindowRecord {
 	let r1: number;
 	let r2: number;
 	let startDuration: DateDurationRecord;
 	let endDuration: DateDurationRecord;
-	if (unit === "year") {
+	if (unit === Unit.Year) {
 		r1 =
 			roundNumberToIncrement(duration.$date.$years, increment, roundingModeTrunc) +
 			(additionalShift ? increment * sign : 0);
 		r2 = r1 + increment * sign;
 		startDuration = createDateDurationRecord(r1, 0, 0, 0);
 		endDuration = createDateDurationRecord(r2, 0, 0, 0);
-	} else if (unit === "month") {
+	} else if (unit === Unit.Month) {
 		r1 =
 			roundNumberToIncrement(duration.$date.$months, increment, roundingModeTrunc) +
 			(additionalShift ? increment * sign : 0);
 		r2 = r1 + increment * sign;
 		startDuration = adjustDateDurationRecord(duration.$date, 0, 0, r1);
 		endDuration = adjustDateDurationRecord(duration.$date, 0, 0, r2);
-	} else if (unit === "week") {
+	} else if (unit === Unit.Week) {
 		const weeksStart = calendarDateAdd(
 			calendar,
 			isoDateTime.$isoDate,
@@ -597,7 +592,7 @@ function computeNudgeWindow(
 					calendar,
 					weeksStart,
 					addDaysToIsoDate(weeksStart, duration.$date.$days),
-					"week",
+					Unit.Week,
 				).$weeks,
 			increment,
 			roundingModeTrunc,
@@ -656,7 +651,7 @@ function nudgeToCalendarUnit(
 	timeZone: string | undefined,
 	calendar: SupportedCalendars,
 	increment: number,
-	unit: SingularDateUnitKey,
+	unit: Unit.Date,
 	roundingMode: RoundingMode,
 ): { $nudgeResult: DurationNudgeResultRecord; $total: number } {
 	let didExpandCalendarUnit = false;
@@ -729,7 +724,7 @@ function nudgeToZonedTime(
 	timeZone: string,
 	calendar: SupportedCalendars,
 	increment: number,
-	unit: SingularTimeUnitKey,
+	unit: Unit.Time,
 	roundingMode: RoundingMode,
 ): DurationNudgeResultRecord {
 	const start = calendarDateAdd(calendar, isoDateTime.$isoDate, duration.$date, overflowConstrain);
@@ -776,14 +771,14 @@ function nudgeToZonedTime(
 function nudgeToDayOrTime(
 	duration: InternalDurationRecord,
 	destEpochNs: EpochNanoseconds,
-	largestUnit: SingularUnitKey,
+	largestUnit: Unit,
 	increment: number,
-	smallestUnit: SingularTimeUnitKey | "day",
+	smallestUnit: Unit.Time | Unit.Day,
 	roundingMode: RoundingMode,
 ): DurationNudgeResultRecord {
 	const timeDuration = add24HourDaysToTimeDuration(duration.$time, duration.$date.$days);
 	const roundedTime =
-		smallestUnit === "day"
+		smallestUnit === Unit.Day
 			? roundTimeDurationByDays(timeDuration, increment, roundingMode)
 			: roundTimeDurationToIncrement(
 					timeDuration,
@@ -823,14 +818,14 @@ function bubbleRelativeDuration(
 	isoDateTime: IsoDateTimeRecord,
 	timeZone: string | undefined,
 	calendar: SupportedCalendars,
-	largestUnit: SingularUnitKey,
-	smallestUnit: SingularDateUnitKey,
+	largestUnit: Unit,
+	smallestUnit: Unit.Date,
 ): InternalDurationRecord {
 	if (smallestUnit === largestUnit) {
 		return duration;
 	}
-	const largestUnitIndex = getUnitIndex(largestUnit);
-	const smallestUnitIndex = getUnitIndex(smallestUnit);
+	const largestUnitIndex = getIndexFromUnit(largestUnit);
+	const smallestUnitIndex = getIndexFromUnit(smallestUnit);
 	let endDuration: DateDurationRecord;
 	for (let unitIndex = smallestUnitIndex - 1; unitIndex >= largestUnitIndex; unitIndex--) {
 		if (unitIndex !== unitIndices.$week || largestUnitIndex === unitIndices.$week) {
@@ -866,14 +861,14 @@ export function roundRelativeDuration(
 	isoDateTime: IsoDateTimeRecord,
 	timeZone: string | undefined,
 	calendar: SupportedCalendars,
-	largestUnit: SingularUnitKey,
+	largestUnit: Unit,
 	increment: number,
-	smallestUnit: SingularUnitKey,
+	smallestUnit: Unit,
 	roundingMode: RoundingMode,
 ): InternalDurationRecord {
 	const sign = internalDurationSign(duration) || 1;
 	const nudgeResult =
-		isCalendarUnit(smallestUnit) || (timeZone && smallestUnit === "day")
+		isCalendarUnit(smallestUnit) || (timeZone && smallestUnit === Unit.Day)
 			? nudgeToCalendarUnit(
 					sign,
 					duration,
@@ -887,7 +882,7 @@ export function roundRelativeDuration(
 					roundingMode,
 				).$nudgeResult
 			: timeZone
-				? (assert(smallestUnit !== "day"),
+				? (assert(smallestUnit !== Unit.Day),
 					nudgeToZonedTime(
 						sign,
 						duration,
@@ -906,7 +901,7 @@ export function roundRelativeDuration(
 						smallestUnit,
 						roundingMode,
 					);
-	if (nudgeResult.$didExpandCalendarUnit && smallestUnit !== "week") {
+	if (nudgeResult.$didExpandCalendarUnit && smallestUnit !== Unit.Week) {
 		return bubbleRelativeDuration(
 			sign,
 			nudgeResult.$duration,
@@ -915,7 +910,7 @@ export function roundRelativeDuration(
 			timeZone,
 			calendar,
 			largestUnit,
-			largerOfTwoTemporalUnits(smallestUnit, "day") as SingularDateUnitKey,
+			largerOfTwoTemporalUnits(smallestUnit, Unit.Day) as Unit.Date,
 		);
 	}
 	return nudgeResult.$duration;
@@ -929,9 +924,9 @@ export function totalRelativeDuration(
 	isoDateTime: IsoDateTimeRecord,
 	timeZone: string | undefined,
 	calendar: SupportedCalendars,
-	unit: SingularUnitKey,
+	unit: Unit,
 ): number {
-	if (isCalendarUnit(unit) || (timeZone && unit === "day")) {
+	if (isCalendarUnit(unit) || (timeZone && unit === Unit.Day)) {
 		return nudgeToCalendarUnit(
 			internalDurationSign(duration) || 1,
 			duration,
@@ -962,7 +957,7 @@ function temporalDurationToString(duration: DurationSlot, precision?: number | u
 	);
 	const [, , , seconds, milliseconds, microseconds, nanoseconds] = balanceTimeDuration(
 		secondsDuration,
-		"second",
+		Unit.Second,
 	);
 	const [yearPart, monthPart, weekPart, dayPart, hourPart, minutePart] = [
 		"Y",
@@ -983,7 +978,7 @@ function temporalDurationToString(duration: DurationSlot, precision?: number | u
 		hourPart,
 		minutePart,
 		timeDurationSign(secondsDuration) ||
-		largerOfTwoTemporalUnits(defaultTemporalLargestUnit(duration), "second") === "second" ||
+		largerOfTwoTemporalUnits(defaultTemporalLargestUnit(duration), Unit.Second) === Unit.Second ||
 		precision !== undefined
 			? `${toString(seconds)}${formatFractionalSeconds(milliseconds * 1e6 + microseconds * 1e3 + nanoseconds, precision)}S`
 			: "",
@@ -1037,7 +1032,7 @@ function timeDurationWithinLimits(d: TimeDuration): boolean {
 
 function balanceTimeDuration(
 	d: TimeDuration,
-	largestUnit: SingularUnitKey,
+	largestUnit: Unit,
 ): [days: number, ...TimeDurationTuple] {
 	const nanoseconds = timeDurationDaysAndRemainderNanoseconds(d)[1];
 	const remNanoseconds = (nanoseconds % 1000) + 0;
@@ -1051,22 +1046,22 @@ function balanceTimeDuration(
 	const remHours = (hours % 24) + 0;
 	const days = Math.trunc(hours / 24) + 0;
 
-	if (largestUnit === "nanosecond") {
+	if (largestUnit === Unit.Nanosecond) {
 		return [0, 0, 0, 0, 0, 0, timeDurationToSubsecondsNumber(d, -9)];
 	}
-	if (largestUnit === "microsecond") {
+	if (largestUnit === Unit.Microsecond) {
 		return [0, 0, 0, 0, 0, timeDurationToSubsecondsNumber(d, -6), remNanoseconds];
 	}
-	if (largestUnit === "millisecond") {
+	if (largestUnit === Unit.Millisecond) {
 		return [0, 0, 0, 0, timeDurationToSubsecondsNumber(d, -3), remMicroseconds, remNanoseconds];
 	}
-	if (largestUnit === "second") {
+	if (largestUnit === Unit.Second) {
 		return [0, 0, 0, seconds, remMilliseconds, remMicroseconds, remNanoseconds];
 	}
-	if (largestUnit === "minute") {
+	if (largestUnit === Unit.Minute) {
 		return [0, 0, minutes, remSeconds, remMilliseconds, remMicroseconds, remNanoseconds];
 	}
-	if (largestUnit === "hour") {
+	if (largestUnit === Unit.Hour) {
 		return [0, hours, remMinutes, remSeconds, remMilliseconds, remMicroseconds, remNanoseconds];
 	}
 	return [days, remHours, remMinutes, remSeconds, remMilliseconds, remMicroseconds, remNanoseconds];
@@ -1229,14 +1224,14 @@ export class Duration {
 		let smallestUnit = getTemporalUnitValuedOption(options, "smallestUnit", undefined);
 		validateTemporalUnitValue(smallestUnit, DATETIME);
 		let smallestUnitPresent = true;
-		if (!smallestUnit) {
+		if (smallestUnit === undefined) {
 			smallestUnitPresent = false;
-			smallestUnit = "nanosecond";
+			smallestUnit = Unit.Nanosecond;
 		}
 		const existingLargestUnit = defaultTemporalLargestUnit(durationSlot);
 		const defaultLargestUnit = largerOfTwoTemporalUnits(existingLargestUnit, smallestUnit);
 		let largestUnitPresent = true;
-		if (!largestUnit) {
+		if (largestUnit === undefined) {
 			largestUnitPresent = false;
 			largestUnit = defaultLargestUnit;
 		} else if (largestUnit === "auto") {
@@ -1274,7 +1269,7 @@ export class Duration {
 						smallestUnit,
 						roundingMode,
 					),
-					isDateUnit(largestUnit) ? "hour" : largestUnit,
+					isDateUnit(largestUnit) ? Unit.Hour : largestUnit,
 				),
 			);
 		}
@@ -1311,7 +1306,7 @@ export class Duration {
 		const internalDuration = toInternalDurationRecordWith24HourDays(durationSlot);
 		return createTemporalDuration(
 			temporalDurationFromInternal(
-				smallestUnit === "day"
+				smallestUnit === Unit.Day
 					? combineDateAndTimeDuration(
 							createDateDurationRecord(
 								0,
@@ -1394,12 +1389,12 @@ export class Duration {
 		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
 		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
 		validateTemporalUnitValue(smallestUnit, TIME);
-		if (smallestUnit === "hour" || smallestUnit === "minute") {
+		if (smallestUnit === Unit.Hour || smallestUnit === Unit.Minute) {
 			throw new RangeError(disallowedUnit(smallestUnit));
 		}
 		const precisionRecord = toSecondsStringPrecisionRecord(smallestUnit, digits);
 		assert(precisionRecord.$precision !== MINUTE);
-		if (precisionRecord.$unit === "nanosecond" && precisionRecord.$increment === 1) {
+		if (precisionRecord.$unit === Unit.Nanosecond && precisionRecord.$increment === 1) {
 			return temporalDurationToString(slot, precisionRecord.$precision);
 		}
 		const largestUnit = defaultTemporalLargestUnit(slot);
@@ -1415,7 +1410,7 @@ export class Duration {
 						roundingMode,
 					),
 				),
-				largerOfTwoTemporalUnits(largestUnit, "second"),
+				largerOfTwoTemporalUnits(largestUnit, Unit.Second),
 			),
 			precisionRecord.$precision,
 		);

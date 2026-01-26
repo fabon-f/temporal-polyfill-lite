@@ -61,6 +61,7 @@ import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
 import { createTimeDurationFromSeconds } from "./internal/timeDuration.ts";
+import { Unit } from "./internal/unit.ts";
 import {
 	addDaysToIsoDate,
 	compareIsoDate,
@@ -185,9 +186,9 @@ function differenceTemporalPlainYearMonth(
 		operationSign,
 		getOptionsObject(options),
 		DATE,
-		["week", "day"],
-		"month",
-		"year",
+		[Unit.Week, Unit.Day],
+		Unit.Month,
+		Unit.Year,
 	);
 	if (!compareIsoDate(yearMonth.$isoDate, otherSlot.$isoDate)) {
 		return createTemporalDuration(createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
@@ -207,7 +208,7 @@ function differenceTemporalPlainYearMonth(
 		),
 		createTimeDurationFromSeconds(0),
 	);
-	if (settings.$smallestUnit !== "month" || settings.$roundingIncrement !== 1) {
+	if (settings.$smallestUnit !== Unit.Month || settings.$roundingIncrement !== 1) {
 		const isoDateTime = combineIsoDateAndTimeRecord(thisDate, midnightTimeRecord());
 		duration = roundRelativeDuration(
 			duration,
@@ -223,7 +224,7 @@ function differenceTemporalPlainYearMonth(
 		);
 	}
 	return createTemporalDuration(
-		applySignToDurationSlot(temporalDurationFromInternal(duration, "day"), operationSign),
+		applySignToDurationSlot(temporalDurationFromInternal(duration, Unit.Day), operationSign),
 	);
 }
 

@@ -71,6 +71,7 @@ import {
 	getStartOfDay,
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
+import { Unit } from "./internal/unit.ts";
 import {
 	combineIsoDateAndTimeRecord,
 	createTemporalDateTime,
@@ -236,8 +237,8 @@ function differenceTemporalPlainDate(
 		getOptionsObject(options),
 		DATE,
 		[],
-		"day",
-		"day",
+		Unit.Day,
+		Unit.Day,
 	);
 	if (!compareIsoDate(temporalDate.$isoDate, otherSlot.$isoDate)) {
 		return createTemporalDuration(createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
@@ -251,7 +252,7 @@ function differenceTemporalPlainDate(
 		),
 		createTimeDurationFromSeconds(0),
 	);
-	if (settings.$smallestUnit !== "day" || settings.$roundingIncrement !== 1) {
+	if (settings.$smallestUnit !== Unit.Day || settings.$roundingIncrement !== 1) {
 		const isoDateTime = combineIsoDateAndTimeRecord(temporalDate.$isoDate, midnightTimeRecord());
 		duration = roundRelativeDuration(
 			duration,
@@ -267,7 +268,7 @@ function differenceTemporalPlainDate(
 		);
 	}
 	return createTemporalDuration(
-		applySignToDurationSlot(temporalDurationFromInternal(duration, "day"), operationSign),
+		applySignToDurationSlot(temporalDurationFromInternal(duration, Unit.Day), operationSign),
 	);
 }
 

@@ -27,6 +27,7 @@ import {
 	getTemporalShowCalendarNameOption,
 	getTemporalUnitValuedOption,
 	getUtcEpochNanoseconds,
+	isDateUnit,
 	isoDateRecordToEpochDays,
 	isoDateToFields,
 	isPartialTemporalObject,
@@ -89,7 +90,7 @@ import {
 	getEpochNanosecondsFor,
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
-import type { SingularUnitKey } from "./internal/unit.ts";
+import { Unit } from "./internal/unit.ts";
 import {
 	addDaysToIsoDate,
 	compareIsoDate,
@@ -301,7 +302,7 @@ function compareIsoDateTime(
 export function roundIsoDateTime(
 	isoDateTime: IsoDateTimeRecord,
 	increment: number,
-	unit: SingularUnitKey,
+	unit: Unit,
 	roundingMode: RoundingMode,
 ): IsoDateTimeRecord {
 	assert(isoDateTimeWithinLimits(isoDateTime));
@@ -314,7 +315,7 @@ function differenceISODateTime(
 	isoDateTime1: IsoDateTimeRecord,
 	isoDateTime2: IsoDateTimeRecord,
 	calendar: SupportedCalendars,
-	largestUnit: SingularUnitKey,
+	largestUnit: Unit,
 ): InternalDurationRecord {
 	let timeDuration = differenceTime(isoDateTime1.$time, isoDateTime2.$time);
 	const timeSign = timeDurationSign(timeDuration);
@@ -323,13 +324,8 @@ function differenceISODateTime(
 		adjustedDate = addDaysToIsoDate(adjustedDate, timeSign);
 		timeDuration = add24HourDaysToTimeDuration(timeDuration, -timeSign);
 	}
-	const dateLargestUnit = largerOfTwoTemporalUnits("day", largestUnit);
-	assert(
-		dateLargestUnit === "year" ||
-			dateLargestUnit === "month" ||
-			dateLargestUnit === "week" ||
-			dateLargestUnit === "day",
-	);
+	const dateLargestUnit = largerOfTwoTemporalUnits(Unit.Day, largestUnit);
+	assert(isDateUnit(dateLargestUnit));
 	const dateDifference = calendarDateUntil(
 		calendar,
 		isoDateTime1.$isoDate,
@@ -348,9 +344,9 @@ export function differencePlainDateTimeWithRounding(
 	isoDateTime1: IsoDateTimeRecord,
 	isoDateTime2: IsoDateTimeRecord,
 	calendar: SupportedCalendars,
-	largestUnit: SingularUnitKey,
+	largestUnit: Unit,
 	roundingIncrement: number,
-	smallestUnit: SingularUnitKey,
+	smallestUnit: Unit,
 	roundingMode: RoundingMode,
 ) {
 	if (!compareIsoDateTime(isoDateTime1, isoDateTime2)) {
@@ -360,7 +356,7 @@ export function differencePlainDateTimeWithRounding(
 		throw new RangeError(outOfBoundsDate);
 	}
 	const diff = differenceISODateTime(isoDateTime1, isoDateTime2, calendar, largestUnit);
-	if (smallestUnit === "nanosecond" && roundingIncrement === 1) {
+	if (smallestUnit === Unit.Nanosecond && roundingIncrement === 1) {
 		return diff;
 	}
 	return roundRelativeDuration(
@@ -381,7 +377,7 @@ export function differencePlainDateTimeWithTotal(
 	isoDateTime1: IsoDateTimeRecord,
 	isoDateTime2: IsoDateTimeRecord,
 	calendar: SupportedCalendars,
-	unit: SingularUnitKey,
+	unit: Unit,
 ): number {
 	if (!compareIsoDateTime(isoDateTime1, isoDateTime2)) {
 		return 0;
@@ -416,8 +412,8 @@ function differenceTemporalPlainDateTime(
 		getOptionsObject(options),
 		DATETIME,
 		[],
-		"nanosecond",
-		"day",
+		Unit.Nanosecond,
+		Unit.Day,
 	);
 	if (!compareIsoDateTime(dateTime.$isoDateTime, otherSlot.$isoDateTime)) {
 		return createTemporalDuration(createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
@@ -708,11 +704,11 @@ export class PlainDateTime {
 		const roundingIncrement = getRoundingIncrementOption(roundToOptions);
 		const roundingMode = getRoundingModeOption(roundToOptions, "halfExpand");
 		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", REQUIRED);
-		validateTemporalUnitValue(smallestUnit, TIME, ["day"]);
+		validateTemporalUnitValue(smallestUnit, TIME, [Unit.Day]);
 		const maximum =
-			smallestUnit === "day" ? 1 : maximumTemporalDurationRoundingIncrement(smallestUnit);
+			smallestUnit === Unit.Day ? 1 : maximumTemporalDurationRoundingIncrement(smallestUnit);
 		assertNotUndefined(maximum);
-		validateTemporalRoundingIncrement(roundingIncrement, maximum, smallestUnit === "day");
+		validateTemporalRoundingIncrement(roundingIncrement, maximum, smallestUnit === Unit.Day);
 		return createTemporalDateTime(
 			roundIsoDateTime(slot.$isoDateTime, roundingIncrement, smallestUnit, roundingMode),
 			slot.$calendar,
@@ -734,7 +730,7 @@ export class PlainDateTime {
 		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
 		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
 		validateTemporalUnitValue(smallestUnit, TIME);
-		if (smallestUnit === "hour") {
+		if (smallestUnit === Unit.Hour) {
 			throw new RangeError(invalidField("smallestUnit"));
 		}
 		const record = toSecondsStringPrecisionRecord(smallestUnit, digits);

@@ -152,7 +152,7 @@ import {
 	timeZoneEquals,
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
-import type { SingularDateUnitKey, SingularTimeUnitKey, SingularUnitKey } from "./internal/unit.ts";
+import { Unit } from "./internal/unit.ts";
 import {
 	addDaysToIsoDate,
 	compareIsoDate,
@@ -397,7 +397,7 @@ function temporalZonedDateTimeToString(
 	showTimeZone: TimeZoneNameOptions,
 	showOffset: ShowOffsetOptions,
 	increment = 1,
-	unit: Exclude<SingularTimeUnitKey, "hour"> = "nanosecond",
+	unit: Exclude<Unit.Time, Unit.Hour> = Unit.Nanosecond,
 	roundingMode: RoundingMode = roundingModeTrunc,
 ): string {
 	const epoch = roundTemporalInstant(slot.$epochNanoseconds, increment, unit, roundingMode);
@@ -456,7 +456,7 @@ function differenceZonedDateTime(
 	ns2: EpochNanoseconds,
 	timeZone: string,
 	calendar: SupportedCalendars,
-	largestUnit: SingularUnitKey,
+	largestUnit: Unit,
 	offsetCacheMap?: Map<number, number>,
 ): InternalDurationRecord {
 	const sign = compareEpochNanoseconds(ns1, ns2);
@@ -507,7 +507,7 @@ function differenceZonedDateTime(
 			calendar,
 			startDateTime.$isoDate,
 			intermediateDateTime.$isoDate,
-			largerOfTwoTemporalUnits(largestUnit, "day") as SingularDateUnitKey,
+			largerOfTwoTemporalUnits(largestUnit, Unit.Day) as Unit.Date,
 		),
 		timeDuration,
 	);
@@ -519,9 +519,9 @@ export function differenceZonedDateTimeWithRounding(
 	ns2: EpochNanoseconds,
 	timeZone: string,
 	calendar: SupportedCalendars,
-	largestUnit: SingularUnitKey,
+	largestUnit: Unit,
 	roundingIncrement: number,
-	smallestUnit: SingularUnitKey,
+	smallestUnit: Unit,
 	roundingMode: RoundingMode,
 	offsetCacheMap?: Map<number, number>,
 ): InternalDurationRecord {
@@ -530,7 +530,7 @@ export function differenceZonedDateTimeWithRounding(
 		return differenceInstant(ns1, ns2, roundingIncrement, smallestUnit, roundingMode);
 	}
 	const difference = differenceZonedDateTime(ns1, ns2, timeZone, calendar, largestUnit);
-	if (smallestUnit === "nanosecond" && roundingIncrement === 1) {
+	if (smallestUnit === Unit.Nanosecond && roundingIncrement === 1) {
 		return difference;
 	}
 
@@ -557,7 +557,7 @@ export function differenceZonedDateTimeWithTotal(
 	ns2: EpochNanoseconds,
 	timeZone: string,
 	calendar: SupportedCalendars,
-	unit: SingularUnitKey,
+	unit: Unit,
 ) {
 	if (!isDateUnit(unit)) {
 		return totalTimeDuration(timeDurationFromEpochNanosecondsDifference(ns2, ns1), unit);
@@ -590,8 +590,8 @@ function differenceTemporalZonedDateTime(
 		getOptionsObject(options),
 		DATETIME,
 		[],
-		"nanosecond",
-		"hour",
+		Unit.Nanosecond,
+		Unit.Hour,
 	);
 	if (!isDateUnit(settings.$largestUnit)) {
 		assert(!isDateUnit(settings.$smallestUnit));
@@ -630,7 +630,7 @@ function differenceTemporalZonedDateTime(
 					settings.$smallestUnit,
 					settings.$roundingMode,
 				),
-				"hour",
+				Unit.Hour,
 			),
 			operationSign,
 		),
@@ -1003,18 +1003,18 @@ export class ZonedDateTime {
 		const roundingIncrement = getRoundingIncrementOption(roundToOptions);
 		const roundingMode = getRoundingModeOption(roundToOptions, "halfExpand");
 		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", REQUIRED);
-		validateTemporalUnitValue(smallestUnit, TIME, ["day"]);
+		validateTemporalUnitValue(smallestUnit, TIME, [Unit.Day]);
 		const maximum =
-			smallestUnit === "day" ? 1 : maximumTemporalDurationRoundingIncrement(smallestUnit);
+			smallestUnit === Unit.Day ? 1 : maximumTemporalDurationRoundingIncrement(smallestUnit);
 		assertNotUndefined(maximum);
-		validateTemporalRoundingIncrement(roundingIncrement, maximum, smallestUnit === "day");
-		if (smallestUnit === "nanosecond" && roundingIncrement === 1) {
+		validateTemporalRoundingIncrement(roundingIncrement, maximum, smallestUnit === Unit.Day);
+		if (smallestUnit === Unit.Nanosecond && roundingIncrement === 1) {
 			return createTemporalZonedDateTimeFromSlot(slot);
 		}
 		const isoDateTime = getIsoDateTimeForZonedDateTimeSlot(slot);
 
 		const cache = createOffsetCacheMap();
-		if (smallestUnit === "day") {
+		if (smallestUnit === Unit.Day) {
 			const startOfDay = getStartOfDay(slot.$timeZone, isoDateTime.$isoDate, cache);
 			const startOfNextDay = getStartOfDay(
 				slot.$timeZone,
@@ -1086,7 +1086,7 @@ export class ZonedDateTime {
 		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
 		const showTimeZone = getTemporalShowTimeZoneNameOption(resolvedOptions);
 		validateTemporalUnitValue(smallestUnit, TIME);
-		if (smallestUnit === "hour") {
+		if (smallestUnit === Unit.Hour) {
 			throw new RangeError(invalidField("smallestUnit"));
 		}
 		const precisionRecord = toSecondsStringPrecisionRecord(smallestUnit, digits);

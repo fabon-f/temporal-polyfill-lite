@@ -58,7 +58,7 @@ import {
 import { divFloor, modFloor } from "./math.ts";
 import { asciiLowerCase, toZeroPaddedDecimalString } from "./string.ts";
 import { toTemporalTimeZoneIdentifier } from "./timeZones.ts";
-import type { SingularDateUnitKey } from "./unit.ts";
+import { Unit } from "./unit.ts";
 import { mapUnlessUndefined } from "./utils.ts";
 
 type YearWeekRecord =
@@ -269,17 +269,17 @@ export function calendarDateUntil(
 	_calendar: SupportedCalendars,
 	one: IsoDateRecord,
 	two: IsoDateRecord,
-	largestUnit: SingularDateUnitKey,
+	largestUnit: Unit,
 ): DateDurationRecord {
 	const sign = compareIsoDate(two, one);
 	if (!sign) {
 		return zeroDateDuration();
 	}
-	if (largestUnit === "week" || largestUnit === "day") {
+	if (largestUnit === Unit.Week || largestUnit === Unit.Day) {
 		const days =
 			isoDateToEpochDays(two.$year, two.$month - 1, two.$day) -
 			isoDateToEpochDays(one.$year, one.$month - 1, one.$day);
-		return largestUnit === "week"
+		return largestUnit === Unit.Week
 			? createDateDurationRecord(0, 0, Math.trunc(days / 7) + 0, (days % 7) + 0)
 			: createDateDurationRecord(0, 0, 0, days);
 	}
@@ -301,7 +301,7 @@ export function calendarDateUntil(
 				overflowConstrain,
 			),
 		);
-	if (largestUnit === "year") {
+	if (largestUnit === Unit.Year) {
 		return createDateDurationRecord(Math.trunc(months / 12) + 0, (months % 12) + 0, 0, days);
 	}
 	return createDateDurationRecord(0, months, 0, days);

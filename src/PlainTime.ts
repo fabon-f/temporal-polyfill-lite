@@ -6,6 +6,7 @@ import {
 	getTemporalFractionalSecondDigitsOption,
 	getTemporalOverflowOption,
 	getTemporalUnitValuedOption,
+	isCalendarUnit,
 	isPartialTemporalObject,
 	maximumTemporalDurationRoundingIncrement,
 	roundNumberToIncrement,
@@ -30,12 +31,7 @@ import {
 	type Overflow,
 	type RoundingMode,
 } from "./internal/enum.ts";
-import {
-	getUnitIndex,
-	timeUnitLengths,
-	unitIndices,
-	type SingularUnitKey,
-} from "./internal/unit.ts";
+import { getIndexFromUnit, timeUnitLengths, Unit, unitIndices } from "./internal/unit.ts";
 import { clamp, compare, divFloor, isWithin, modFloor, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
@@ -337,11 +333,11 @@ export function addTime(time: TimeRecord, timeDuration: TimeDuration): TimeRecor
 export function roundTime(
 	time: TimeRecord,
 	increment: number,
-	unit: SingularUnitKey,
+	unit: Unit,
 	roundingMode: RoundingMode,
 ): TimeRecord {
-	assert(unit !== "year" && unit !== "month" && unit !== "week");
-	const unitIndex = getUnitIndex(unit);
+	assert(!isCalendarUnit(unit));
+	const unitIndex = getIndexFromUnit(unit);
 	const values = [
 		time.$hour,
 		time.$minute,
@@ -385,8 +381,8 @@ function differenceTemporalPlainTime(
 		getOptionsObject(options),
 		TIME,
 		[],
-		"nanosecond",
-		"hour",
+		Unit.Nanosecond,
+		Unit.Hour,
 	);
 	return createTemporalDuration(
 		applySignToDurationSlot(
@@ -554,7 +550,7 @@ export class PlainTime {
 		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
 		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
 		validateTemporalUnitValue(smallestUnit, TIME);
-		if (smallestUnit === "hour") {
+		if (smallestUnit === Unit.Hour) {
 			throw new RangeError(invalidField("smallestUnit"));
 		}
 		const record = toSecondsStringPrecisionRecord(smallestUnit, digits);

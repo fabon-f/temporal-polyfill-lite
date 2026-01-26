@@ -75,12 +75,7 @@ import {
 	getOffsetNanosecondsFor,
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
-import {
-	nanosecondsForTimeUnit,
-	timeUnitLengths,
-	type SingularTimeUnitKey,
-	type SingularUnitKey,
-} from "./internal/unit.ts";
+import { nanosecondsForTimeUnit, timeUnitLengths, Unit } from "./internal/unit.ts";
 import { balanceIsoDateTime, isoDateTimeToString } from "./PlainDateTime.ts";
 import { createTemporalZonedDateTime, getInternalSlotForZonedDateTime } from "./ZonedDateTime.ts";
 
@@ -170,7 +165,7 @@ export function differenceInstant(
 	ns1: EpochNanoseconds,
 	ns2: EpochNanoseconds,
 	roundingIncrement: number,
-	smallestUnit: SingularTimeUnitKey,
+	smallestUnit: Unit.Time,
 	roundingMode: RoundingMode,
 ): InternalDurationRecord {
 	return combineDateAndTimeDuration(
@@ -188,10 +183,10 @@ export function differenceInstant(
 export function roundTemporalInstant(
 	ns: EpochNanoseconds,
 	increment: number,
-	unit: SingularUnitKey,
+	unit: Unit,
 	roundingMode: RoundingMode,
 ): EpochNanoseconds {
-	assert(unit !== "year" && unit !== "month" && unit !== "week" && unit !== "day");
+	assert(!isDateUnit(unit));
 	return roundEpochNanoseconds(ns, increment * nanosecondsForTimeUnit(unit), roundingMode);
 }
 
@@ -224,8 +219,8 @@ function differenceTemporalInstant(
 		getOptionsObject(options),
 		TIME,
 		[],
-		"nanosecond",
-		"second",
+		Unit.Nanosecond,
+		Unit.Second,
 	);
 	return createTemporalDuration(
 		applySignToDurationSlot(
@@ -370,7 +365,7 @@ export class Instant {
 		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
 		const rawTz = (resolvedOptions as Record<string, unknown>)["timeZone"];
 		validateTemporalUnitValue(smallestUnit, TIME);
-		if (smallestUnit === "hour") {
+		if (smallestUnit === Unit.Hour) {
 			throw new RangeError(invalidField("smallestUnit"));
 		}
 		if (rawTz !== undefined) {

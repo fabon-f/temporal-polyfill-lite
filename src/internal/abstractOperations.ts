@@ -134,11 +134,11 @@ import {
 	type TimeZoneIdentifierParseRecord,
 } from "./timeZones.ts";
 import {
-	getUnitIndex,
+	getIndexFromUnit,
+	getUnitFromString,
 	pluralUnitKeys,
 	singularUnitKeys,
-	type SingularDateUnitKey,
-	type SingularTimeUnitKey,
+	Unit,
 	type SingularUnitKey,
 } from "./unit.ts";
 import { mapUnlessUndefined } from "./utils.ts";
@@ -300,25 +300,25 @@ export function getTemporalFractionalSecondDigitsOption(options: object): number
 
 interface PrecisionRecord {
 	$precision: number | typeof MINUTE | undefined;
-	$unit: Exclude<SingularTimeUnitKey, "hour">;
+	$unit: Exclude<Unit.Time, Unit.Hour>;
 	$increment: number;
 }
 
 /** `ToSecondsStringPrecisionRecord` */
 export function toSecondsStringPrecisionRecord(
-	smallestUnit: Exclude<SingularTimeUnitKey, "hour"> | undefined,
+	smallestUnit: Exclude<Unit.Time, Unit.Hour> | undefined,
 	fractionalDigitCount: number | undefined,
 ): PrecisionRecord {
 	if (smallestUnit !== undefined) {
 		return {
 			$precision:
-				smallestUnit === "minute"
+				smallestUnit === Unit.Minute
 					? MINUTE
-					: smallestUnit === "second"
+					: smallestUnit === Unit.Second
 						? 0
-						: smallestUnit === "millisecond"
+						: smallestUnit === Unit.Millisecond
 							? 3
-							: smallestUnit === "microsecond"
+							: smallestUnit === Unit.Microsecond
 								? 6
 								: 9,
 			$unit: smallestUnit,
@@ -328,34 +328,34 @@ export function toSecondsStringPrecisionRecord(
 	if (fractionalDigitCount === undefined) {
 		return {
 			$precision: undefined,
-			$unit: "nanosecond",
+			$unit: Unit.Nanosecond,
 			$increment: 1,
 		};
 	}
 	if (fractionalDigitCount === 0) {
 		return {
 			$precision: 0,
-			$unit: "second",
+			$unit: Unit.Second,
 			$increment: 1,
 		};
 	}
 	if (isWithin(fractionalDigitCount, 1, 3)) {
 		return {
 			$precision: fractionalDigitCount,
-			$unit: "millisecond",
+			$unit: Unit.Millisecond,
 			$increment: 10 ** (3 - fractionalDigitCount),
 		};
 	}
 	if (isWithin(fractionalDigitCount, 4, 6)) {
 		return {
 			$precision: fractionalDigitCount,
-			$unit: "microsecond",
+			$unit: Unit.Microsecond,
 			$increment: 10 ** (6 - fractionalDigitCount),
 		};
 	}
 	return {
 		$precision: fractionalDigitCount,
-		$unit: "nanosecond",
+		$unit: Unit.Nanosecond,
 		$increment: 10 ** (9 - fractionalDigitCount),
 	};
 }
@@ -365,12 +365,12 @@ export function getTemporalUnitValuedOption(
 	options: object,
 	key: string,
 	defaultValue: typeof REQUIRED,
-): SingularUnitKey | "auto";
+): Unit | "auto";
 export function getTemporalUnitValuedOption(
 	options: object,
 	key: string,
 	defaultValue: undefined,
-): SingularUnitKey | "auto" | undefined;
+): Unit | "auto" | undefined;
 export function getTemporalUnitValuedOption(
 	options: object,
 	key: string,
@@ -378,37 +378,37 @@ export function getTemporalUnitValuedOption(
 ) {
 	const allowedStrings = [...singularUnitKeys, ...pluralUnitKeys, "auto"];
 	return mapUnlessUndefined(getOption(options, key, allowedStrings, defaultValue), (s) =>
-		s.replace(/s$/, ""),
+		s === "auto" ? "auto" : getUnitFromString(s.replace(/s$/, "") as SingularUnitKey),
 	);
 }
 
 /** `ValidateTemporalUnitValue` */
 export function validateTemporalUnitValue(
-	value: SingularUnitKey | "auto" | undefined,
+	value: Unit | "auto" | undefined,
 	unitGroup: typeof TIME,
-): asserts value is SingularTimeUnitKey | undefined;
+): asserts value is Unit.Time | undefined;
 export function validateTemporalUnitValue(
-	value: SingularUnitKey | "auto" | undefined,
+	value: Unit | "auto" | undefined,
 	unitGroup: typeof DATETIME,
-): asserts value is SingularUnitKey | undefined;
-export function validateTemporalUnitValue<E extends SingularUnitKey | "auto">(
-	value: SingularUnitKey | "auto" | undefined,
+): asserts value is Unit | undefined;
+export function validateTemporalUnitValue<E extends Unit | "auto">(
+	value: Unit | "auto" | undefined,
 	unitGroup: typeof TIME,
 	extraValues?: E[],
-): asserts value is E | SingularTimeUnitKey | undefined;
+): asserts value is E | Unit.Time | undefined;
 export function validateTemporalUnitValue(
-	value: SingularUnitKey | "auto" | undefined,
+	value: Unit | "auto" | undefined,
 	unitGroup: typeof DATE | typeof TIME | typeof DATETIME,
-): asserts value is SingularUnitKey | undefined;
+): asserts value is Unit | undefined;
 export function validateTemporalUnitValue(
-	value: SingularUnitKey | "auto" | undefined,
+	value: Unit | "auto" | undefined,
 	unitGroup: typeof DATE | typeof TIME | typeof DATETIME,
-	extraValues?: (SingularUnitKey | "auto")[],
-): asserts value is SingularUnitKey | "auto" | undefined;
+	extraValues?: (Unit | "auto")[],
+): asserts value is Unit | "auto" | undefined;
 export function validateTemporalUnitValue(
-	value: SingularUnitKey | "auto" | undefined,
+	value: Unit | "auto" | undefined,
 	unitGroup: typeof DATE | typeof TIME | typeof DATETIME,
-	extraValues: (SingularUnitKey | "auto")[] = [],
+	extraValues: (Unit | "auto")[] = [],
 ) {
 	if (value === undefined || extraValues.includes(value)) {
 		return;
@@ -416,8 +416,8 @@ export function validateTemporalUnitValue(
 	if (value === "auto") {
 		throw new RangeError(disallowedUnit(value));
 	}
-	const index = singularUnitKeys.indexOf(value);
-	const dayIndex = singularUnitKeys.indexOf("day");
+	const index = getIndexFromUnit(value);
+	const dayIndex = getIndexFromUnit(Unit.Day);
 	if ((index <= dayIndex && unitGroup === TIME) || (index > dayIndex && unitGroup === DATE)) {
 		throw new RangeError(disallowedUnit(value));
 	}
@@ -550,39 +550,25 @@ export function getTemporalRelativeToOption(options: object): RelativeToOptionRe
 }
 
 /** `LargerOfTwoTemporalUnits` */
-export function largerOfTwoTemporalUnits(
-	u1: SingularUnitKey,
-	u2: SingularUnitKey,
-): SingularUnitKey {
-	return getUnitIndex(u1) < getUnitIndex(u2) ? u1 : u2;
+export function largerOfTwoTemporalUnits(u1: Unit, u2: Unit): Unit {
+	return getIndexFromUnit(u1) < getIndexFromUnit(u2) ? u1 : u2;
 }
 
 /** `IsCalendarUnit` */
-export function isCalendarUnit(unit: SingularUnitKey): unit is "year" | "month" | "week" {
-	return unit === "year" || unit === "month" || unit === "week";
+export function isCalendarUnit(unit: Unit): unit is Unit.Calendar {
+	return getIndexFromUnit(unit) < getIndexFromUnit(Unit.Day);
 }
 
 /** alternative to `TemporalUnitCategory` */
-export function isDateUnit(unit: SingularUnitKey): unit is SingularDateUnitKey {
-	return isCalendarUnit(unit) || unit === "day";
+export function isDateUnit(unit: Unit): unit is Unit.Date {
+	return getIndexFromUnit(unit) <= getIndexFromUnit(Unit.Day);
 }
 
 /** `MaximumTemporalDurationRoundingIncrement` */
-export function maximumTemporalDurationRoundingIncrement(
-	unit: SingularUnitKey,
-): number | undefined {
-	return {
-		year: undefined,
-		month: undefined,
-		week: undefined,
-		day: undefined,
-		hour: 24,
-		minute: 60,
-		second: 60,
-		millisecond: 1000,
-		microsecond: 1000,
-		nanosecond: 1000,
-	}[unit];
+export function maximumTemporalDurationRoundingIncrement(unit: Unit): number | undefined {
+	return [undefined, undefined, undefined, undefined, 24, 60, 60, 1000, 1000, 1000][
+		getIndexFromUnit(unit)
+	];
 }
 
 /** `IsPartialTemporalObject` */
@@ -803,10 +789,10 @@ interface DifferenceSettings<Unit> {
 }
 
 type UnitType<UnitGroup> = UnitGroup extends typeof DATE
-	? SingularDateUnitKey
+	? Unit.Date
 	: UnitGroup extends typeof TIME
-		? SingularTimeUnitKey
-		: SingularUnitKey;
+		? Unit.Time
+		: Unit;
 
 /** `GetDifferenceSettings` */
 export function getDifferenceSettings<
@@ -815,15 +801,15 @@ export function getDifferenceSettings<
 	operationSign: 1 | -1,
 	options: object,
 	unitGroup: UnitGroup,
-	disallowedUnits: SingularUnitKey[],
-	fallbackSmallestUnit: SingularUnitKey,
-	smallestLargestDefaultUnit: SingularUnitKey,
+	disallowedUnits: Unit[],
+	fallbackSmallestUnit: Unit,
+	smallestLargestDefaultUnit: Unit,
 ): DifferenceSettings<UnitType<UnitGroup>> {
-	let largestUnit = getTemporalUnitValuedOption(options, "largestUnit", undefined) || "auto";
+	let largestUnit = getTemporalUnitValuedOption(options, "largestUnit", undefined) ?? "auto";
 	const roundingIncrement = getRoundingIncrementOption(options);
 	const roundingMode = getRoundingModeOption(options, roundingModeTrunc);
 	const smallestUnit =
-		getTemporalUnitValuedOption(options, "smallestUnit", undefined) || fallbackSmallestUnit;
+		getTemporalUnitValuedOption(options, "smallestUnit", undefined) ?? fallbackSmallestUnit;
 	validateTemporalUnitValue(largestUnit, unitGroup, ["auto"]);
 	if (disallowedUnits.includes(largestUnit as any)) {
 		throw new RangeError(disallowedUnit(largestUnit));
