@@ -1,20 +1,24 @@
 import strip from "@rollup/plugin-strip";
 import terser from "@rollup/plugin-terser";
 import { copyFile } from "node:fs/promises";
+import { format } from "oxfmt";
 import { rolldown, type RolldownPluginOption } from "rolldown";
 import unpluginIsolatedDecl from "unplugin-isolated-decl/rolldown";
 
-// @ts-expect-error https://github.com/rollup/plugins/issues/1860
-const terserPlugin = terser({
-	compress: {
-		ecma: 2015,
-	},
-	mangle: {
-		properties: {
-			regex: /^(_|\$)/,
+function createTerserPlugin(beautify: boolean) {
+	// @ts-expect-error https://github.com/rollup/plugins/issues/1860
+	return terser({
+		compress: {
+			ecma: 2015,
 		},
-	},
-});
+		mangle: {
+			keep_fnames: beautify,
+			properties: {
+				regex: /^(_|\$)/,
+			},
+		},
+	});
+}
 
 // @ts-expect-error
 const stripPlugin = strip({
@@ -35,20 +39,32 @@ const wrappedStripPlugin = {
 	},
 } satisfies RolldownPluginOption;
 
+const oxfmtPlugin = {
+	name: "oxfmt",
+	async renderChunk(code, chunk) {
+		return (await format(chunk.fileName, code)).code;
+	},
+} satisfies RolldownPluginOption;
+
 interface Options {
 	minify: boolean;
 	assertion: boolean;
+	beautify?: boolean;
 }
 
-function plugins({ minify, assertion }: Options) {
+function plugins({ minify, assertion, beautify }: Options) {
 	const inputPlugins = [];
 	const outputPlugins = [];
 	if (!assertion) {
 		inputPlugins.push(wrappedStripPlugin);
 	}
 	if (minify) {
-		inputPlugins.push(terserPlugin);
-		outputPlugins.push(terserPlugin);
+		const terser = createTerserPlugin(!!beautify);
+		inputPlugins.push(terser);
+		outputPlugins.push(terser);
+		if (beautify) {
+			outputPlugins.push(oxfmtPlugin);
+		}
 	}
 	return {
 		input: inputPlugins,
@@ -70,7 +86,7 @@ export async function bundle(options: Options) {
 }
 
 export async function build() {
-	const { input, output } = plugins({ assertion: false, minify: true });
+	const { input, output } = plugins({ assertion: false, minify: true, beautify: true });
 	await using bundle = await rolldown({
 		input: ["src/index.ts", "src/global.ts", "src/shim.ts"],
 		plugins: [...input, unpluginIsolatedDecl({ include: "src/shim.ts" })],
