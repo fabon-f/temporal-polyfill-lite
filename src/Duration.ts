@@ -322,6 +322,7 @@ function validateDuration(...units: DurationTuple): void {
 	}
 	if (
 		!(
+			units.every((v) => Math.abs(v) < 1e25) && // reject extreme numbers first to avoid Infinity / NaN
 			Math.abs(units[unitIndices.$year]) < 2 ** 32 &&
 			Math.abs(units[unitIndices.$month]) < 2 ** 32 &&
 			Math.abs(units[unitIndices.$week]) < 2 ** 32 &&
