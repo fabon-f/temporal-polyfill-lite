@@ -320,18 +320,11 @@ function validateDuration(...units: DurationTuple): void {
 	if (units.some((n) => n < 0) && units.some((n) => n > 0)) {
 		throw new RangeError(invalidDuration);
 	}
-	const timeDurationAboveSecond =
-		units[unitIndices.$day] * 86400 +
-		units[unitIndices.$hour] * 3600 +
-		units[unitIndices.$minute] * 60 +
-		units[unitIndices.$second];
 	if (
 		!(
 			Math.abs(units[unitIndices.$year]) < 2 ** 32 &&
 			Math.abs(units[unitIndices.$month]) < 2 ** 32 &&
 			Math.abs(units[unitIndices.$week]) < 2 ** 32 &&
-			// TODO: verify whether `isSafeInteger` guard is necessary or not
-			Number.isSafeInteger(timeDurationAboveSecond) &&
 			timeDurationWithinLimits(
 				timeDurationFromComponents(
 					units[unitIndices.$day] * 24 + units[unitIndices.$hour],

@@ -1,4 +1,5 @@
 import { roundNumberToIncrement } from "./abstractOperations.ts";
+import { assert } from "./assertion.ts";
 import {
 	microsecondsPerDay,
 	millisecondsPerDay,
@@ -180,17 +181,9 @@ export function getApproximateRatioOfTimeDurationsForRounding(
 }
 
 export function divideTimeDurationToFloatingPoint(timeDuration: TimeDuration, divisor: number) {
-	if (divisor === 1) {
-		return timeDurationToSubsecondsNumber(timeDuration, -9, true);
-	}
-	if (divisor === 1e3) {
-		return timeDurationToSubsecondsNumber(timeDuration, -6, true);
-	}
-	if (divisor === 1e6) {
-		return timeDurationToSubsecondsNumber(timeDuration, -3, true);
-	}
-	if (divisor === 1e9) {
-		return timeDurationToSubsecondsNumber(timeDuration, 0, true);
+	if (divisor <= 1e9) {
+		assert(divisor === 1 || divisor === 1e3 || divisor === 1e6 || divisor === 1e9);
+		return timeDurationToSubsecondsNumber(timeDuration, -9 + Math.log10(divisor), true);
 	}
 	// TODO: investigate the way to achive better precision
 	return (nanosecondsPerDay / divisor) * timeDuration[0] + timeDuration[1] / divisor;
