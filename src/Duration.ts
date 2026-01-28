@@ -90,7 +90,7 @@ import {
 	unitIndices,
 	type PluralUnitKey,
 } from "./internal/unit.ts";
-import { mapUnlessUndefined } from "./internal/utils.ts";
+import { mapUnlessUndefined, withArray } from "./internal/utils.ts";
 import { addDaysToIsoDate, type PlainDateSlot } from "./PlainDate.ts";
 import {
 	combineIsoDateAndTimeRecord,
@@ -1142,9 +1142,10 @@ export class Duration {
 		const thisSlot = getInternalSlotOrThrowForDuration(this);
 		return createTemporalDuration(
 			createTemporalDurationSlot(
-				...(toTemporalPartialDurationRecord(temporalDurationLike).map(
-					(v, i) => v ?? thisSlot[i]!,
-				) as [number, number, number, number, number, number, number, number, number, number]),
+				...(withArray(
+					toTemporalPartialDurationRecord(temporalDurationLike),
+					thisSlot,
+				) as DurationTuple),
 			),
 		);
 	}

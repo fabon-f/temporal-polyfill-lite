@@ -60,6 +60,7 @@ import {
 } from "./Duration.ts";
 import { createDateTimeFormat, formatDateTime } from "./DateTimeFormat.ts";
 import { invalidDateTime, invalidField, invalidMethodCall } from "./internal/errorMessages.ts";
+import { withArray } from "./internal/utils.ts";
 
 export interface TimeRecord {
 	$hour: number;
@@ -149,17 +150,10 @@ export function toTemporalTime(item: unknown, options?: unknown): PlainTime {
 				getIsoDateTimeForZonedDateTimeSlot(getInternalSlotOrThrowForZonedDateTime(item)).$time,
 			);
 		}
-		const fields = toTemporalTimeRecord(item);
-		const overflow = getTemporalOverflowOption(getOptionsObject(options));
 		return createTemporalTime(
 			regulateTime(
-				fields.hour,
-				fields.minute,
-				fields.second,
-				fields.millisecond,
-				fields.microsecond,
-				fields.nanosecond,
-				overflow,
+				...toTemporalTimeRecord(item),
+				getTemporalOverflowOption(getOptionsObject(options)),
 			),
 		);
 	}
@@ -256,40 +250,48 @@ export function createTemporalTime(
 	return instance;
 }
 
-interface TemporalTimeLikeRecord {
-	hour: number;
-	minute: number;
-	second: number;
-	millisecond: number;
-	microsecond: number;
-	nanosecond: number;
-}
+type TemporalTimeLikeRecord = [
+	hour: number,
+	minute: number,
+	second: number,
+	millisecond: number,
+	microsecond: number,
+	nanosecond: number,
+];
 
-function toTemporalTimeRecord(item: object, partial: true): Partial<TemporalTimeLikeRecord>;
+type PartialTemporalTimeLikeRecord = [
+	hour: number | undefined,
+	minute: number | undefined,
+	second: number | undefined,
+	millisecond: number | undefined,
+	microsecond: number | undefined,
+	nanosecond: number | undefined,
+];
+
+function toTemporalTimeRecord(item: object, partial: true): PartialTemporalTimeLikeRecord;
 function toTemporalTimeRecord(item: object, partial?: false): TemporalTimeLikeRecord;
 function toTemporalTimeRecord(item: object, partial = false) {
-	const record = Object.create(null);
 	let any = false;
-	for (const property of [
+	const timeUnitsByAlphabeticalOrder = [
 		calendarFieldKeys.$hour,
 		calendarFieldKeys.$microsecond,
 		calendarFieldKeys.$millisecond,
 		calendarFieldKeys.$minute,
 		calendarFieldKeys.$nanosecond,
 		calendarFieldKeys.$second,
-	] as const) {
+	].map((property) => {
 		const value = (item as Record<string, unknown>)[property];
 		if (value !== undefined) {
 			any = true;
-			record[property] = toIntegerWithTruncation(value);
-		} else if (!partial) {
-			record[property] = 0;
+			return toIntegerWithTruncation(value);
+		} else {
+			return partial ? undefined : 0;
 		}
-	}
+	});
 	if (!any) {
 		throw new TypeError();
 	}
-	return record;
+	return [0, 3, 5, 2, 1, 4].map((i) => timeUnitsByAlphabeticalOrder[i]);
 }
 
 /** `TimeRecordToString` */
@@ -500,17 +502,17 @@ export class PlainTime {
 		if (!isPartialTemporalObject(temporalTimeLike)) {
 			throw new TypeError();
 		}
-		const time = toTemporalTimeRecord(temporalTimeLike as object, true);
-		const overflow = getTemporalOverflowOption(getOptionsObject(options));
 		return createTemporalTime(
 			regulateTime(
-				time.hour ?? slot.$hour,
-				time.minute ?? slot.$minute,
-				time.second ?? slot.$second,
-				time.millisecond ?? slot.$millisecond,
-				time.microsecond ?? slot.$microsecond,
-				time.nanosecond ?? slot.$nanosecond,
-				overflow,
+				...(withArray(toTemporalTimeRecord(temporalTimeLike as object, true), [
+					slot.$hour,
+					slot.$minute,
+					slot.$second,
+					slot.$millisecond,
+					slot.$microsecond,
+					slot.$nanosecond,
+				]) as [number, number, number, number, number, number]),
+				getTemporalOverflowOption(getOptionsObject(options)),
 			),
 		);
 	}
