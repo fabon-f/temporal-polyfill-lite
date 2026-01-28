@@ -433,10 +433,6 @@ export function getInternalSlotOrThrowForPlainTime(plainTime: unknown): PlainTim
 	return slot;
 }
 
-export function getInternalSlotForPlainTime(plainTime: unknown): PlainTimeSlot | undefined {
-	return slots.get(plainTime);
-}
-
 export function isPlainTime(item: unknown): boolean {
 	return slots.has(item);
 }

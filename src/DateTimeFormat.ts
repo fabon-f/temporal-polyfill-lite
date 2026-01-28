@@ -1,4 +1,4 @@
-import { getInternalSlotForInstant, isInstant } from "./Instant.ts";
+import { getInternalSlotOrThrowForInstant, isInstant } from "./Instant.ts";
 import { getUtcEpochNanoseconds } from "./internal/abstractOperations.ts";
 import { toBoolean, toNumber, toString } from "./internal/ecmascript.ts";
 import { DATE, DATETIME, TIME } from "./internal/enum.ts";
@@ -19,7 +19,11 @@ import {
 	isPlainDateTime,
 } from "./PlainDateTime.ts";
 import { getInternalSlotForPlainMonthDay, isPlainMonthDay } from "./PlainMonthDay.ts";
-import { getInternalSlotForPlainTime, isPlainTime, midnightTimeRecord } from "./PlainTime.ts";
+import {
+	getInternalSlotOrThrowForPlainTime,
+	isPlainTime,
+	midnightTimeRecord,
+} from "./PlainTime.ts";
 import { getInternalSlotForPlainYearMonth, isPlainYearMonth } from "./PlainYearMonth.ts";
 import { isZonedDateTime } from "./ZonedDateTime.ts";
 
@@ -415,8 +419,7 @@ function toDateTimeFormattable(x: unknown) {
 
 /** `HandleDateTimeValue` */
 function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [RawDTF, number] {
-	const plainTimeSlot = getInternalSlotForPlainTime(x);
-	if (plainTimeSlot) {
+	if (isPlainTime(x)) {
 		return [
 			(dateTimeFormat.$rawDtfForPlainTime ||= new OriginalDateTimeFormat(
 				dateTimeFormat.$locale,
@@ -424,7 +427,10 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 			)),
 			epochMilliseconds(
 				getUtcEpochNanoseconds(
-					combineIsoDateAndTimeRecord(createIsoDateRecord(1970, 1, 1), plainTimeSlot),
+					combineIsoDateAndTimeRecord(
+						createIsoDateRecord(1970, 1, 1),
+						getInternalSlotOrThrowForPlainTime(x),
+					),
 				),
 			),
 		];
@@ -499,14 +505,13 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 			),
 		];
 	}
-	const instantSlot = getInternalSlotForInstant(x);
-	if (instantSlot) {
+	if (isInstant(x)) {
 		return [
 			(dateTimeFormat.$rawDtfForInstant ||= new OriginalDateTimeFormat(
 				dateTimeFormat.$locale,
 				amendOptionsForInstant(dateTimeFormat.$originalOptions),
 			)),
-			epochMilliseconds(instantSlot.$epochNanoseconds),
+			epochMilliseconds(getInternalSlotOrThrowForInstant(x).$epochNanoseconds),
 		];
 	}
 	if (isZonedDateTime(x)) {

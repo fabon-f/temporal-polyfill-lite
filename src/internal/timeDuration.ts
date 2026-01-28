@@ -140,12 +140,14 @@ export function roundTimeDurationByDays(
 	roundingIncrementDays: number,
 	roundingMode: RoundingMode,
 ) {
-	const sign = signTimeDuration(timeDuration);
-	const remainderDayAbs = Math.abs(timeDuration[1] / nanosecondsPerDay);
 	// if day part is large and remainder nanoseconds is small, `timeDuration[0] + sign * remainderDayAbs` causes floating-point error
 	return normalize(
 		roundNumberToIncrement(
-			timeDuration[0] + sign * (remainderDayAbs ? compare(remainderDayAbs, 0.5) * 0.2 + 0.5 : 0),
+			timeDuration[0] +
+				signTimeDuration(timeDuration) *
+					(timeDuration[1]
+						? compare(Math.abs(timeDuration[1] / nanosecondsPerDay), 0.5) * 0.2 + 0.5
+						: 0),
 			roundingIncrementDays,
 			roundingMode,
 		),
@@ -160,20 +162,13 @@ export function getApproximateRatioOfTimeDurationsForRounding(
 ) {
 	// actual value of the `target / divisor` isn't relevant for rounding, but comparison to threshold values (0, 0.5, and 1) should not change.
 	// TODO: consider remove duplication of logic in this function and `roundTimeDurationByDays`
-	const comparedToHalf = compareTimeDuration(addTimeDuration(target, target), divisor);
-	if (!compareTimeDuration(target, createTimeDurationFromSeconds(0))) {
+	if (!signTimeDuration(target)) {
 		return 0;
 	}
 	if (!compareTimeDuration(target, divisor)) {
 		return 1;
 	}
-	if (!comparedToHalf) {
-		return 0.5;
-	}
-	if (comparedToHalf !== sign) {
-		return 0.3;
-	}
-	return 0.7;
+	return (compareTimeDuration(addTimeDuration(target, target), divisor) * sign) / 5 + 0.5;
 }
 
 export function divideTimeDurationToFloatingPoint(timeDuration: TimeDuration, divisor: number) {

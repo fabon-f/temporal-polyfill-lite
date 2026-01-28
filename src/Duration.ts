@@ -157,7 +157,7 @@ export interface InternalDurationRecord {
 export type DurationSlot = DurationTuple & { [internalSlotBrand]: unknown };
 
 const maxTimeDuration = addNanosecondsToTimeDuration(
-	createTimeDurationFromSeconds(Number.MAX_SAFE_INTEGER),
+	createTimeDurationFromSeconds(2 ** 53 - 1),
 	999999999,
 );
 

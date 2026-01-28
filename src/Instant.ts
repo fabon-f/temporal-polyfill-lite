@@ -254,11 +254,11 @@ function addDurationToInstant(
 	);
 }
 
-export function getInternalSlotForInstant(instant: unknown): InstantSlot | undefined {
+function getInternalSlotForInstant(instant: unknown): InstantSlot | undefined {
 	return slots.get(instant);
 }
 
-function getInternalSlotOrThrowForInstant(instant: unknown): InstantSlot {
+export function getInternalSlotOrThrowForInstant(instant: unknown): InstantSlot {
 	const slot = getInternalSlotForInstant(instant);
 	if (!slot) {
 		throw new TypeError(invalidMethodCall);

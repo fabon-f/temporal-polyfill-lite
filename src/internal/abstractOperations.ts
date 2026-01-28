@@ -6,7 +6,6 @@ import {
 import {
 	createIsoDateRecord,
 	createTemporalDate,
-	getInternalSlotForPlainDate,
 	getInternalSlotOrThrowForPlainDate,
 	isPlainDate,
 	type IsoDateRecord,
@@ -23,7 +22,6 @@ import { balanceTime, isPlainTime, type TimeRecord } from "../PlainTime.ts";
 import { balanceIsoYearMonth, isPlainYearMonth } from "../PlainYearMonth.ts";
 import {
 	createTemporalZonedDateTime,
-	getInternalSlotForZonedDateTime,
 	getInternalSlotOrThrowForZonedDateTime,
 	interpretISODateTimeOffset,
 	isZonedDateTime,
@@ -285,7 +283,7 @@ export function getTemporalFractionalSecondDigitsOption(options: object): number
 		}
 		return undefined;
 	}
-	if (!Number.isFinite(digitsValue) || isNaN(digitsValue)) {
+	if (isNaN(digitsValue) || !isFinite(digitsValue)) {
 		throw new RangeError(invalidField(property));
 	}
 	const digitCount = Math.floor(digitsValue);
@@ -448,13 +446,11 @@ export function getTemporalRelativeToOption(options: object): RelativeToOptionRe
 	let isoDate: IsoDateRecord;
 	let time: TimeRecord | undefined;
 	if (isObject(value)) {
-		const zonedDateTimeSlot = getInternalSlotForZonedDateTime(value);
-		if (zonedDateTimeSlot) {
-			return createNullPrototypeObject({ $zoned: zonedDateTimeSlot });
+		if (isZonedDateTime(value)) {
+			return createNullPrototypeObject({ $zoned: getInternalSlotOrThrowForZonedDateTime(value) });
 		}
-		const plainDateSlot = getInternalSlotForPlainDate(value);
-		if (plainDateSlot) {
-			return createNullPrototypeObject({ $plain: plainDateSlot });
+		if (isPlainDate(value)) {
+			return createNullPrototypeObject({ $plain: getInternalSlotOrThrowForPlainDate(value) });
 		}
 		const plainDateTimeSlot = getInternalSlotForPlainDateTime(value);
 		if (plainDateTimeSlot) {
