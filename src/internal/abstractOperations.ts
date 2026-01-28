@@ -195,9 +195,6 @@ export function getTemporalDisambiguationOption(options: object): Disambiguation
 
 /** ``NegateRoundingMode`` */
 function negateRoundingMode(roundingMode: RoundingMode): RoundingMode {
-	// 3. If roundingMode is half-ceil, return half-floor.
-	// 4. If roundingMode is half-floor, return half-ceil.
-	// 5. Return roundingMode.
 	if (roundingMode === roundingModeCeil) {
 		return roundingModeFloor;
 	}
@@ -780,7 +777,6 @@ export function isoDateToFields(
 	};
 }
 
-// 18. Return the Record { [[SmallestUnit]]: smallestUnit, [[LargestUnit]]: largestUnit, [[RoundingMode]]: roundingMode, [[RoundingIncrement]]: roundingIncrement,  }.
 interface DifferenceSettings<Unit> {
 	$smallestUnit: Unit;
 	$largestUnit: Unit;

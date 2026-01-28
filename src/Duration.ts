@@ -1277,7 +1277,6 @@ export class Duration {
 			),
 		);
 	}
-	// 34. Return ? TemporalDurationFromInternal(internalDuration, largestUnit).
 	total(totalOf: unknown) {
 		const duration = getInternalSlotOrThrowForDuration(this);
 		if (totalOf === undefined) {
