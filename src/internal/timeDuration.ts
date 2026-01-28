@@ -69,10 +69,6 @@ export function addTimeDuration(one: TimeDuration, two: TimeDuration): TimeDurat
 	return normalize(one[0] + two[0], one[1] + two[1]);
 }
 
-export function sumTimeDuration(timeDurations: TimeDuration[]): TimeDuration {
-	return timeDurations.reduce(addTimeDuration);
-}
-
 export function absTimeDuration(timeDuration: TimeDuration): TimeDuration {
 	return normalize(Math.abs(timeDuration[0]), Math.abs(timeDuration[1]));
 }

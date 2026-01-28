@@ -75,7 +75,6 @@ import {
 	roundTimeDurationByDays,
 	roundTimeDuration as roundTimeDurationOriginal,
 	signTimeDuration,
-	sumTimeDuration,
 	timeDurationDaysAndRemainderNanoseconds,
 	timeDurationToSecondsNumber,
 	timeDurationToSubsecondsNumber,
@@ -190,20 +189,19 @@ export function toInternalDurationRecord(duration: DurationSlot): InternalDurati
 }
 
 /** `ToInternalDurationRecordWith24HourDays` */
-export function toInternalDurationRecordWith24HourDays(
-	duration: DurationSlot,
-): InternalDurationRecord {
+export function toInternalDurationRecordWith24HourDays([
+	year,
+	month,
+	week,
+	day,
+	...timeUnits
+]: DurationSlot): InternalDurationRecord {
 	// this AO shouldn't fail, so it's safe to change order of `createDateDurationRecord` and `add24HourDaysToTimeDuration`
 	return combineDateAndTimeDuration(
-		createDateDurationRecord(
-			duration[unitIndices.$year],
-			duration[unitIndices.$month],
-			duration[unitIndices.$week],
-			0,
-		),
+		createDateDurationRecord(year, month, week, 0),
 		add24HourDaysToTimeDuration(
-			timeDurationFromComponents(...(duration.slice(unitIndices.$hour) as TimeDurationTuple)),
-			duration[unitIndices.$day],
+			timeDurationFromComponents(...(timeUnits as TimeDurationTuple)),
+			day,
 		),
 	);
 }
@@ -288,18 +286,7 @@ export function toTemporalDuration(item: unknown): DurationSlot {
 
 /** `DurationSign` */
 export function durationSign(duration: DurationSlot): NumberSign {
-	return sign(
-		duration[unitIndices.$year] ||
-			duration[unitIndices.$month] ||
-			duration[unitIndices.$week] ||
-			duration[unitIndices.$day] ||
-			duration[unitIndices.$hour] ||
-			duration[unitIndices.$minute] ||
-			duration[unitIndices.$second] ||
-			duration[unitIndices.$millisecond] ||
-			duration[unitIndices.$microsecond] ||
-			duration[unitIndices.$nanosecond],
-	);
+	return sign(duration.find((v) => v !== 0) || 0);
 }
 
 /** `DateDurationSign` */
@@ -391,42 +378,9 @@ function toTemporalPartialDurationRecord(temporalDurationLike: unknown): Partial
 }
 
 /** part of `CreateTemporalDuration` */
-export function createTemporalDurationSlot(
-	years: number,
-	months: number,
-	weeks: number,
-	days: number,
-	hours: number,
-	minutes: number,
-	seconds: number,
-	milliseconds: number,
-	microseconds: number,
-	nanoseconds: number,
-): DurationSlot {
-	validateDuration(
-		years,
-		months,
-		weeks,
-		days,
-		hours,
-		minutes,
-		seconds,
-		milliseconds,
-		microseconds,
-		nanoseconds,
-	);
-	return [
-		years,
-		months,
-		weeks,
-		days,
-		hours,
-		minutes,
-		seconds,
-		milliseconds,
-		microseconds,
-		nanoseconds,
-	] as DurationSlot;
+export function createTemporalDurationSlot(...units: DurationTuple): DurationSlot {
+	validateDuration(...units);
+	return units as DurationSlot;
 }
 
 /** part of `CreateTemporalDuration` */
@@ -452,12 +406,16 @@ export function timeDurationFromComponents(
 	microseconds: number,
 	nanoseconds: number,
 ): TimeDuration {
-	return sumTimeDuration([
-		createTimeDurationFromSeconds(hours * 3600 + minutes * 60 + seconds),
-		createTimeDurationFromMilliseconds(milliseconds),
-		createTimeDurationFromMicroseconds(microseconds),
+	return addTimeDuration(
+		addTimeDuration(
+			addTimeDuration(
+				createTimeDurationFromSeconds(hours * 3600 + minutes * 60 + seconds),
+				createTimeDurationFromMilliseconds(milliseconds),
+			),
+			createTimeDurationFromMicroseconds(microseconds),
+		),
 		createTimeDurationFromNanoseconds(nanoseconds),
-	]);
+	);
 }
 
 /** `Add24HourDaysToTimeDuration` */
@@ -1217,18 +1175,12 @@ export class Duration {
 		const roundingMode = getRoundingModeOption(options, roundingModeHalfExpand);
 		let smallestUnit = getTemporalUnitValuedOption(options, "smallestUnit", undefined);
 		validateTemporalUnitValue(smallestUnit, DATETIME);
-		let smallestUnitPresent = true;
-		if (smallestUnit === undefined) {
-			smallestUnitPresent = false;
-			smallestUnit = Unit.Nanosecond;
-		}
+		const smallestUnitPresent = smallestUnit !== undefined;
+		smallestUnit ??= Unit.Nanosecond;
 		const existingLargestUnit = defaultTemporalLargestUnit(durationSlot);
 		const defaultLargestUnit = largerOfTwoTemporalUnits(existingLargestUnit, smallestUnit);
-		let largestUnitPresent = true;
-		if (largestUnit === undefined) {
-			largestUnitPresent = false;
-			largestUnit = defaultLargestUnit;
-		} else if (largestUnit === "auto") {
+		const largestUnitPresent = largestUnit !== undefined;
+		if (largestUnit === undefined || largestUnit === "auto") {
 			largestUnit = defaultLargestUnit;
 		}
 		if (
