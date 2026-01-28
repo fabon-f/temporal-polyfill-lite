@@ -90,7 +90,7 @@ export interface CalendarDateRecord {
 
 export type SupportedNonIsoCalendars = "gregory";
 export type SupportedCalendars = "iso8601" | SupportedNonIsoCalendars;
-export type SupportedNonIsoCalendarsWithEras = "gregory";
+type SupportedNonIsoCalendarsWithEras = "gregory";
 
 export const calendarFieldKeys = {
 	$era: "era",

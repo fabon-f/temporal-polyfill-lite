@@ -667,7 +667,7 @@ function addDurationToZonedDateTime(
 }
 
 /** `GetOffsetNanosecondsFor` with caching */
-export function getOffsetNanosecondsForZonedDateTimeSlot(
+function getOffsetNanosecondsForZonedDateTimeSlot(
 	slot: ZonedDateTimeSlot,
 	cacheMap?: Map<number, number>,
 ): number {

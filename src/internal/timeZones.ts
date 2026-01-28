@@ -256,7 +256,7 @@ export function getAvailableNamedTimeZoneIdentifier(timeZone: string): string {
 }
 
 /** `GetISOPartsFromEpoch` */
-export function getIsoPartsFromEpoch(epochNanoseconds: EpochNanoseconds): IsoDateTimeRecord {
+function getIsoPartsFromEpoch(epochNanoseconds: EpochNanoseconds): IsoDateTimeRecord {
 	const [epochDays, remainderNanoseconds] = epochDaysAndRemainderNanoseconds(epochNanoseconds);
 	assert(isWithin(remainderNanoseconds, 0, nanosecondsPerDay - 1));
 	return combineIsoDateAndTimeRecord(
