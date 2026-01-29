@@ -3,14 +3,12 @@ import {
 	adjustDateDurationRecord,
 	applySignToDurationSlot,
 	combineDateAndTimeDuration,
-	createDateDurationRecord,
 	createTemporalDuration,
 	createTemporalDurationSlot,
 	Duration,
-	durationSign,
 	roundRelativeDuration,
 	temporalDurationFromInternal,
-	toDateDurationRecordWithoutTime,
+	toInternalDurationRecord,
 	toTemporalDuration,
 } from "./Duration.ts";
 import {
@@ -55,15 +53,15 @@ import {
 	invalidDateTime,
 	invalidMethodCall,
 	outOfBoundsDate,
+	yearMonthAddition,
 } from "./internal/errorMessages.ts";
 import { divFloor, isWithin, modFloor } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
-import { createTimeDurationFromSeconds } from "./internal/timeDuration.ts";
+import { createTimeDurationFromSeconds, signTimeDuration } from "./internal/timeDuration.ts";
 import { Unit } from "./internal/unit.ts";
 import {
-	addDaysToIsoDate,
 	compareIsoDate,
 	createIsoDateRecord,
 	createTemporalDate,
@@ -235,11 +233,19 @@ function addDurationToYearMonth(
 	temporalDurationLike: unknown,
 	options: unknown,
 ): PlainYearMonth {
-	const duration = applySignToDurationSlot(toTemporalDuration(temporalDurationLike), operationSign);
+	const internalDuration = toInternalDurationRecord(
+		applySignToDurationSlot(toTemporalDuration(temporalDurationLike), operationSign),
+	);
 	const overflow = getTemporalOverflowOption(getOptionsObject(options));
+	if (
+		internalDuration.$date.$weeks ||
+		internalDuration.$date.$days ||
+		signTimeDuration(internalDuration.$time)
+	) {
+		throw new RangeError(yearMonthAddition);
+	}
 	const fields = isoDateToFields(yearMonth.$calendar, yearMonth.$isoDate, YEAR_MONTH);
 	fields.day = 1;
-	const intermediateDate = calendarDateFromFields(yearMonth.$calendar, fields, overflowConstrain);
 	return createTemporalYearMonth(
 		calendarYearMonthFromFields(
 			yearMonth.$calendar,
@@ -247,18 +253,8 @@ function addDurationToYearMonth(
 				yearMonth.$calendar,
 				calendarDateAdd(
 					yearMonth.$calendar,
-					durationSign(duration) < 0
-						? addDaysToIsoDate(
-								calendarDateAdd(
-									yearMonth.$calendar,
-									intermediateDate,
-									createDateDurationRecord(0, 1, 0, 0),
-									overflowConstrain,
-								),
-								-1,
-							)
-						: intermediateDate,
-					toDateDurationRecordWithoutTime(duration),
+					calendarDateFromFields(yearMonth.$calendar, fields, overflowConstrain),
+					internalDuration.$date,
 					overflow,
 				),
 				YEAR_MONTH,
