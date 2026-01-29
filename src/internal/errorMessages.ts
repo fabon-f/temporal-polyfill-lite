@@ -32,3 +32,4 @@ export const monthMismatch = "mismatch of `month` and `monthCode`";
 export const yearMismatch = "mismatch of `year`, `era` and `eraYear`";
 export const offsetMismatch = "time zone offset mismatch";
 export const ambiguousTime = "ambiguity / gaps in local time";
+export const yearMonthAddition = "duration can contain only years and months";
