@@ -139,7 +139,7 @@ import {
 	Unit,
 	type SingularUnitKey,
 } from "./unit.ts";
-import { mapUnlessUndefined } from "./utils.ts";
+import { mapUnlessUndefined, throwRangeError } from "./utils.ts";
 
 /** `ISODateToEpochDays` (`month` is 0-indexed) */
 export function isoDateToEpochDays(year: number, month: number, day: number): number {
@@ -172,7 +172,7 @@ export function mathematicalInLeapYear(year: number): number {
 /** `CheckISODaysRange` */
 export function checkIsoDaysRange(isoDate: IsoDateRecord) {
 	if (Math.abs(isoDateToEpochDays(isoDate.$year, isoDate.$month - 1, isoDate.$day)) > 1e8) {
-		throw new RangeError(outOfBoundsDate);
+		throwRangeError(outOfBoundsDate);
 	}
 }
 
@@ -266,7 +266,7 @@ export function validateTemporalRoundingIncrement(
 ) {
 	const maximum = inclusive ? dividend : dividend - 1;
 	if (increment > maximum || dividend % increment !== 0) {
-		throw new RangeError(invalidField("roundingIncrement"));
+		throwRangeError(invalidField("roundingIncrement"));
 	}
 }
 
@@ -279,16 +279,16 @@ export function getTemporalFractionalSecondDigitsOption(options: object): number
 	}
 	if (typeof digitsValue !== "number") {
 		if (toString(digitsValue) !== "auto") {
-			throw new RangeError(invalidField(property));
+			throwRangeError(invalidField(property));
 		}
 		return undefined;
 	}
 	if (isNaN(digitsValue) || !isFinite(digitsValue)) {
-		throw new RangeError(invalidField(property));
+		throwRangeError(invalidField(property));
 	}
 	const digitCount = Math.floor(digitsValue);
 	if (digitCount < 0 || digitCount > 9) {
-		throw new RangeError(invalidField(property));
+		throwRangeError(invalidField(property));
 	}
 	return digitCount;
 }
@@ -409,12 +409,12 @@ export function validateTemporalUnitValue(
 		return;
 	}
 	if (value === "auto") {
-		throw new RangeError(disallowedUnit(value));
+		throwRangeError(disallowedUnit(value));
 	}
 	const index = getIndexFromUnit(value);
 	const dayIndex = getIndexFromUnit(Unit.Day);
 	if ((index <= dayIndex && unitGroup === TIME) || (index > dayIndex && unitGroup === DATE)) {
-		throw new RangeError(disallowedUnit(value));
+		throwRangeError(disallowedUnit(value));
 	}
 }
 
@@ -680,7 +680,7 @@ export function getRoundingIncrementOption(options: object): number {
 	const value = (options as Record<string, unknown>)[property];
 	const integerIncrement = value === undefined ? 1 : toIntegerWithTruncation(value);
 	if (integerIncrement < 1 || integerIncrement > 1e9) {
-		throw new RangeError(invalidField(property));
+		throwRangeError(invalidField(property));
 	}
 	return integerIncrement;
 }
@@ -701,7 +701,7 @@ export function parseTemporalTimeZoneString(timeZoneString: string): TimeZoneIde
 	const timeZoneId =
 		timeZone.$timeZoneAnnotation || (timeZone.$z && "UTC") || timeZone.$offsetString;
 	if (!timeZoneId) {
-		throw new RangeError(invalidTimeZone(timeZoneString));
+		throwRangeError(invalidTimeZone(timeZoneString));
 	}
 	return parseTimeZoneIdentifier(timeZoneId);
 }
@@ -720,7 +720,7 @@ export function parseTemporalDurationString(isoString: string): DurationSlot {
 	isoString = asciiLowerCase(isoString);
 	const result = isoString.match(durationRegExp);
 	if (!result || invalidDurationRegExp.test(isoString)) {
-		throw new RangeError(parseError);
+		throwRangeError(parseError);
 	}
 	assertNotUndefined(result[1]);
 	const fracPart = balanceTime(
@@ -804,18 +804,18 @@ export function getDifferenceSettings<
 		getTemporalUnitValuedOption(options, "smallestUnit", undefined) ?? fallbackSmallestUnit;
 	validateTemporalUnitValue(largestUnit, unitGroup, ["auto"]);
 	if (disallowedUnits.includes(largestUnit as any)) {
-		throw new RangeError(disallowedUnit(largestUnit));
+		throwRangeError(disallowedUnit(largestUnit));
 	}
 	validateTemporalUnitValue(smallestUnit, unitGroup);
 	if (disallowedUnits.includes(smallestUnit as any)) {
-		throw new RangeError(disallowedUnit(smallestUnit));
+		throwRangeError(disallowedUnit(smallestUnit));
 	}
 	const defaultLargestUnit = largerOfTwoTemporalUnits(smallestLargestDefaultUnit, smallestUnit);
 	if (largestUnit === "auto") {
 		largestUnit = defaultLargestUnit;
 	}
 	if (largerOfTwoTemporalUnits(largestUnit, smallestUnit) !== largestUnit) {
-		throw new RangeError(invalidLargestAndSmallestUnitOptions);
+		throwRangeError(invalidLargestAndSmallestUnitOptions);
 	}
 	const maximum = maximumTemporalDurationRoundingIncrement(smallestUnit);
 	if (maximum) {

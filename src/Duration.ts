@@ -90,7 +90,12 @@ import {
 	unitIndices,
 	type PluralUnitKey,
 } from "./internal/unit.ts";
-import { mapUnlessUndefined, withArray } from "./internal/utils.ts";
+import {
+	mapUnlessUndefined,
+	throwRangeError,
+	throwTypeError,
+	withArray,
+} from "./internal/utils.ts";
 import { addDaysToIsoDate, type PlainDateSlot } from "./PlainDate.ts";
 import {
 	combineIsoDateAndTimeRecord,
@@ -305,7 +310,7 @@ function internalDurationSign(internalDuration: InternalDurationRecord): NumberS
 function validateDuration(...units: DurationTuple): void {
 	assert(units.every((v) => Number.isFinite(v)));
 	if (units.some((n) => n < 0) && units.some((n) => n > 0)) {
-		throw new RangeError(invalidDuration);
+		throwRangeError(invalidDuration);
 	}
 	if (
 		!(
@@ -315,7 +320,7 @@ function validateDuration(...units: DurationTuple): void {
 			Math.abs(units[unitIndices.$week]) < 2 ** 32
 		)
 	) {
-		throw new RangeError(outOfBoundsDuration);
+		throwRangeError(outOfBoundsDuration);
 	}
 	validateTimeDurationRange(
 		timeDurationFromComponents(
@@ -339,7 +344,7 @@ export function defaultTemporalLargestUnit(duration: DurationSlot): Unit {
 /** `ToTemporalPartialDurationRecord` */
 function toTemporalPartialDurationRecord(temporalDurationLike: unknown): PartialDurationRecord {
 	if (!isObject(temporalDurationLike)) {
-		throw new TypeError();
+		throwTypeError();
 	}
 	const unitsByAlphabeticalOrder = [
 		unitIndices.$day,
@@ -370,7 +375,7 @@ function toTemporalPartialDurationRecord(temporalDurationLike: unknown): Partial
 		number | undefined,
 	];
 	if (unitsByAlphabeticalOrder.every((v) => v === undefined)) {
-		throw new TypeError();
+		throwTypeError();
 	}
 	return [9, 5, 8, 0, 1, 4, 7, 3, 2, 6].map(
 		(i) => unitsByAlphabeticalOrder[i],
@@ -938,7 +943,7 @@ function addDurations(operationSign: 1 | -1, duration: DurationSlot, other: unkn
 		defaultTemporalLargestUnit(otherSlot),
 	);
 	if (isCalendarUnit(largestUnit)) {
-		throw new RangeError(durationWithDateUnit(largestUnit));
+		throwRangeError(durationWithDateUnit(largestUnit));
 	}
 	return createTemporalDuration(
 		temporalDurationFromInternal(
@@ -961,7 +966,7 @@ function isDuration(duration: unknown): boolean {
 function getInternalSlotOrThrowForDuration(duration: unknown): DurationSlot {
 	const slot = slots.get(duration);
 	if (!slot) {
-		throw new TypeError(invalidMethodCall);
+		throwTypeError(invalidMethodCall);
 	}
 	return slot;
 }
@@ -976,7 +981,7 @@ function timeDurationWithinLimits(d: TimeDuration): boolean {
 
 function validateTimeDurationRange(d: TimeDuration): TimeDuration {
 	if (!timeDurationWithinLimits(d)) {
-		throw new RangeError(outOfBoundsDuration);
+		throwRangeError(outOfBoundsDuration);
 	}
 	return d;
 }
@@ -1088,7 +1093,7 @@ export class Duration {
 		let days2: number;
 		if (isCalendarUnit(largestUnit1) || isCalendarUnit(largestUnit2)) {
 			if (!relativeToRecord.$plain) {
-				throw new RangeError(missingField("relativeTo"));
+				throwRangeError(missingField("relativeTo"));
 			}
 			days1 = dateDurationDays(duration1.$date, relativeToRecord.$plain);
 			days2 = dateDurationDays(duration2.$date, relativeToRecord.$plain);
@@ -1187,14 +1192,14 @@ export class Duration {
 			(!smallestUnitPresent && !largestUnitPresent) ||
 			largerOfTwoTemporalUnits(largestUnit, smallestUnit) !== largestUnit
 		) {
-			throw new RangeError(invalidLargestAndSmallestUnitOptions);
+			throwRangeError(invalidLargestAndSmallestUnitOptions);
 		}
 		const maximum = maximumTemporalDurationRoundingIncrement(smallestUnit);
 		if (maximum) {
 			validateTemporalRoundingIncrement(roundingIncrement, maximum, false);
 		}
 		if (roundingIncrement > 1 && largestUnit !== smallestUnit && isDateUnit(smallestUnit)) {
-			throw new RangeError(invalidLargestAndSmallestUnitOptions);
+			throwRangeError(invalidLargestAndSmallestUnitOptions);
 		}
 		if (relativeToRecord.$zoned) {
 			return createTemporalDuration(
@@ -1246,7 +1251,7 @@ export class Duration {
 			);
 		}
 		if (isCalendarUnit(existingLargestUnit) || isCalendarUnit(largestUnit)) {
-			throw new RangeError(missingField("relativeTo"));
+			throwRangeError(missingField("relativeTo"));
 		}
 		assert(!isCalendarUnit(smallestUnit));
 		const internalDuration = toInternalDurationRecordWith24HourDays(durationSlot);
@@ -1280,7 +1285,7 @@ export class Duration {
 	total(totalOf: unknown) {
 		const duration = getInternalSlotOrThrowForDuration(this);
 		if (totalOf === undefined) {
-			throw new TypeError();
+			throwTypeError();
 		}
 		const totalOfOptions =
 			typeof totalOf === "string"
@@ -1323,7 +1328,7 @@ export class Duration {
 			);
 		}
 		if (isCalendarUnit(defaultTemporalLargestUnit(duration)) || isCalendarUnit(unit)) {
-			throw new RangeError(missingField("relativeTo"));
+			throwRangeError(missingField("relativeTo"));
 		}
 		return totalTimeDuration(toInternalDurationRecordWith24HourDays(duration).$time, unit);
 	}
@@ -1335,7 +1340,7 @@ export class Duration {
 		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === Unit.Hour || smallestUnit === Unit.Minute) {
-			throw new RangeError(disallowedUnit(smallestUnit));
+			throwRangeError(disallowedUnit(smallestUnit));
 		}
 		const precisionRecord = toSecondsStringPrecisionRecord(smallestUnit, digits);
 		assert(precisionRecord.$precision !== MINUTE);
@@ -1371,7 +1376,7 @@ export class Duration {
 		return new Intl.DurationFormat(locales, options).format(record);
 	}
 	valueOf() {
-		throw new TypeError();
+		throwTypeError();
 	}
 }
 

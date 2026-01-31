@@ -91,6 +91,7 @@ import {
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
 import { Unit } from "./internal/unit.ts";
+import { throwRangeError, throwTypeError } from "./internal/utils.ts";
 import {
 	addDaysToIsoDate,
 	compareIsoDate,
@@ -262,7 +263,7 @@ export function createTemporalDateTime(
 	instance = Object.create(PlainDateTime.prototype) as PlainDateTime,
 ): PlainDateTime {
 	if (!isoDateTimeWithinLimits(isoDateTime)) {
-		throw new RangeError(outOfBoundsDate);
+		throwRangeError(outOfBoundsDate);
 	}
 	const slot = createPlainDateTimeSlot(isoDateTime, calendar);
 	slots.set(instance, slot);
@@ -353,7 +354,7 @@ export function differencePlainDateTimeWithRounding(
 		return combineDateAndTimeDuration(zeroDateDuration(), createTimeDurationFromSeconds(0));
 	}
 	if (!isoDateTimeWithinLimits(isoDateTime1) || !isoDateTimeWithinLimits(isoDateTime2)) {
-		throw new RangeError(outOfBoundsDate);
+		throwRangeError(outOfBoundsDate);
 	}
 	const diff = differenceISODateTime(isoDateTime1, isoDateTime2, calendar, largestUnit);
 	if (smallestUnit === Unit.Nanosecond && roundingIncrement === 1) {
@@ -383,7 +384,7 @@ export function differencePlainDateTimeWithTotal(
 		return 0;
 	}
 	if (!isoDateTimeWithinLimits(isoDateTime1) || !isoDateTimeWithinLimits(isoDateTime2)) {
-		throw new RangeError(outOfBoundsDate);
+		throwRangeError(outOfBoundsDate);
 	}
 	return totalRelativeDuration(
 		differenceISODateTime(isoDateTime1, isoDateTime2, calendar, unit),
@@ -405,7 +406,7 @@ function differenceTemporalPlainDateTime(
 ): Duration {
 	const otherSlot = getInternalSlotOrThrowForPlainDateTime(toTemporalDateTime(other));
 	if (!calendarEquals(dateTime.$calendar, otherSlot.$calendar)) {
-		throw new RangeError(calendarMismatch);
+		throwRangeError(calendarMismatch);
 	}
 	const settings = getDifferenceSettings(
 		operationSign,
@@ -477,7 +478,7 @@ export function getInternalSlotForPlainDateTime(
 export function getInternalSlotOrThrowForPlainDateTime(plainDateTime: unknown): PlainDateTimeSlot {
 	const slot = getInternalSlotForPlainDateTime(plainDateTime);
 	if (!slot) {
-		throw new TypeError(invalidMethodCall);
+		throwTypeError(invalidMethodCall);
 	}
 	return slot;
 }
@@ -510,7 +511,7 @@ export class PlainDateTime {
 		validateString(calendar);
 		const canonicalizedCalendar = canonicalizeCalendar(calendar);
 		if (!isValidIsoDate(...dateUnits) || !isValidTime(...timeUnits)) {
-			throw new RangeError(invalidDateTime);
+			throwRangeError(invalidDateTime);
 		}
 		createTemporalDateTime(
 			combineIsoDateAndTimeRecord(
@@ -614,7 +615,7 @@ export class PlainDateTime {
 	with(temporalDateTimeLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);
 		if (!isPartialTemporalObject(temporalDateTimeLike)) {
-			throw new TypeError();
+			throwTypeError();
 		}
 		// « year, month, month-code, day », « hour, minute, second, millisecond, microsecond, nanosecond »
 		const fields = calendarMergeFields(
@@ -731,7 +732,7 @@ export class PlainDateTime {
 		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === Unit.Hour) {
-			throw new RangeError(invalidField("smallestUnit"));
+			throwRangeError(invalidField("smallestUnit"));
 		}
 		const record = toSecondsStringPrecisionRecord(smallestUnit, digits);
 		const result = roundIsoDateTime(
@@ -741,7 +742,7 @@ export class PlainDateTime {
 			roundingMode,
 		);
 		if (!isoDateTimeWithinLimits(result)) {
-			throw new RangeError(outOfBoundsDate);
+			throwRangeError(outOfBoundsDate);
 		}
 		return isoDateTimeToString(result, slot.$calendar, record.$precision, showCalendar);
 	}
@@ -759,7 +760,7 @@ export class PlainDateTime {
 		);
 	}
 	valueOf() {
-		throw new TypeError();
+		throwTypeError();
 	}
 	toZonedDateTime(temporalTimeZoneLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);

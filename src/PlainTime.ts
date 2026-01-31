@@ -60,7 +60,7 @@ import {
 } from "./Duration.ts";
 import { createDateTimeFormat, formatDateTime } from "./DateTimeFormat.ts";
 import { invalidDateTime, invalidField, invalidMethodCall } from "./internal/errorMessages.ts";
-import { withArray } from "./internal/utils.ts";
+import { throwRangeError, throwTypeError, withArray } from "./internal/utils.ts";
 
 export interface TimeRecord {
 	$hour: number;
@@ -192,7 +192,7 @@ export function regulateTime(
 		);
 	}
 	if (!isValidTime(hour, minute, second, millisecond, microsecond, nanosecond)) {
-		throw new RangeError(invalidDateTime);
+		throwRangeError(invalidDateTime);
 	}
 	return createTimeRecord(hour, minute, second, millisecond, microsecond, nanosecond);
 }
@@ -289,7 +289,7 @@ function toTemporalTimeRecord(item: object, partial = false) {
 		}
 	});
 	if (!any) {
-		throw new TypeError();
+		throwTypeError();
 	}
 	return [0, 3, 5, 2, 1, 4].map((i) => timeUnitsByAlphabeticalOrder[i]);
 }
@@ -428,7 +428,7 @@ function createPlainTimeSlot(time: TimeRecord): PlainTimeSlot {
 export function getInternalSlotOrThrowForPlainTime(plainTime: unknown): PlainTimeSlot {
 	const slot = slots.get(plainTime);
 	if (!slot) {
-		throw new TypeError(invalidMethodCall);
+		throwTypeError(invalidMethodCall);
 	}
 	return slot;
 }
@@ -450,7 +450,7 @@ export class PlainTime {
 			toIntegerWithTruncation,
 		) as TimeRecordTupleWithoutDays;
 		if (!isValidTime(...units)) {
-			throw new RangeError(invalidDateTime);
+			throwRangeError(invalidDateTime);
 		}
 		createTemporalTime(createTimeRecord(...units), this);
 	}
@@ -496,7 +496,7 @@ export class PlainTime {
 	with(temporalTimeLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainTime(this);
 		if (!isPartialTemporalObject(temporalTimeLike)) {
-			throw new TypeError();
+			throwTypeError();
 		}
 		return createTemporalTime(
 			regulateTime(
@@ -549,7 +549,7 @@ export class PlainTime {
 		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === Unit.Hour) {
-			throw new RangeError(invalidField("smallestUnit"));
+			throwRangeError(invalidField("smallestUnit"));
 		}
 		const record = toSecondsStringPrecisionRecord(smallestUnit, digits);
 		return timeRecordToString(
@@ -565,7 +565,7 @@ export class PlainTime {
 		return timeRecordToString(getInternalSlotOrThrowForPlainTime(this), undefined);
 	}
 	valueOf() {
-		throw new TypeError();
+		throwTypeError();
 	}
 }
 

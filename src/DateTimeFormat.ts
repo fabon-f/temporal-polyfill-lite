@@ -11,7 +11,7 @@ import {
 } from "./internal/errorMessages.ts";
 import { createNullPrototypeObject, isObject, pickObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
-import { mapUnlessUndefined } from "./internal/utils.ts";
+import { mapUnlessUndefined, throwRangeError, throwTypeError } from "./internal/utils.ts";
 import { createIsoDateRecord, getInternalSlotForPlainDate, isPlainDate } from "./PlainDate.ts";
 import {
 	combineIsoDateAndTimeRecord,
@@ -75,7 +75,7 @@ function createInternalSlot(
 export function getInternalSlotOrThrowForDateTimeFormat(dtf: any): DateTimeFormatSlot {
 	const slot = slots.get(dtf);
 	if (!slot) {
-		throw new TypeError(invalidMethodCall);
+		throwTypeError(invalidMethodCall);
 	}
 	return slot;
 }
@@ -133,7 +133,7 @@ function amendOptionsForPlainDate(
 	const newOptions = createNullPrototypeObject(originalOptions);
 	if (!hasAnyOptions(originalOptions, [...dateKeys, "dateStyle"])) {
 		if (hasAnyOptions(originalOptions, [...timeKeys, "timeStyle"])) {
-			throw new TypeError(invalidFormattingOptions);
+			throwTypeError(invalidFormattingOptions);
 		}
 		assignDateTimeFormatOptions(newOptions, { year: "numeric", month: "numeric", day: "numeric" });
 	}
@@ -155,7 +155,7 @@ function amendOptionsForPlainTime(
 	const newOptions = createNullPrototypeObject(originalOptions);
 	if (!hasAnyOptions(originalOptions, [...timeKeys, "timeStyle"])) {
 		if (hasAnyOptions(originalOptions, [...dateKeys, "dateStyle"])) {
-			throw new TypeError(invalidFormattingOptions);
+			throwTypeError(invalidFormattingOptions);
 		}
 		assignDateTimeFormatOptions(newOptions, {
 			hour: "numeric",
@@ -237,7 +237,7 @@ function amendOptionsForPlainYearMonth(
 	}
 	if (!hasAnyOptions(originalOptions, ["year", "month", "dateStyle"])) {
 		if (hasAnyOptions(originalOptions, [...dateKeys, ...timeKeys, "timeStyle"])) {
-			throw new TypeError(invalidFormattingOptions);
+			throwTypeError(invalidFormattingOptions);
 		}
 		assignDateTimeFormatOptions(newOptions, {
 			year: "numeric",
@@ -271,7 +271,7 @@ function amendOptionsForPlainMonthDay(
 	}
 	if (!hasAnyOptions(originalOptions, ["month", "day", "dateStyle"])) {
 		if (hasAnyOptions(originalOptions, [...dateKeys, ...timeKeys, "timeStyle"])) {
-			throw new TypeError(invalidFormattingOptions);
+			throwTypeError(invalidFormattingOptions);
 		}
 		assignDateTimeFormatOptions(newOptions, {
 			month: "numeric",
@@ -326,7 +326,7 @@ export function createDateTimeFormat(
 	instance = Object.create(DateTimeFormatImpl.prototype) as DateTimeFormatImpl,
 ): DateTimeFormatImpl {
 	if (options === null) {
-		throw new TypeError(invalidFormattingOptions);
+		throwTypeError(invalidFormattingOptions);
 	}
 	const copiedOptions = pickObject(Object(options), dtfOptionsKeys);
 	// coerce first to avoid accessing userland objects (e.g. `toString` method) twice
@@ -336,7 +336,7 @@ export function createDateTimeFormat(
 	// for `Temporal.ZonedDateTime.prototype.toLocaleString`
 	if (toLocaleStringTimeZone !== undefined) {
 		if (copiedOptions["timeZone"] !== undefined) {
-			throw new TypeError(disallowedField("timeZone"));
+			throwTypeError(disallowedField("timeZone"));
 		}
 		copiedOptions["timeZone"] = toLocaleStringTimeZone;
 		if (
@@ -370,7 +370,7 @@ export function createDateTimeFormat(
 		(required === DATE && coercedOriginalOptions["timeStyle"]) ||
 		(required === TIME && coercedOriginalOptions["dateStyle"])
 	) {
-		throw new TypeError(invalidFormattingOptions);
+		throwTypeError(invalidFormattingOptions);
 	}
 
 	slots.set(
@@ -393,7 +393,7 @@ function validateSameTemporalType(x: unknown, y: unknown) {
 			isPlainMonthDay,
 		].some((f) => f(x) !== f(y))
 	) {
-		throw new TypeError();
+		throwTypeError();
 	}
 }
 
@@ -440,7 +440,7 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 			plainDateSlot.$calendar !== dateTimeFormat.$originalOptions.calendar &&
 			plainDateSlot.$calendar !== "iso8601"
 		) {
-			throw new RangeError(calendarMismatch);
+			throwRangeError(calendarMismatch);
 		}
 		return [
 			(dateTimeFormat.$rawDtfForPlainDate ||= new OriginalDateTimeFormat(
@@ -460,7 +460,7 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 			plainDateTimeSlot.$calendar !== dateTimeFormat.$originalOptions.calendar &&
 			plainDateTimeSlot.$calendar !== "iso8601"
 		) {
-			throw new RangeError(calendarMismatch);
+			throwRangeError(calendarMismatch);
 		}
 		return [
 			(dateTimeFormat.$rawDtfForPlainDateTime ||= new OriginalDateTimeFormat(
@@ -473,7 +473,7 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 	const plainYearMonthSlot = getInternalSlotForPlainYearMonth(x);
 	if (plainYearMonthSlot) {
 		if (plainYearMonthSlot.$calendar !== dateTimeFormat.$originalOptions.calendar) {
-			throw new RangeError(calendarMismatch);
+			throwRangeError(calendarMismatch);
 		}
 		return [
 			(dateTimeFormat.$rawDtfForPlainYearMonth ||= new OriginalDateTimeFormat(
@@ -490,7 +490,7 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 	const plainMonthDaySlot = getInternalSlotForPlainMonthDay(x);
 	if (plainMonthDaySlot) {
 		if (plainMonthDaySlot.$calendar !== dateTimeFormat.$originalOptions.calendar) {
-			throw new RangeError(calendarMismatch);
+			throwRangeError(calendarMismatch);
 		}
 		return [
 			(dateTimeFormat.$rawDtfForPlainMonthDay ||= new OriginalDateTimeFormat(
@@ -514,7 +514,7 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 		];
 	}
 	if (isZonedDateTime(x)) {
-		throw new TypeError();
+		throwTypeError();
 	}
 	return [dateTimeFormat.$rawDtf, x as any];
 }
@@ -544,7 +544,7 @@ export class DateTimeFormatImpl {
 	}
 	formatRange(startDate: unknown, endDate: unknown) {
 		if (startDate === undefined || endDate === undefined) {
-			throw new TypeError();
+			throwTypeError();
 		}
 		return formatDateTimeRange(
 			this,
@@ -554,7 +554,7 @@ export class DateTimeFormatImpl {
 	}
 	formatRangeToParts(startDate: unknown, endDate: unknown) {
 		if (startDate === undefined || endDate === undefined) {
-			throw new TypeError();
+			throwTypeError();
 		}
 		return formatDateTimeRangeToParts(
 			this,

@@ -36,6 +36,7 @@ import { invalidDateTime, invalidMethodCall, outOfBoundsDate } from "./internal/
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
+import { throwRangeError, throwTypeError } from "./internal/utils.ts";
 import {
 	compareIsoDate,
 	createIsoDateRecord,
@@ -89,7 +90,7 @@ function toTemporalMonthDay(item: unknown, options?: unknown): PlainMonthDay {
 	assertNotUndefined(result.$year);
 	const isoDate = createIsoDateRecord(result.$year, result.$month, result.$day);
 	if (!isoDateWithinLimits(isoDate)) {
-		throw new RangeError(outOfBoundsDate);
+		throwRangeError(outOfBoundsDate);
 	}
 	return createTemporalMonthDay(
 		calendarMonthDayFromFields(
@@ -108,7 +109,7 @@ export function createTemporalMonthDay(
 	instance = Object.create(PlainMonthDay.prototype) as PlainMonthDay,
 ): PlainMonthDay {
 	if (!isoDateWithinLimits(isoDate)) {
-		throw new RangeError(outOfBoundsDate);
+		throwRangeError(outOfBoundsDate);
 	}
 	slots.set(instance, createPlainMonthDaySlot(isoDate, calendar));
 	return instance;
@@ -147,7 +148,7 @@ export function getInternalSlotForPlainMonthDay(
 function getInternalSlotOrThrowForPlainMonthDay(plainDateTime: unknown): PlainMonthDaySlot {
 	const slot = getInternalSlotForPlainMonthDay(plainDateTime);
 	if (!slot) {
-		throw new TypeError(invalidMethodCall);
+		throwTypeError(invalidMethodCall);
 	}
 	return slot;
 }
@@ -169,7 +170,7 @@ export class PlainMonthDay {
 		const canonicalizedCalendar = canonicalizeCalendar(calendar);
 		const y = toIntegerWithTruncation(referenceIsoYear);
 		if (!isValidIsoDate(y, m, d)) {
-			throw new RangeError(invalidDateTime);
+			throwRangeError(invalidDateTime);
 		}
 		createTemporalMonthDay(createIsoDateRecord(y, m, d), canonicalizedCalendar, this);
 	}
@@ -190,7 +191,7 @@ export class PlainMonthDay {
 	with(temporalMonthDayLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainMonthDay(this);
 		if (!isPartialTemporalObject(temporalMonthDayLike)) {
-			throw new TypeError();
+			throwTypeError();
 		}
 		return createTemporalMonthDay(
 			calendarMonthDayFromFields(
@@ -235,12 +236,12 @@ export class PlainMonthDay {
 		);
 	}
 	valueOf() {
-		throw new TypeError();
+		throwTypeError();
 	}
 	toPlainDate(item: unknown) {
 		const slot = getInternalSlotOrThrowForPlainMonthDay(this);
 		if (!isObject(item)) {
-			throw new TypeError();
+			throwTypeError();
 		}
 		return createTemporalDate(
 			calendarDateFromFields(

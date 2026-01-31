@@ -7,6 +7,7 @@ import {
 	notString,
 } from "./errorMessages.ts";
 import { createNullPrototypeObject, isObject } from "./object.ts";
+import { throwRangeError, throwTypeError } from "./utils.ts";
 
 /** `ToPrimitive` when `preferredType` is string */
 export function toPrimitive(input: unknown): unknown {
@@ -26,7 +27,7 @@ export function toPrimitive(input: unknown): unknown {
 		if (!isObject(result)) {
 			return result;
 		}
-		throw new TypeError();
+		throwTypeError();
 	}
 	// `Date.prototype[Symbol.toPrimitive]` do almost same things to `OrdinaryToPrimitive`
 	return Date.prototype[Symbol.toPrimitive].call(input, "string");
@@ -64,7 +65,7 @@ export function toBigInt(arg: unknown): bigint {
 export function toIntegerIfIntegral(arg: unknown): number {
 	const num = toNumber(arg);
 	if (!Number.isInteger(num)) {
-		throw new RangeError(invalidNumber(num));
+		throwRangeError(invalidNumber(num));
 	}
 	return num + 0;
 }
@@ -73,7 +74,7 @@ export function toIntegerIfIntegral(arg: unknown): number {
 export function toIntegerWithTruncation(arg: unknown): number {
 	const num = toNumber(arg);
 	if (isNaN(num) || !isFinite(num)) {
-		throw new RangeError(invalidNumber(num));
+		throwRangeError(invalidNumber(num));
 	}
 	return Math.trunc(num) + 0;
 }
@@ -82,7 +83,7 @@ export function toIntegerWithTruncation(arg: unknown): number {
 export function toPositiveIntegerWithTruncation(arg: unknown): number {
 	const integer = toIntegerWithTruncation(arg);
 	if (integer <= 0) {
-		throw new RangeError(invalidNumber(integer));
+		throwRangeError(invalidNumber(integer));
 	}
 	return integer;
 }
@@ -90,7 +91,7 @@ export function toPositiveIntegerWithTruncation(arg: unknown): number {
 /** `GetOptionsObject` */
 export function getOptionsObject(options: unknown = Object.create(null)): object {
 	if (!isObject(options)) {
-		throw new TypeError(invalidOptionsObject);
+		throwTypeError(invalidOptionsObject);
 	}
 	return options;
 }
@@ -105,20 +106,20 @@ export function getOption<V extends string | undefined>(
 	const rawValue = (options as Record<string, unknown>)[property];
 	if (rawValue === undefined) {
 		if (defaultValue === REQUIRED) {
-			throw new RangeError(missingField(property));
+			throwRangeError(missingField(property));
 		}
 		return defaultValue;
 	}
 	const value = toString(rawValue);
 	if (!values.includes(value as any)) {
-		throw new RangeError(invalidField(property));
+		throwRangeError(invalidField(property));
 	}
 	return value as V;
 }
 
 export function getRoundToOptionsObject(roundTo: unknown): object {
 	if (roundTo === undefined) {
-		throw new TypeError();
+		throwTypeError();
 	}
 	return typeof roundTo === "string"
 		? createNullPrototypeObject({ smallestUnit: roundTo })
@@ -127,6 +128,6 @@ export function getRoundToOptionsObject(roundTo: unknown): object {
 
 export function validateString(value: unknown): asserts value is string {
 	if (typeof value !== "string") {
-		throw new TypeError(notString(value));
+		throwTypeError(notString(value));
 	}
 }

@@ -72,6 +72,7 @@ import {
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
 import { Unit } from "./internal/unit.ts";
+import { throwRangeError, throwTypeError } from "./internal/utils.ts";
 import {
 	combineIsoDateAndTimeRecord,
 	createTemporalDateTime,
@@ -128,7 +129,7 @@ export function createTemporalDate(
 	instance = Object.create(PlainDate.prototype) as PlainDate,
 ): PlainDate {
 	if (!isoDateWithinLimits(date)) {
-		throw new RangeError(outOfBoundsDate);
+		throwRangeError(outOfBoundsDate);
 	}
 	const slot = createPlainDateSlot(date, calendar);
 	slots.set(instance, slot);
@@ -181,7 +182,7 @@ export function regulateIsoDate(
 		return createIsoDateRecord(year, month, clamp(day, 1, isoDaysInMonth(year, month)));
 	}
 	if (!isValidIsoDate(year, month, day)) {
-		throw new RangeError(outOfBoundsDate);
+		throwRangeError(outOfBoundsDate);
 	}
 	return createIsoDateRecord(year, month, day);
 }
@@ -230,7 +231,7 @@ function differenceTemporalPlainDate(
 ): Duration {
 	const otherSlot = getInternalSlotOrThrowForPlainDate(toTemporalDate(other));
 	if (!calendarEquals(temporalDate.$calendar, otherSlot.$calendar)) {
-		throw new RangeError(calendarMismatch);
+		throwRangeError(calendarMismatch);
 	}
 	const settings = getDifferenceSettings(
 		operationSign,
@@ -299,7 +300,7 @@ export function getInternalSlotForPlainDate(plainDate: unknown): PlainDateSlot |
 export function getInternalSlotOrThrowForPlainDate(plainDate: unknown): PlainDateSlot {
 	const slot = getInternalSlotForPlainDate(plainDate);
 	if (!slot) {
-		throw new TypeError(invalidMethodCall);
+		throwTypeError(invalidMethodCall);
 	}
 	return slot;
 }
@@ -323,7 +324,7 @@ export class PlainDate {
 		validateString(calendar);
 		const canonicalizedCalendar = canonicalizeCalendar(calendar);
 		if (!isValidIsoDate(y, m, d)) {
-			throw new RangeError(invalidDateTime);
+			throwRangeError(invalidDateTime);
 		}
 		createTemporalDate(createIsoDateRecord(y, m, d), canonicalizedCalendar, this);
 	}
@@ -440,7 +441,7 @@ export class PlainDate {
 	with(temporalDateLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainDate(this);
 		if (!isPartialTemporalObject(temporalDateLike)) {
-			throw new TypeError();
+			throwTypeError();
 		}
 		const fields = calendarMergeFields(
 			slot.$calendar,
@@ -522,7 +523,7 @@ export class PlainDate {
 			getInternalSlotOrThrowForPlainTime(toTemporalTime(temporalTime)),
 		);
 		if (!isoDateTimeWithinLimits(isoDateTime)) {
-			throw new RangeError(outOfBoundsDate);
+			throwRangeError(outOfBoundsDate);
 		}
 		return createTemporalZonedDateTime(
 			getEpochNanosecondsFor(timeZone, isoDateTime, disambiguationCompatible, cache),
@@ -546,7 +547,7 @@ export class PlainDate {
 		return temporalDateToString(getInternalSlotOrThrowForPlainDate(this), showCalendarName.$auto);
 	}
 	valueOf() {
-		throw new TypeError();
+		throwTypeError();
 	}
 }
 

@@ -61,6 +61,7 @@ import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
 import { createTimeDurationFromSeconds, signTimeDuration } from "./internal/timeDuration.ts";
 import { Unit } from "./internal/unit.ts";
+import { throwRangeError, throwTypeError } from "./internal/utils.ts";
 import {
 	compareIsoDate,
 	createIsoDateRecord,
@@ -117,7 +118,7 @@ function toTemporalYearMonth(item: unknown, options?: unknown): PlainYearMonth {
 	assertNotUndefined(result.$year);
 	const isoDate = createIsoDateRecord(result.$year, result.$month, result.$day);
 	if (!isoYearMonthWithinLimits(isoDate)) {
-		throw new RangeError(outOfBoundsDate);
+		throwRangeError(outOfBoundsDate);
 	}
 	return createTemporalYearMonth(
 		calendarYearMonthFromFields(
@@ -149,7 +150,7 @@ export function createTemporalYearMonth(
 	instance = Object.create(PlainYearMonth.prototype) as PlainYearMonth,
 ): PlainYearMonth {
 	if (!isoYearMonthWithinLimits(isoDate)) {
-		throw new RangeError(outOfBoundsDate);
+		throwRangeError(outOfBoundsDate);
 	}
 	slots.set(instance, createPlainYearMonthSlot(isoDate, calendar));
 	return instance;
@@ -178,7 +179,7 @@ function differenceTemporalPlainYearMonth(
 ): Duration {
 	const otherSlot = getInternalSlotOrThrowForPlainYearMonth(toTemporalYearMonth(other));
 	if (!calendarEquals(yearMonth.$calendar, otherSlot.$calendar)) {
-		throw new RangeError(calendarMismatch);
+		throwRangeError(calendarMismatch);
 	}
 	const settings = getDifferenceSettings(
 		operationSign,
@@ -242,7 +243,7 @@ function addDurationToYearMonth(
 		internalDuration.$date.$days ||
 		signTimeDuration(internalDuration.$time)
 	) {
-		throw new RangeError(yearMonthAddition);
+		throwRangeError(yearMonthAddition);
 	}
 	const fields = isoDateToFields(yearMonth.$calendar, yearMonth.$isoDate, YEAR_MONTH);
 	fields.day = 1;
@@ -284,7 +285,7 @@ export function getInternalSlotForPlainYearMonth(
 function getInternalSlotOrThrowForPlainYearMonth(plainDateTime: unknown): PlainYearMonthSlot {
 	const slot = getInternalSlotForPlainYearMonth(plainDateTime);
 	if (!slot) {
-		throw new TypeError(invalidMethodCall);
+		throwTypeError(invalidMethodCall);
 	}
 	return slot;
 }
@@ -306,7 +307,7 @@ export class PlainYearMonth {
 		const canonicalizedCalendar = canonicalizeCalendar(calendar);
 		const ref = toIntegerWithTruncation(referenceIsoDay);
 		if (!isValidIsoDate(y, m, ref)) {
-			throw new RangeError(invalidDateTime);
+			throwRangeError(invalidDateTime);
 		}
 		createTemporalYearMonth(createIsoDateRecord(y, m, ref), canonicalizedCalendar, this);
 	}
@@ -361,7 +362,7 @@ export class PlainYearMonth {
 	with(temporalYearMonthLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainYearMonth(this);
 		if (!isPartialTemporalObject(temporalYearMonthLike)) {
-			throw new TypeError();
+			throwTypeError();
 		}
 		const fields = calendarMergeFields(
 			slot.$calendar,
@@ -438,12 +439,12 @@ export class PlainYearMonth {
 		);
 	}
 	valueOf() {
-		throw new TypeError();
+		throwTypeError();
 	}
 	toPlainDate(item: unknown) {
 		const slot = getInternalSlotOrThrowForPlainYearMonth(this);
 		if (!isObject(item)) {
-			throw new TypeError();
+			throwTypeError();
 		}
 		return createTemporalDate(
 			calendarDateFromFields(

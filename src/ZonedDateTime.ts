@@ -153,6 +153,7 @@ import {
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
 import { Unit } from "./internal/unit.ts";
+import { throwRangeError, throwTypeError } from "./internal/utils.ts";
 import {
 	addDaysToIsoDate,
 	compareIsoDate,
@@ -185,7 +186,7 @@ export interface ZonedDateTimeSlot {
 	$timeZone: string;
 	$calendar: SupportedCalendars;
 	/** cached offset nanoseconds */
-	$offsetNanoseconds?: number | undefined;
+	$offsetNanoseconds: number | undefined;
 	[internalSlotBrand]: unknown;
 }
 
@@ -233,7 +234,7 @@ export function interpretISODateTimeOffset(
 		checkIsoDaysRange(balanced.$isoDate);
 		const epoch = getUtcEpochNanoseconds(balanced);
 		if (!isValidEpochNanoseconds(epoch)) {
-			throw new RangeError(outOfBoundsDate);
+			throwRangeError(outOfBoundsDate);
 		}
 		return epoch;
 	}
@@ -254,7 +255,7 @@ export function interpretISODateTimeOffset(
 		}
 	}
 	if (offsetOption === offsetReject) {
-		throw new RangeError(offsetMismatch);
+		throwRangeError(offsetMismatch);
 	}
 	return disambiguatePossibleEpochNanoseconds(
 		possibleEpochNs,
@@ -437,7 +438,7 @@ export function addZonedDateTime(
 		isoDateTime.$time,
 	);
 	if (!isoDateTimeWithinLimits(intermediateDateTime)) {
-		throw new RangeError(outOfBoundsDate);
+		throwRangeError(outOfBoundsDate);
 	}
 	return addInstant(
 		getEpochNanosecondsFor(
@@ -583,7 +584,7 @@ function differenceTemporalZonedDateTime(
 ): Duration {
 	const otherSlot = getInternalSlotOrThrowForZonedDateTime(toTemporalZonedDateTime(other));
 	if (!calendarEquals(zonedDateTime.$calendar, otherSlot.$calendar)) {
-		throw new RangeError(calendarMismatch);
+		throwRangeError(calendarMismatch);
 	}
 	const settings = getDifferenceSettings(
 		operationSign,
@@ -612,7 +613,7 @@ function differenceTemporalZonedDateTime(
 		);
 	}
 	if (!timeZoneEquals(zonedDateTime.$timeZone, otherSlot.$timeZone)) {
-		throw new RangeError(timeZoneMismatch);
+		throwRangeError(timeZoneMismatch);
 	}
 	if (!compareEpochNanoseconds(zonedDateTime.$epochNanoseconds, otherSlot.$epochNanoseconds)) {
 		return createTemporalDuration(createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
@@ -710,7 +711,7 @@ export function getInternalSlotForZonedDateTime(
 export function getInternalSlotOrThrowForZonedDateTime(zonedDateTime: unknown): ZonedDateTimeSlot {
 	const slot = getInternalSlotForZonedDateTime(zonedDateTime);
 	if (!slot) {
-		throw new TypeError(invalidMethodCall);
+		throwTypeError(invalidMethodCall);
 	}
 	return slot;
 }
@@ -723,7 +724,7 @@ export class ZonedDateTime {
 	constructor(epochNanoseconds: unknown, timeZone: unknown, calendar: unknown = "iso8601") {
 		const epoch = createEpochNanosecondsFromBigInt(toBigInt(epochNanoseconds));
 		if (!isValidEpochNanoseconds(epoch)) {
-			throw new RangeError(outOfBoundsDate);
+			throwRangeError(outOfBoundsDate);
 		}
 		validateString(timeZone);
 		const result = parseTimeZoneIdentifier(timeZone);
@@ -867,7 +868,7 @@ export class ZonedDateTime {
 
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
 		if (!isPartialTemporalObject(temporalZonedDateTimeLike)) {
-			throw new TypeError();
+			throwTypeError();
 		}
 		const offsetNanoseconds = getOffsetNanosecondsForZonedDateTimeSlot(slot);
 		const isoDateTime = getIsoDateTimeForZonedDateTimeSlot(slot);
@@ -1087,7 +1088,7 @@ export class ZonedDateTime {
 		const showTimeZone = getTemporalShowTimeZoneNameOption(resolvedOptions);
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === Unit.Hour) {
-			throw new RangeError(invalidField("smallestUnit"));
+			throwRangeError(invalidField("smallestUnit"));
 		}
 		const precisionRecord = toSecondsStringPrecisionRecord(smallestUnit, digits);
 		return temporalZonedDateTimeToString(
@@ -1109,7 +1110,7 @@ export class ZonedDateTime {
 			slot.$calendar !== "iso8601" &&
 			!calendarEquals(slot.$calendar, dtfSlot.$originalOptions.calendar as SupportedCalendars)
 		) {
-			throw new RangeError(calendarMismatch);
+			throwRangeError(calendarMismatch);
 		}
 		return formatDateTime(dtf, createTemporalInstant(slot.$epochNanoseconds));
 	}
@@ -1123,7 +1124,7 @@ export class ZonedDateTime {
 		);
 	}
 	valueOf() {
-		throw new TypeError();
+		throwTypeError();
 	}
 	startOfDay() {
 		const cache = createOffsetCacheMap();
@@ -1139,7 +1140,7 @@ export class ZonedDateTime {
 	getTimeZoneTransition(directionParam: unknown) {
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
 		if (directionParam === undefined) {
-			throw new TypeError();
+			throwTypeError();
 		}
 		const direction = getDirectionOption(
 			typeof directionParam === "string"

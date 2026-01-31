@@ -59,7 +59,7 @@ import { divFloor, modFloor } from "./math.ts";
 import { asciiLowerCase, toZeroPaddedDecimalString } from "./string.ts";
 import { toTemporalTimeZoneIdentifier } from "./timeZones.ts";
 import { Unit } from "./unit.ts";
-import { mapUnlessUndefined } from "./utils.ts";
+import { mapUnlessUndefined, throwRangeError, throwTypeError } from "./utils.ts";
 
 type YearWeekRecord =
 	| {
@@ -147,7 +147,7 @@ export interface CalendarFieldsRecord {
 export function canonicalizeCalendar(id: string): SupportedCalendars {
 	id = asciiLowerCase(id);
 	if (!["iso8601", "gregory"].includes(id)) {
-		throw new RangeError(calendarNotSupported(id));
+		throwRangeError(calendarNotSupported(id));
 	}
 	return id as SupportedCalendars;
 }
@@ -158,7 +158,7 @@ function parseMonthCode(arg: unknown): [monthNumber: number, isLeapMonth: boolea
 	validateString(monthCode);
 	const result = monthCode.match(/M(\d\d)L?/);
 	if (!result || monthCode === "M00") {
-		throw new RangeError(invalidMonthCode(monthCode));
+		throwRangeError(invalidMonthCode(monthCode));
 	}
 	assert(result[1] !== undefined);
 	return [toNumber(result[1]), monthCode.length === 4];
@@ -204,13 +204,13 @@ export function prepareCalendarFields(
 			result[property] = fieldValues[property][0](value);
 		} else if (requiredFieldNames) {
 			if (requiredFieldNames.includes(property)) {
-				throw new TypeError(missingField(property));
+				throwTypeError(missingField(property));
 			}
 			result[property] = fieldValues[property][1];
 		}
 	}
 	if (!requiredFieldNames && !hasAnyField) {
-		throw new TypeError();
+		throwTypeError();
 	}
 	return result;
 }
@@ -259,7 +259,7 @@ export function calendarDateAdd(
 		duration.$weeks * 7 + duration.$days,
 	);
 	if (!isoDateWithinLimits(result)) {
-		throw new RangeError(outOfBoundsDate);
+		throwRangeError(outOfBoundsDate);
 	}
 	return result;
 }
@@ -349,7 +349,7 @@ export function calendarDateFromFields(
 	calendarResolveFields(calendar, fields);
 	const result = calendarDateToISO(calendar, fields, overflow);
 	if (!isoDateWithinLimits(result)) {
-		throw new RangeError(outOfBoundsDate);
+		throwRangeError(outOfBoundsDate);
 	}
 	return result;
 }
@@ -364,7 +364,7 @@ export function calendarYearMonthFromFields(
 	calendarResolveFields(calendar, fields, YEAR_MONTH);
 	const result = calendarDateToISO(calendar, fields, overflow);
 	if (!isoYearMonthWithinLimits(result)) {
-		throw new RangeError(outOfBoundsDate);
+		throwRangeError(outOfBoundsDate);
 	}
 	return result;
 }
@@ -586,16 +586,16 @@ function isoResolveFields(
 	type: typeof DATE | typeof YEAR_MONTH | typeof MONTH_DAY,
 ) {
 	if (type !== MONTH_DAY && fields[calendarFieldKeys.$year] === undefined) {
-		throw new TypeError(missingField(calendarFieldKeys.$year));
+		throwTypeError(missingField(calendarFieldKeys.$year));
 	}
 	if (type !== YEAR_MONTH && fields[calendarFieldKeys.$day] === undefined) {
-		throw new TypeError(missingField(calendarFieldKeys.$day));
+		throwTypeError(missingField(calendarFieldKeys.$day));
 	}
 	if (
 		fields[calendarFieldKeys.$monthCode] === undefined &&
 		fields[calendarFieldKeys.$month] === undefined
 	) {
-		throw new TypeError(missingField("month, monthCode"));
+		throwTypeError(missingField("month, monthCode"));
 	}
 	const monthCode = mapUnlessUndefined(fields[calendarFieldKeys.$monthCode], parseMonthCode);
 	if (monthCode) {
@@ -605,7 +605,7 @@ function isoResolveFields(
 			(fields[calendarFieldKeys.$month] !== undefined &&
 				monthCode[0] !== fields[calendarFieldKeys.$month])
 		) {
-			throw new RangeError(monthMismatch);
+			throwRangeError(monthMismatch);
 		}
 		fields[calendarFieldKeys.$month] = monthCode[0];
 	}
@@ -629,20 +629,20 @@ function nonIsoResolveFields(
 			year === undefined &&
 			(!calendarSupportsEra(calendar) || era === undefined || eraYear === undefined)
 		) {
-			throw new TypeError(missingField("year, era, eraYear"));
+			throwTypeError(missingField("year, era, eraYear"));
 		}
 	}
 	if (calendarSupportsEra(calendar)) {
 		if ((era === undefined) !== (eraYear === undefined)) {
-			throw new TypeError();
+			throwTypeError();
 		}
 	}
 	if (type !== YEAR_MONTH && day === undefined) {
-		throw new TypeError(missingField("day"));
+		throwTypeError(missingField("day"));
 	}
 	if (month === monthCode) {
 		// both are `undefined`
-		throw new TypeError(missingField("month, monthCode"));
+		throwTypeError(missingField("month, monthCode"));
 	}
 	if (calendarSupportsEra(calendar) && eraYear !== undefined) {
 		assertNotUndefined(era);
@@ -652,7 +652,7 @@ function nonIsoResolveFields(
 			eraYear,
 		);
 		if (year !== undefined && year !== arithmeticYear) {
-			throw new RangeError(yearMismatch);
+			throwRangeError(yearMismatch);
 		}
 		fields[calendarFieldKeys.$year] = arithmeticYear;
 	}
@@ -691,7 +691,7 @@ function canonicalizeEraInCalendar(calendar: SupportedNonIsoCalendars, era: stri
 		if (era === "bc" || era === "bce") {
 			return "bce";
 		}
-		throw new RangeError(invalidEra(era));
+		throwRangeError(invalidEra(era));
 	}
 	assertUnreachable(calendar);
 }

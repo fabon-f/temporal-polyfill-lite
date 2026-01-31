@@ -76,6 +76,7 @@ import {
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
 import { nanosecondsForTimeUnit, timeUnitLengths, Unit } from "./internal/unit.ts";
+import { throwRangeError, throwTypeError } from "./internal/utils.ts";
 import { balanceIsoDateTime, isoDateTimeToString } from "./PlainDateTime.ts";
 import { createTemporalZonedDateTime, getInternalSlotForZonedDateTime } from "./ZonedDateTime.ts";
 
@@ -143,7 +144,7 @@ function toTemporalInstant(item: unknown): Instant {
 	checkIsoDaysRange(balanced.$isoDate);
 	const epoch = getUtcEpochNanoseconds(balanced);
 	if (!isValidEpochNanoseconds(epoch)) {
-		throw new RangeError(outOfBoundsDate);
+		throwRangeError(outOfBoundsDate);
 	}
 	return createTemporalInstant(epoch);
 }
@@ -155,7 +156,7 @@ export function addInstant(
 ): EpochNanoseconds {
 	const result = addTimeDurationToEpochNanoseconds(epochNanoseconds, timeDuration);
 	if (!isValidEpochNanoseconds(result)) {
-		throw new RangeError(outOfBoundsDate);
+		throwRangeError(outOfBoundsDate);
 	}
 	return result;
 }
@@ -247,7 +248,7 @@ function addDurationToInstant(
 ): Instant {
 	const duration = applySignToDurationSlot(toTemporalDuration(temporalDurationLike), operationSign);
 	if (isDateUnit(defaultTemporalLargestUnit(duration))) {
-		throw new RangeError(durationWithDateUnit(defaultTemporalLargestUnit(duration)));
+		throwRangeError(durationWithDateUnit(defaultTemporalLargestUnit(duration)));
 	}
 	return createTemporalInstant(
 		addInstant(instant.$epochNanoseconds, toInternalDurationRecordWith24HourDays(duration).$time),
@@ -261,7 +262,7 @@ function getInternalSlotForInstant(instant: unknown): InstantSlot | undefined {
 export function getInternalSlotOrThrowForInstant(instant: unknown): InstantSlot {
 	const slot = getInternalSlotForInstant(instant);
 	if (!slot) {
-		throw new TypeError(invalidMethodCall);
+		throwTypeError(invalidMethodCall);
 	}
 	return slot;
 }
@@ -288,7 +289,7 @@ export class Instant {
 	constructor(epochNanoseconds: unknown) {
 		const epoch = createEpochNanosecondsFromBigInt(toBigInt(epochNanoseconds));
 		if (!isValidEpochNanoseconds(epoch)) {
-			throw new RangeError(outOfBoundsDate);
+			throwRangeError(outOfBoundsDate);
 		}
 		createTemporalInstant(epoch, this);
 	}
@@ -300,14 +301,14 @@ export class Instant {
 			toIntegerIfIntegral(epochMilliseconds),
 		);
 		if (!isValidEpochNanoseconds(epoch)) {
-			throw new RangeError(outOfBoundsDate);
+			throwRangeError(outOfBoundsDate);
 		}
 		return createTemporalInstant(epoch);
 	}
 	static fromEpochNanoseconds(epochNanoseconds: unknown) {
 		const epoch = createEpochNanosecondsFromBigInt(toBigInt(epochNanoseconds));
 		if (!isValidEpochNanoseconds(epoch)) {
-			throw new RangeError(outOfBoundsDate);
+			throwRangeError(outOfBoundsDate);
 		}
 		return createTemporalInstant(epoch);
 	}
@@ -366,7 +367,7 @@ export class Instant {
 		const rawTz = (resolvedOptions as Record<string, unknown>)["timeZone"];
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === Unit.Hour) {
-			throw new RangeError(invalidField("smallestUnit"));
+			throwRangeError(invalidField("smallestUnit"));
 		}
 		if (rawTz !== undefined) {
 			timeZone = toTemporalTimeZoneIdentifier(rawTz);
@@ -395,7 +396,7 @@ export class Instant {
 		);
 	}
 	valueOf() {
-		throw new TypeError();
+		throwTypeError();
 	}
 	toZonedDateTimeISO(timeZone: unknown) {
 		return createTemporalZonedDateTime(

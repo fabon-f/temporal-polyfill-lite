@@ -11,3 +11,11 @@ export function withArray(newArray: (number | undefined)[], originalArray: numbe
 	assert(newArray.length === originalArray.length);
 	return newArray.map((v, i) => v ?? originalArray[i]!);
 }
+
+export function throwRangeError(message?: string): never {
+	throw new RangeError(message);
+}
+
+export function throwTypeError(message?: string): never {
+	throw new TypeError(message);
+}

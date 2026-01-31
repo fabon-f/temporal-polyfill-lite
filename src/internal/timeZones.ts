@@ -47,6 +47,7 @@ import { ambiguousTime, invalidTimeZone, outOfBoundsDate } from "./errorMessages
 import { clamp, divFloor, isWithin, modFloor } from "./math.ts";
 import { asciiCapitalize, asciiLowerCase, asciiUpperCase } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
+import { throwRangeError } from "./utils.ts";
 
 const intlCache = Object.create(null) as Record<string, Intl.DateTimeFormat>;
 
@@ -243,7 +244,7 @@ export function normalizeIanaTimeZoneId(id: string): string {
 
 export function rejectNonIanaTimeZoneId(id: string) {
 	if (/^(?![cemw]et|[emh]st|prc|ro[ck]|uct|utc|gmt)[a-z]{3}$|systemv|^us.*w$/i.test(id)) {
-		throw new RangeError(invalidTimeZone(id));
+		throwRangeError(invalidTimeZone(id));
 	}
 }
 
@@ -351,7 +352,7 @@ export function disambiguatePossibleEpochNanoseconds(
 		return possibleEpochNs[0];
 	}
 	if (disambiguation === disambiguationReject) {
-		throw new RangeError(ambiguousTime);
+		throwRangeError(ambiguousTime);
 	}
 	const isForwardTransition = possibleEpochNs.length === 0;
 
@@ -360,7 +361,7 @@ export function disambiguatePossibleEpochNanoseconds(
 	possibleEpochNs = getNamedTimeZoneEpochCandidates(timeZone, isoDateTime, offsetCacheMap);
 	for (const epoch of possibleEpochNs) {
 		if (!isValidEpochNanoseconds(epoch)) {
-			throw new RangeError(outOfBoundsDate);
+			throwRangeError(outOfBoundsDate);
 		}
 	}
 	if (disambiguation === disambiguationCompatible) {
@@ -403,7 +404,7 @@ export function getPossibleEpochNanoseconds(
 	}
 	for (const epoch of possibleEpochNanoseconds) {
 		if (!isValidEpochNanoseconds(epoch)) {
-			throw new RangeError(outOfBoundsDate);
+			throwRangeError(outOfBoundsDate);
 		}
 	}
 	return possibleEpochNanoseconds;
@@ -457,7 +458,7 @@ export type TimeZoneIdentifierParseRecord =
 /** `ParseTimeZoneIdentifier` */
 export function parseTimeZoneIdentifier(identifier: string): TimeZoneIdentifierParseRecord {
 	if (!isTimeZoneIdentifier(identifier)) {
-		throw new RangeError(invalidTimeZone(identifier));
+		throwRangeError(invalidTimeZone(identifier));
 	}
 	return /^[+-]/.test(identifier)
 		? {
