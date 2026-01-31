@@ -197,14 +197,13 @@ function amendOptionsForPlainDateTime(
 			minute: "numeric",
 			second: "numeric",
 		});
-		const dateStyle = originalOptions.dateStyle;
-		if (dateStyle) {
+		if (originalOptions.dateStyle) {
 			assignDateTimeFormatOptions(newOptions, {
 				dateStyle: undefined,
 				year: "numeric",
-				month: dateStyleToMonthStyle(dateStyle),
+				month: dateStyleToMonthStyle(originalOptions.dateStyle),
 				day: "numeric",
-				weekday: dateStyle === "full" ? "long" : undefined,
+				weekday: originalOptions.dateStyle === "full" ? "long" : undefined,
 			});
 		}
 	}

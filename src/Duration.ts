@@ -312,21 +312,21 @@ function validateDuration(...units: DurationTuple): void {
 			units.every((v) => Math.abs(v) < 1e25) && // reject extreme numbers first to avoid Infinity / NaN
 			Math.abs(units[unitIndices.$year]) < 2 ** 32 &&
 			Math.abs(units[unitIndices.$month]) < 2 ** 32 &&
-			Math.abs(units[unitIndices.$week]) < 2 ** 32 &&
-			timeDurationWithinLimits(
-				timeDurationFromComponents(
-					units[unitIndices.$day] * 24 + units[unitIndices.$hour],
-					units[unitIndices.$minute],
-					units[unitIndices.$second],
-					units[unitIndices.$millisecond],
-					units[unitIndices.$microsecond],
-					units[unitIndices.$nanosecond],
-				),
-			)
+			Math.abs(units[unitIndices.$week]) < 2 ** 32
 		)
 	) {
 		throw new RangeError(outOfBoundsDuration);
 	}
+	validateTimeDurationRange(
+		timeDurationFromComponents(
+			units[unitIndices.$day] * 24 + units[unitIndices.$hour],
+			units[unitIndices.$minute],
+			units[unitIndices.$second],
+			units[unitIndices.$millisecond],
+			units[unitIndices.$microsecond],
+			units[unitIndices.$nanosecond],
+		),
+	);
 }
 
 /** `DefaultTemporalLargestUnit` */
@@ -420,11 +420,7 @@ export function timeDurationFromComponents(
 
 /** `Add24HourDaysToTimeDuration` */
 export function add24HourDaysToTimeDuration(d: TimeDuration, days: number): TimeDuration {
-	const result = addDaysToTimeDuration(d, days);
-	if (!timeDurationWithinLimits(result)) {
-		throw new RangeError(outOfBoundsDuration);
-	}
-	return result;
+	return validateTimeDurationRange(addDaysToTimeDuration(d, days));
 }
 
 /** `TimeDurationFromEpochNanosecondsDifference` */
@@ -443,11 +439,7 @@ function roundTimeDurationToIncrement(
 	increment: number,
 	roundingMode: RoundingMode,
 ): TimeDuration {
-	const rounded = roundTimeDurationOriginal(d, increment, roundingMode);
-	if (!timeDurationWithinLimits(rounded)) {
-		throw new RangeError(outOfBoundsDuration);
-	}
-	return rounded;
+	return validateTimeDurationRange(roundTimeDurationOriginal(d, increment, roundingMode));
 }
 
 /** `TimeDurationSign` */
@@ -982,6 +974,13 @@ function timeDurationWithinLimits(d: TimeDuration): boolean {
 	return compareTimeDuration(absTimeDuration(d), maxTimeDuration) !== 1;
 }
 
+function validateTimeDurationRange(d: TimeDuration): TimeDuration {
+	if (!timeDurationWithinLimits(d)) {
+		throw new RangeError(outOfBoundsDuration);
+	}
+	return d;
+}
+
 function balanceTimeDuration(
 	d: TimeDuration,
 	largestUnit: Unit,
@@ -1343,7 +1342,6 @@ export class Duration {
 		if (precisionRecord.$unit === Unit.Nanosecond && precisionRecord.$increment === 1) {
 			return temporalDurationToString(slot, precisionRecord.$precision);
 		}
-		const largestUnit = defaultTemporalLargestUnit(slot);
 		const internalDuration = toInternalDurationRecord(slot);
 		return temporalDurationToString(
 			temporalDurationFromInternal(
@@ -1356,7 +1354,7 @@ export class Duration {
 						roundingMode,
 					),
 				),
-				largerOfTwoTemporalUnits(largestUnit, Unit.Second),
+				largerOfTwoTemporalUnits(defaultTemporalLargestUnit(slot), Unit.Second),
 			),
 			precisionRecord.$precision,
 		);
@@ -1367,7 +1365,7 @@ export class Duration {
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined): string {
 		const slot = getInternalSlotOrThrowForDuration(this);
 		const record: Partial<Record<PluralUnitKey, number>> = createNullPrototypeObject({});
-		pluralUnitKeys.forEach((k, i) => {
+		pluralUnitKeys.map((k, i) => {
 			record[k] = slot[i]!;
 		});
 		return new Intl.DurationFormat(locales, options).format(record);
