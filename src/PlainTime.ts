@@ -46,7 +46,7 @@ import {
 	timeDurationDaysAndRemainderNanoseconds,
 	type TimeDuration,
 } from "./internal/timeDuration.ts";
-import { assert, assertNotUndefined } from "./internal/assertion.ts";
+import { assert } from "./internal/assertion.ts";
 import {
 	applySignToDurationSlot,
 	combineDateAndTimeDuration,
@@ -531,7 +531,6 @@ export class PlainTime {
 		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", REQUIRED);
 		validateTemporalUnitValue(smallestUnit, TIME);
 		const maximum = maximumTemporalDurationRoundingIncrement(smallestUnit);
-		assertNotUndefined(maximum);
 		validateTemporalRoundingIncrement(roundingIncrement, maximum, false);
 		return createTemporalTime(roundTime(slot, roundingIncrement, smallestUnit, roundingMode));
 	}

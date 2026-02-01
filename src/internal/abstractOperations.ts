@@ -558,6 +558,8 @@ export function isDateUnit(unit: Unit): unit is Unit.Date {
 }
 
 /** `MaximumTemporalDurationRoundingIncrement` */
+export function maximumTemporalDurationRoundingIncrement(unit: Unit.Time): number;
+export function maximumTemporalDurationRoundingIncrement(unit: Unit): number | undefined;
 export function maximumTemporalDurationRoundingIncrement(unit: Unit): number | undefined {
 	return [undefined, undefined, undefined, undefined, 24, 60, 60, 1000, 1000, 1000][
 		getIndexFromUnit(unit)
@@ -810,16 +812,18 @@ export function getDifferenceSettings<
 	if (disallowedUnits.includes(smallestUnit as any)) {
 		throwRangeError(disallowedUnit(smallestUnit));
 	}
-	const defaultLargestUnit = largerOfTwoTemporalUnits(smallestLargestDefaultUnit, smallestUnit);
 	if (largestUnit === "auto") {
-		largestUnit = defaultLargestUnit;
+		largestUnit = largerOfTwoTemporalUnits(smallestLargestDefaultUnit, smallestUnit);
 	}
 	if (largerOfTwoTemporalUnits(largestUnit, smallestUnit) !== largestUnit) {
 		throwRangeError(invalidLargestAndSmallestUnitOptions);
 	}
-	const maximum = maximumTemporalDurationRoundingIncrement(smallestUnit);
-	if (maximum) {
-		validateTemporalRoundingIncrement(roundingIncrement, maximum, false);
+	if (!isDateUnit(smallestUnit)) {
+		validateTemporalRoundingIncrement(
+			roundingIncrement,
+			maximumTemporalDurationRoundingIncrement(smallestUnit),
+			false,
+		);
 	}
 	return {
 		$smallestUnit: smallestUnit as UnitType<UnitGroup>,

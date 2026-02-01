@@ -118,8 +118,15 @@ function assignDateTimeFormatOptions(
 	Object.assign(options, extra);
 }
 
-const dateKeys = ["year", "month", "day", "weekday"] as const;
-const timeKeys = ["hour", "minute", "second", "fractionalSecondDigits", "dayPeriod"] as const;
+const dateKeys = ["year", "month", "day", "weekday", "dateStyle"] as const;
+const timeKeys = [
+	"hour",
+	"minute",
+	"second",
+	"fractionalSecondDigits",
+	"dayPeriod",
+	"timeStyle",
+] as const;
 
 function dateStyleToMonthStyle(
 	dateStyle: Exclude<Intl.DateTimeFormatOptions["dateStyle"], undefined>,
@@ -131,8 +138,8 @@ function amendOptionsForPlainDate(
 	originalOptions: Intl.DateTimeFormatOptions,
 ): Intl.DateTimeFormatOptions {
 	const newOptions = createNullPrototypeObject(originalOptions);
-	if (!hasAnyOptions(originalOptions, [...dateKeys, "dateStyle"])) {
-		if (hasAnyOptions(originalOptions, [...timeKeys, "timeStyle"])) {
+	if (!hasAnyOptions(originalOptions, dateKeys)) {
+		if (hasAnyOptions(originalOptions, timeKeys)) {
 			throwTypeError(invalidFormattingOptions);
 		}
 		assignDateTimeFormatOptions(newOptions, { year: "numeric", month: "numeric", day: "numeric" });
@@ -153,8 +160,8 @@ function amendOptionsForPlainTime(
 	originalOptions: Intl.DateTimeFormatOptions,
 ): Intl.DateTimeFormatOptions {
 	const newOptions = createNullPrototypeObject(originalOptions);
-	if (!hasAnyOptions(originalOptions, [...timeKeys, "timeStyle"])) {
-		if (hasAnyOptions(originalOptions, [...dateKeys, "dateStyle"])) {
+	if (!hasAnyOptions(originalOptions, timeKeys)) {
+		if (hasAnyOptions(originalOptions, dateKeys)) {
 			throwTypeError(invalidFormattingOptions);
 		}
 		assignDateTimeFormatOptions(newOptions, {
@@ -207,7 +214,7 @@ function amendOptionsForPlainDateTime(
 			});
 		}
 	}
-	if (!hasAnyOptions(originalOptions, [...dateKeys, ...timeKeys, "timeStyle", "dateStyle"])) {
+	if (!hasAnyOptions(originalOptions, [...dateKeys, ...timeKeys])) {
 		assignDateTimeFormatOptions(newOptions, {
 			year: "numeric",
 			month: "numeric",
@@ -236,7 +243,7 @@ function amendOptionsForPlainYearMonth(
 		});
 	}
 	if (!hasAnyOptions(originalOptions, ["year", "month", "dateStyle"])) {
-		if (hasAnyOptions(originalOptions, [...dateKeys, ...timeKeys, "timeStyle"])) {
+		if (hasAnyOptions(originalOptions, [...dateKeys, ...timeKeys])) {
 			throwTypeError(invalidFormattingOptions);
 		}
 		assignDateTimeFormatOptions(newOptions, {
@@ -270,7 +277,7 @@ function amendOptionsForPlainMonthDay(
 		});
 	}
 	if (!hasAnyOptions(originalOptions, ["month", "day", "dateStyle"])) {
-		if (hasAnyOptions(originalOptions, [...dateKeys, ...timeKeys, "timeStyle"])) {
+		if (hasAnyOptions(originalOptions, [...dateKeys, ...timeKeys])) {
 			throwTypeError(invalidFormattingOptions);
 		}
 		assignDateTimeFormatOptions(newOptions, {
@@ -297,7 +304,7 @@ function amendOptionsForInstant(
 	originalOptions: Intl.DateTimeFormatOptions,
 ): Intl.DateTimeFormatOptions {
 	const newOptions = createNullPrototypeObject(originalOptions);
-	if (!hasAnyOptions(originalOptions, [...dateKeys, ...timeKeys, "dateStyle", "timeStyle"])) {
+	if (!hasAnyOptions(originalOptions, [...dateKeys, ...timeKeys])) {
 		assignDateTimeFormatOptions(newOptions, {
 			year: "numeric",
 			month: "numeric",
@@ -312,7 +319,7 @@ function amendOptionsForInstant(
 
 function hasAnyOptions(
 	options: Intl.DateTimeFormatOptions,
-	keys: (keyof Intl.DateTimeFormatOptions)[],
+	keys: readonly (keyof Intl.DateTimeFormatOptions)[],
 ): boolean {
 	return keys.some((k) => options[k] !== undefined);
 }
@@ -339,15 +346,7 @@ export function createDateTimeFormat(
 			throwTypeError(disallowedField("timeZone"));
 		}
 		copiedOptions["timeZone"] = toLocaleStringTimeZone;
-		if (
-			!hasAnyOptions(copiedOptions, [
-				...dateKeys,
-				...timeKeys,
-				"dateStyle",
-				"timeStyle",
-				"timeZoneName",
-			])
-		) {
+		if (!hasAnyOptions(copiedOptions, [...dateKeys, ...timeKeys, "timeZoneName"])) {
 			copiedOptions["timeZoneName"] = "short";
 		}
 	}
@@ -418,6 +417,10 @@ function toDateTimeFormattable(x: unknown) {
 
 /** `HandleDateTimeValue` */
 function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [RawDTF, number] {
+	const plainDateSlot = getInternalSlotForPlainDate(x);
+	const plainDateTimeSlot = getInternalSlotForPlainDateTime(x);
+	const plainYearMonthSlot = getInternalSlotForPlainYearMonth(x);
+	const plainMonthDaySlot = getInternalSlotForPlainMonthDay(x);
 	if (isPlainTime(x)) {
 		return [
 			(dateTimeFormat.$rawDtfForPlainTime ||= new OriginalDateTimeFormat(
@@ -434,7 +437,6 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 			),
 		];
 	}
-	const plainDateSlot = getInternalSlotForPlainDate(x);
 	if (plainDateSlot) {
 		if (
 			plainDateSlot.$calendar !== dateTimeFormat.$originalOptions.calendar &&
@@ -454,7 +456,6 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 			),
 		];
 	}
-	const plainDateTimeSlot = getInternalSlotForPlainDateTime(x);
 	if (plainDateTimeSlot) {
 		if (
 			plainDateTimeSlot.$calendar !== dateTimeFormat.$originalOptions.calendar &&
@@ -470,7 +471,6 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 			epochMilliseconds(getUtcEpochNanoseconds(plainDateTimeSlot.$isoDateTime)),
 		];
 	}
-	const plainYearMonthSlot = getInternalSlotForPlainYearMonth(x);
 	if (plainYearMonthSlot) {
 		if (plainYearMonthSlot.$calendar !== dateTimeFormat.$originalOptions.calendar) {
 			throwRangeError(calendarMismatch);
@@ -487,7 +487,6 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 			),
 		];
 	}
-	const plainMonthDaySlot = getInternalSlotForPlainMonthDay(x);
 	if (plainMonthDaySlot) {
 		if (plainMonthDaySlot.$calendar !== dateTimeFormat.$originalOptions.calendar) {
 			throwRangeError(calendarMismatch);

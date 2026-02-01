@@ -346,18 +346,7 @@ function toTemporalPartialDurationRecord(temporalDurationLike: unknown): Partial
 	if (!isObject(temporalDurationLike)) {
 		throwTypeError();
 	}
-	const unitsByAlphabeticalOrder = [
-		unitIndices.$day,
-		unitIndices.$hour,
-		unitIndices.$microsecond,
-		unitIndices.$millisecond,
-		unitIndices.$minute,
-		unitIndices.$month,
-		unitIndices.$nanosecond,
-		unitIndices.$second,
-		unitIndices.$week,
-		unitIndices.$year,
-	].map((i) =>
+	const unitsByAlphabeticalOrder = ([3, 4, 8, 7, 5, 1, 9, 6, 2, 0] as const).map((i) =>
 		mapUnlessUndefined(
 			(temporalDurationLike as Record<string, unknown>)[pluralUnitKeys[i]],
 			toIntegerIfIntegral,
@@ -1194,9 +1183,12 @@ export class Duration {
 		) {
 			throwRangeError(invalidLargestAndSmallestUnitOptions);
 		}
-		const maximum = maximumTemporalDurationRoundingIncrement(smallestUnit);
-		if (maximum) {
-			validateTemporalRoundingIncrement(roundingIncrement, maximum, false);
+		if (!isDateUnit(smallestUnit)) {
+			validateTemporalRoundingIncrement(
+				roundingIncrement,
+				maximumTemporalDurationRoundingIncrement(smallestUnit),
+				false,
+			);
 		}
 		if (roundingIncrement > 1 && largestUnit !== smallestUnit && isDateUnit(smallestUnit)) {
 			throwRangeError(invalidLargestAndSmallestUnitOptions);

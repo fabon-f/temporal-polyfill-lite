@@ -708,7 +708,6 @@ export class PlainDateTime {
 		validateTemporalUnitValue(smallestUnit, TIME, [Unit.Day]);
 		const maximum =
 			smallestUnit === Unit.Day ? 1 : maximumTemporalDurationRoundingIncrement(smallestUnit);
-		assertNotUndefined(maximum);
 		validateTemporalRoundingIncrement(roundingIncrement, maximum, smallestUnit === Unit.Day);
 		return createTemporalDateTime(
 			roundIsoDateTime(slot.$isoDateTime, roundingIncrement, smallestUnit, roundingMode),

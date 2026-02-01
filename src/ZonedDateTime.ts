@@ -1007,7 +1007,6 @@ export class ZonedDateTime {
 		validateTemporalUnitValue(smallestUnit, TIME, [Unit.Day]);
 		const maximum =
 			smallestUnit === Unit.Day ? 1 : maximumTemporalDurationRoundingIncrement(smallestUnit);
-		assertNotUndefined(maximum);
 		validateTemporalRoundingIncrement(roundingIncrement, maximum, smallestUnit === Unit.Day);
 		if (smallestUnit === Unit.Nanosecond && roundingIncrement === 1) {
 			return createTemporalZonedDateTimeFromSlot(slot);
