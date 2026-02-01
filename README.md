@@ -1,5 +1,7 @@
 # temporal-polyfill-lite
 
+[![pkg.pr.new](https://pkg.pr.new/badge/fabon-f/temporal-polyfill-lite)](https://pkg.pr.new/~/fabon-f/temporal-polyfill-lite)
+
 Lightweight Temporal polyfill supporting all time zones and basic (`iso8601` and `gregory`) calendars.
 
 # Usage
