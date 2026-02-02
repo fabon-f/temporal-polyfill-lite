@@ -95,8 +95,7 @@ function formatDateTimeRange(dtf: DateTimeFormatImpl, x: unknown, y: unknown): s
 	const slot = getInternalSlotOrThrowForDateTimeFormat(dtf);
 	validateSameTemporalType(x, y);
 	const [rawDtf, value1] = handleDateTimeValue(slot, x);
-	const [, value2] = handleDateTimeValue(slot, y);
-	return rawDtf.formatRange(value1 as any, value2 as any);
+	return rawDtf.formatRange(value1 as any, handleDateTimeValue(slot, y)[1] as any);
 }
 
 function formatDateTimeRangeToParts(
@@ -107,15 +106,16 @@ function formatDateTimeRangeToParts(
 	const slot = getInternalSlotOrThrowForDateTimeFormat(dtf);
 	validateSameTemporalType(x, y);
 	const [rawDtf, value1] = handleDateTimeValue(slot, x);
-	const [, value2] = handleDateTimeValue(slot, y);
-	return rawDtf.formatRangeToParts(value1 as any, value2 as any);
+	return rawDtf.formatRangeToParts(value1 as any, handleDateTimeValue(slot, y)[1] as any);
 }
 
-function assignDateTimeFormatOptions(
+function removeDateTimeFormatOptions(
 	options: Intl.DateTimeFormatOptions,
-	extra: Intl.DateTimeFormatOptions,
+	keys: (keyof Intl.DateTimeFormatOptions)[],
 ) {
-	Object.assign(options, extra);
+	for (const key of keys) {
+		options[key] = undefined;
+	}
 }
 
 const dateKeys = ["year", "month", "day", "weekday", "dateStyle"] as const;
@@ -142,18 +142,10 @@ function amendOptionsForPlainDate(
 		if (hasAnyOptions(originalOptions, timeKeys)) {
 			throwTypeError(invalidFormattingOptions);
 		}
-		assignDateTimeFormatOptions(newOptions, { year: "numeric", month: "numeric", day: "numeric" });
+		newOptions.year = newOptions.month = newOptions.day = "numeric";
 	}
-	assignDateTimeFormatOptions(newOptions, {
-		hour: undefined,
-		minute: undefined,
-		second: undefined,
-		fractionalSecondDigits: undefined,
-		dayPeriod: undefined,
-		timeZoneName: undefined,
-		timeStyle: undefined,
-		timeZone: "UTC",
-	});
+	removeDateTimeFormatOptions(newOptions, [...timeKeys, "timeZoneName"]);
+	newOptions.timeZone = "UTC";
 	return newOptions;
 }
 
@@ -165,31 +157,15 @@ function amendOptionsForPlainTime(
 		if (hasAnyOptions(originalOptions, dateKeys)) {
 			throwTypeError(invalidFormattingOptions);
 		}
-		assignDateTimeFormatOptions(newOptions, {
-			hour: "numeric",
-			minute: "numeric",
-			second: "numeric",
-		});
+		newOptions.hour = newOptions.minute = newOptions.second = "numeric";
 	}
 	if (originalOptions.timeStyle === "long" || originalOptions.timeStyle === "full") {
 		// stop displaying time zone name
-		assignDateTimeFormatOptions(newOptions, {
-			timeStyle: undefined,
-			hour: "numeric",
-			minute: "numeric",
-			second: "numeric",
-		});
+		removeDateTimeFormatOptions(newOptions, ["timeStyle"]);
+		newOptions.hour = newOptions.minute = newOptions.second = "numeric";
 	}
-	assignDateTimeFormatOptions(newOptions, {
-		era: undefined,
-		year: undefined,
-		month: undefined,
-		day: undefined,
-		weekday: undefined,
-		timeZoneName: undefined,
-		dateStyle: undefined,
-		timeZone: "UTC",
-	});
+	removeDateTimeFormatOptions(newOptions, [...dateKeys, "era", "timeZoneName"]);
+	newOptions.timeZone = "UTC";
 	return newOptions;
 }
 
@@ -199,36 +175,26 @@ function amendOptionsForPlainDateTime(
 	const newOptions = createNullPrototypeObject(originalOptions);
 	if (originalOptions.timeStyle === "long" || originalOptions.timeStyle === "full") {
 		// stop displaying time zone name
-		assignDateTimeFormatOptions(newOptions, {
-			timeStyle: undefined,
-			hour: "numeric",
-			minute: "numeric",
-			second: "numeric",
-		});
+		removeDateTimeFormatOptions(newOptions, ["timeStyle"]);
+		newOptions.hour = newOptions.minute = newOptions.second = "numeric";
 		if (originalOptions.dateStyle) {
-			assignDateTimeFormatOptions(newOptions, {
-				dateStyle: undefined,
-				year: "numeric",
-				month: dateStyleToMonthStyle(originalOptions.dateStyle),
-				day: "numeric",
-				weekday: originalOptions.dateStyle === "full" ? "long" : undefined,
-			});
+			removeDateTimeFormatOptions(newOptions, ["dateStyle"]);
+			newOptions.year = newOptions.day = "numeric";
+			newOptions.month = dateStyleToMonthStyle(originalOptions.dateStyle);
+			newOptions.weekday = originalOptions.dateStyle === "full" ? "long" : undefined;
 		}
 	}
 	if (!hasAnyOptions(originalOptions, [...dateKeys, ...timeKeys])) {
-		assignDateTimeFormatOptions(newOptions, {
-			year: "numeric",
-			month: "numeric",
-			day: "numeric",
-			hour: "numeric",
-			minute: "numeric",
-			second: "numeric",
-		});
+		newOptions.year =
+			newOptions.month =
+			newOptions.day =
+			newOptions.hour =
+			newOptions.minute =
+			newOptions.second =
+				"numeric";
 	}
-	assignDateTimeFormatOptions(newOptions, {
-		timeZoneName: undefined,
-		timeZone: "UTC",
-	});
+	removeDateTimeFormatOptions(newOptions, ["timeZoneName"]);
+	newOptions.timeZone = "UTC";
 	return newOptions;
 }
 
@@ -237,33 +203,18 @@ function amendOptionsForPlainYearMonth(
 ): Intl.DateTimeFormatOptions {
 	const newOptions = createNullPrototypeObject(originalOptions);
 	if (originalOptions.dateStyle) {
-		assignDateTimeFormatOptions(newOptions, {
-			dateStyle: undefined,
-			year: originalOptions.dateStyle === "short" ? "2-digit" : "numeric",
-			month: dateStyleToMonthStyle(originalOptions.dateStyle),
-		});
+		removeDateTimeFormatOptions(newOptions, ["dateStyle"]);
+		newOptions.year = originalOptions.dateStyle === "short" ? "2-digit" : "numeric";
+		newOptions.month = dateStyleToMonthStyle(originalOptions.dateStyle);
 	}
 	if (!hasAnyOptions(originalOptions, ["year", "month", "dateStyle"])) {
 		if (hasAnyOptions(originalOptions, [...dateKeys, ...timeKeys])) {
 			throwTypeError(invalidFormattingOptions);
 		}
-		assignDateTimeFormatOptions(newOptions, {
-			year: "numeric",
-			month: "numeric",
-		});
+		newOptions.year = newOptions.month = "numeric";
 	}
-	assignDateTimeFormatOptions(newOptions, {
-		day: undefined,
-		hour: undefined,
-		minute: undefined,
-		second: undefined,
-		fractionalSecondDigits: undefined,
-		weekday: undefined,
-		dayPeriod: undefined,
-		timeZoneName: undefined,
-		timeStyle: undefined,
-		timeZone: "UTC",
-	});
+	removeDateTimeFormatOptions(newOptions, [...timeKeys, "day", "weekday", "timeZoneName"]);
+	newOptions.timeZone = "UTC";
 	return newOptions;
 }
 
@@ -272,34 +223,18 @@ function amendOptionsForPlainMonthDay(
 ): Intl.DateTimeFormatOptions {
 	const newOptions = createNullPrototypeObject(originalOptions);
 	if (originalOptions.dateStyle) {
-		assignDateTimeFormatOptions(newOptions, {
-			dateStyle: undefined,
-			month: dateStyleToMonthStyle(originalOptions.dateStyle),
-			day: "numeric",
-		});
+		removeDateTimeFormatOptions(newOptions, ["dateStyle"]);
+		newOptions.month = dateStyleToMonthStyle(originalOptions.dateStyle);
+		newOptions.day = "numeric";
 	}
 	if (!hasAnyOptions(originalOptions, ["month", "day", "dateStyle"])) {
 		if (hasAnyOptions(originalOptions, [...dateKeys, ...timeKeys])) {
 			throwTypeError(invalidFormattingOptions);
 		}
-		assignDateTimeFormatOptions(newOptions, {
-			month: "numeric",
-			day: "numeric",
-		});
+		newOptions.month = newOptions.day = "numeric";
 	}
-	assignDateTimeFormatOptions(newOptions, {
-		era: undefined,
-		year: undefined,
-		hour: undefined,
-		minute: undefined,
-		second: undefined,
-		fractionalSecondDigits: undefined,
-		weekday: undefined,
-		dayPeriod: undefined,
-		timeZoneName: undefined,
-		timeStyle: undefined,
-		timeZone: "UTC",
-	});
+	removeDateTimeFormatOptions(newOptions, [...timeKeys, "era", "year", "weekday", "timeZoneName"]);
+	newOptions.timeZone = "UTC";
 	return newOptions;
 }
 
@@ -308,14 +243,13 @@ function amendOptionsForInstant(
 ): Intl.DateTimeFormatOptions {
 	const newOptions = createNullPrototypeObject(originalOptions);
 	if (!hasAnyOptions(originalOptions, [...dateKeys, ...timeKeys])) {
-		assignDateTimeFormatOptions(newOptions, {
-			year: "numeric",
-			month: "numeric",
-			day: "numeric",
-			hour: "numeric",
-			minute: "numeric",
-			second: "numeric",
-		});
+		newOptions.year =
+			newOptions.month =
+			newOptions.day =
+			newOptions.hour =
+			newOptions.minute =
+			newOptions.second =
+				"numeric";
 	}
 	return newOptions;
 }
