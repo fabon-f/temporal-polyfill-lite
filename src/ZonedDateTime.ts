@@ -397,7 +397,10 @@ function temporalZonedDateTimeToString(
 	roundingMode: RoundingMode = roundingModeTrunc,
 ): string {
 	const epoch = roundTemporalInstant(slot.$epochNanoseconds, increment, unit, roundingMode);
-	const offsetNanoseconds = getOffsetNanosecondsFor(slot.$timeZone, epoch);
+	const offsetNanoseconds =
+		epochSeconds(epoch) === epochSeconds(slot.$epochNanoseconds)
+			? getOffsetNanosecondsForZonedDateTimeSlot(slot)
+			: getOffsetNanosecondsFor(slot.$timeZone, epoch);
 	return `${isoDateTimeToString(
 		getIsoDateTimeFromOffsetNanoseconds(epoch, offsetNanoseconds),
 		"iso8601",
