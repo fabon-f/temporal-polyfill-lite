@@ -19,7 +19,7 @@ import {
 	isoDateRecordToEpochDays,
 	isoDateToEpochDays,
 	isoDateToFields,
-	isPartialTemporalObject,
+	validatePartialTemporalObject,
 } from "./internal/abstractOperations.ts";
 import { assert, assertNotUndefined } from "./internal/assertion.ts";
 import {
@@ -79,6 +79,7 @@ import {
 	getInternalSlotOrThrowForPlainDateTime,
 	isoDateTimeWithinLimits,
 	isPlainDateTime,
+	validateIsoDateTime,
 } from "./PlainDateTime.ts";
 import { createTemporalMonthDay } from "./PlainMonthDay.ts";
 import {
@@ -128,10 +129,7 @@ export function createTemporalDate(
 	calendar: SupportedCalendars,
 	instance = Object.create(PlainDate.prototype) as PlainDate,
 ): PlainDate {
-	if (!isoDateWithinLimits(date)) {
-		throwRangeError(outOfBoundsDate);
-	}
-	const slot = createPlainDateSlot(date, calendar);
+	const slot = createPlainDateSlot(validateIsoDate(date), calendar);
 	slots.set(instance, slot);
 	return instance;
 }
@@ -326,6 +324,11 @@ function createPlainDateSlot(date: IsoDateRecord, calendar: SupportedCalendars):
 	} as PlainDateSlot;
 }
 
+export function validateIsoDate(isoDate: IsoDateRecord) {
+	validateIsoDateTime(combineIsoDateAndTimeRecord(isoDate, noonTimeRecord()));
+	return isoDate;
+}
+
 export class PlainDate {
 	constructor(isoYear: unknown, isoMonth: unknown, isoDay: unknown, calendar: unknown = "iso8601") {
 		const y = toIntegerWithTruncation(isoYear);
@@ -450,13 +453,11 @@ export class PlainDate {
 	}
 	with(temporalDateLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainDate(this);
-		if (!isPartialTemporalObject(temporalDateLike)) {
-			throwTypeError();
-		}
+		validatePartialTemporalObject(temporalDateLike);
 		const fields = calendarMergeFields(
 			slot.$calendar,
 			isoDateToFields(slot.$calendar, slot.$isoDate, DATE),
-			prepareCalendarFields(slot.$calendar, temporalDateLike as object, [
+			prepareCalendarFields(slot.$calendar, temporalDateLike, [
 				calendarFieldKeys.$year,
 				calendarFieldKeys.$month,
 				calendarFieldKeys.$monthCode,
@@ -528,15 +529,18 @@ export class PlainDate {
 				cache,
 			);
 		}
-		const isoDateTime = combineIsoDateAndTimeRecord(
-			slot.$isoDate,
-			getInternalSlotOrThrowForPlainTime(toTemporalTime(temporalTime)),
-		);
-		if (!isoDateTimeWithinLimits(isoDateTime)) {
-			throwRangeError(outOfBoundsDate);
-		}
 		return createTemporalZonedDateTime(
-			getEpochNanosecondsFor(timeZone, isoDateTime, disambiguationCompatible, cache),
+			getEpochNanosecondsFor(
+				timeZone,
+				validateIsoDateTime(
+					combineIsoDateAndTimeRecord(
+						slot.$isoDate,
+						getInternalSlotOrThrowForPlainTime(toTemporalTime(temporalTime)),
+					),
+				),
+				disambiguationCompatible,
+				cache,
+			),
 			timeZone,
 			slot.$calendar,
 			undefined,

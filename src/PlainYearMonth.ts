@@ -17,7 +17,7 @@ import {
 	getTemporalShowCalendarNameOption,
 	getUtcEpochNanoseconds,
 	isoDateToFields,
-	isPartialTemporalObject,
+	validatePartialTemporalObject,
 } from "./internal/abstractOperations.ts";
 import { assertNotUndefined } from "./internal/assertion.ts";
 import {
@@ -361,9 +361,7 @@ export class PlainYearMonth {
 	}
 	with(temporalYearMonthLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainYearMonth(this);
-		if (!isPartialTemporalObject(temporalYearMonthLike)) {
-			throwTypeError();
-		}
+		validatePartialTemporalObject(temporalYearMonthLike);
 		const fields = calendarMergeFields(
 			slot.$calendar,
 			isoDateToFields(slot.$calendar, slot.$isoDate, YEAR_MONTH),

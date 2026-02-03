@@ -142,11 +142,7 @@ function toTemporalInstant(item: unknown): Instant {
 		time.$nanosecond - offsetNanoseconds,
 	);
 	checkIsoDaysRange(balanced.$isoDate);
-	const epoch = getUtcEpochNanoseconds(balanced);
-	if (!isValidEpochNanoseconds(epoch)) {
-		throwRangeError(outOfBoundsDate);
-	}
-	return createTemporalInstant(epoch);
+	return createTemporalInstant(validateEpochNanoseconds(getUtcEpochNanoseconds(balanced)));
 }
 
 /** `AddInstant` */
@@ -154,11 +150,9 @@ export function addInstant(
 	epochNanoseconds: EpochNanoseconds,
 	timeDuration: TimeDuration,
 ): EpochNanoseconds {
-	const result = addTimeDurationToEpochNanoseconds(epochNanoseconds, timeDuration);
-	if (!isValidEpochNanoseconds(result)) {
-		throwRangeError(outOfBoundsDate);
-	}
-	return result;
+	return validateEpochNanoseconds(
+		addTimeDurationToEpochNanoseconds(epochNanoseconds, timeDuration),
+	);
 }
 
 /** `DifferenceInstant` */
@@ -255,6 +249,13 @@ function addDurationToInstant(
 	);
 }
 
+export function validateEpochNanoseconds(epochNanoseconds: EpochNanoseconds): EpochNanoseconds {
+	if (!isValidEpochNanoseconds(epochNanoseconds)) {
+		throwRangeError(outOfBoundsDate);
+	}
+	return epochNanoseconds;
+}
+
 function getInternalSlotForInstant(instant: unknown): InstantSlot | undefined {
 	return slots.get(instant);
 }
@@ -287,30 +288,25 @@ export function clampEpochNanoseconds(epoch: EpochNanoseconds) {
 
 export class Instant {
 	constructor(epochNanoseconds: unknown) {
-		const epoch = createEpochNanosecondsFromBigInt(toBigInt(epochNanoseconds));
-		if (!isValidEpochNanoseconds(epoch)) {
-			throwRangeError(outOfBoundsDate);
-		}
-		createTemporalInstant(epoch, this);
+		createTemporalInstant(
+			validateEpochNanoseconds(createEpochNanosecondsFromBigInt(toBigInt(epochNanoseconds))),
+			this,
+		);
 	}
 	static from(item: unknown) {
 		return toTemporalInstant(item);
 	}
 	static fromEpochMilliseconds(epochMilliseconds: unknown) {
-		const epoch = createEpochNanosecondsFromEpochMilliseconds(
-			toIntegerIfIntegral(epochMilliseconds),
+		return createTemporalInstant(
+			validateEpochNanoseconds(
+				createEpochNanosecondsFromEpochMilliseconds(toIntegerIfIntegral(epochMilliseconds)),
+			),
 		);
-		if (!isValidEpochNanoseconds(epoch)) {
-			throwRangeError(outOfBoundsDate);
-		}
-		return createTemporalInstant(epoch);
 	}
 	static fromEpochNanoseconds(epochNanoseconds: unknown) {
-		const epoch = createEpochNanosecondsFromBigInt(toBigInt(epochNanoseconds));
-		if (!isValidEpochNanoseconds(epoch)) {
-			throwRangeError(outOfBoundsDate);
-		}
-		return createTemporalInstant(epoch);
+		return createTemporalInstant(
+			validateEpochNanoseconds(createEpochNanosecondsFromBigInt(toBigInt(epochNanoseconds))),
+		);
 	}
 	static compare(one: unknown, two: unknown) {
 		return compareEpochNanoseconds(

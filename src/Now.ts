@@ -31,12 +31,14 @@ function systemUtcEpochNanoseconds(): EpochNanoseconds {
 
 /** `SystemDateTime` */
 function systemDateTime(temporalTimeZoneLike: unknown): IsoDateTimeRecord {
-	const timeZone =
-		temporalTimeZoneLike === undefined
-			? systemTimeZoneIdentifier()
-			: toTemporalTimeZoneIdentifier(temporalTimeZoneLike);
 	return getIsoDateTimeForZonedDateTimeSlot(
-		createZonedDateTimeSlot(systemUtcEpochNanoseconds(), timeZone, "iso8601"),
+		createZonedDateTimeSlot(
+			systemUtcEpochNanoseconds(),
+			temporalTimeZoneLike === undefined
+				? systemTimeZoneIdentifier()
+				: toTemporalTimeZoneIdentifier(temporalTimeZoneLike),
+			"iso8601",
+		),
 	);
 }
 
@@ -51,11 +53,13 @@ export const Now = {
 		return createTemporalDateTime(systemDateTime(temporalTimeZoneLike), "iso8601");
 	},
 	zonedDateTimeISO(temporalTimeZoneLike: unknown = undefined) {
-		const timeZone =
+		return createTemporalZonedDateTime(
+			systemUtcEpochNanoseconds(),
 			temporalTimeZoneLike === undefined
 				? systemTimeZoneIdentifier()
-				: toTemporalTimeZoneIdentifier(temporalTimeZoneLike);
-		return createTemporalZonedDateTime(systemUtcEpochNanoseconds(), timeZone, "iso8601");
+				: toTemporalTimeZoneIdentifier(temporalTimeZoneLike),
+			"iso8601",
+		);
 	},
 	plainDateISO(temporalTimeZoneLike: unknown = undefined) {
 		return createTemporalDate(systemDateTime(temporalTimeZoneLike).$isoDate, "iso8601");

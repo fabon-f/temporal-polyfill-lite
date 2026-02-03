@@ -1,5 +1,5 @@
 import { OriginalDateTimeFormat } from "../DateTimeFormat.ts";
-import { clampEpochNanoseconds, isValidEpochNanoseconds } from "../Instant.ts";
+import { clampEpochNanoseconds, validateEpochNanoseconds } from "../Instant.ts";
 import { type IsoDateRecord } from "../PlainDate.ts";
 import {
 	balanceIsoDateTime,
@@ -43,7 +43,7 @@ import {
 	epochSeconds,
 	type EpochNanoseconds,
 } from "./epochNanoseconds.ts";
-import { ambiguousTime, invalidTimeZone, outOfBoundsDate } from "./errorMessages.ts";
+import { ambiguousTime, invalidTimeZone } from "./errorMessages.ts";
 import { clamp, divFloor, isWithin, modFloor } from "./math.ts";
 import { createNullPrototypeObject } from "./object.ts";
 import { asciiCapitalize, asciiLowerCase, asciiUpperCase } from "./string.ts";
@@ -361,9 +361,7 @@ export function disambiguatePossibleEpochNanoseconds(
 	// TODO: verify
 	possibleEpochNs = getNamedTimeZoneEpochCandidates(timeZone, isoDateTime, offsetCacheMap);
 	for (const epoch of possibleEpochNs) {
-		if (!isValidEpochNanoseconds(epoch)) {
-			throwRangeError(outOfBoundsDate);
-		}
+		validateEpochNanoseconds(epoch);
 	}
 	if (disambiguation === disambiguationCompatible) {
 		return isForwardTransition ? possibleEpochNs[1]! : possibleEpochNs[0]!;
@@ -403,12 +401,7 @@ export function getPossibleEpochNanoseconds(
 			offsetCacheMap,
 		);
 	}
-	for (const epoch of possibleEpochNanoseconds) {
-		if (!isValidEpochNanoseconds(epoch)) {
-			throwRangeError(outOfBoundsDate);
-		}
-	}
-	return possibleEpochNanoseconds;
+	return possibleEpochNanoseconds.map(validateEpochNanoseconds);
 }
 
 /** `GetStartOfDay` */

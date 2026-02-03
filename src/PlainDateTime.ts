@@ -30,10 +30,10 @@ import {
 	isDateUnit,
 	isoDateRecordToEpochDays,
 	isoDateTimeToFields,
-	isPartialTemporalObject,
 	largerOfTwoTemporalUnits,
 	maximumTemporalDurationRoundingIncrement,
 	toSecondsStringPrecisionRecord,
+	validatePartialTemporalObject,
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
@@ -261,10 +261,7 @@ export function createTemporalDateTime(
 	calendar: SupportedCalendars,
 	instance = Object.create(PlainDateTime.prototype) as PlainDateTime,
 ): PlainDateTime {
-	if (!isoDateTimeWithinLimits(isoDateTime)) {
-		throwRangeError(outOfBoundsDate);
-	}
-	const slot = createPlainDateTimeSlot(isoDateTime, calendar);
+	const slot = createPlainDateTimeSlot(validateIsoDateTime(isoDateTime), calendar);
 	slots.set(instance, slot);
 	return instance;
 }
@@ -352,9 +349,8 @@ export function differencePlainDateTimeWithRounding(
 	if (!compareIsoDateTime(isoDateTime1, isoDateTime2)) {
 		return combineDateAndTimeDuration(zeroDateDuration(), createTimeDurationFromSeconds(0));
 	}
-	if (!isoDateTimeWithinLimits(isoDateTime1) || !isoDateTimeWithinLimits(isoDateTime2)) {
-		throwRangeError(outOfBoundsDate);
-	}
+	validateIsoDateTime(isoDateTime1);
+	validateIsoDateTime(isoDateTime2);
 	const diff = differenceISODateTime(isoDateTime1, isoDateTime2, calendar, largestUnit);
 	if (smallestUnit === Unit.Nanosecond && roundingIncrement === 1) {
 		return diff;
@@ -382,9 +378,8 @@ export function differencePlainDateTimeWithTotal(
 	if (!compareIsoDateTime(isoDateTime1, isoDateTime2)) {
 		return 0;
 	}
-	if (!isoDateTimeWithinLimits(isoDateTime1) || !isoDateTimeWithinLimits(isoDateTime2)) {
-		throwRangeError(outOfBoundsDate);
-	}
+	validateIsoDateTime(isoDateTime1);
+	validateIsoDateTime(isoDateTime2);
 	return totalRelativeDuration(
 		differenceISODateTime(isoDateTime1, isoDateTime2, calendar, unit),
 		getUtcEpochNanoseconds(isoDateTime1),
@@ -456,6 +451,13 @@ function addDurationToDateTime(
 		),
 		dateTime.$calendar,
 	);
+}
+
+export function validateIsoDateTime(isoDateTime: IsoDateTimeRecord): IsoDateTimeRecord {
+	if (!isoDateTimeWithinLimits(isoDateTime)) {
+		throwRangeError(outOfBoundsDate);
+	}
+	return isoDateTime;
 }
 
 function createPlainDateTimeSlot(
@@ -613,9 +615,7 @@ export class PlainDateTime {
 	}
 	with(temporalDateTimeLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);
-		if (!isPartialTemporalObject(temporalDateTimeLike)) {
-			throwTypeError();
-		}
+		validatePartialTemporalObject(temporalDateTimeLike);
 		// « year, month, month-code, day », « hour, minute, second, millisecond, microsecond, nanosecond »
 		const fields = calendarMergeFields(
 			slot.$calendar,
@@ -725,16 +725,14 @@ export class PlainDateTime {
 			throwRangeError(invalidField("smallestUnit"));
 		}
 		const record = toSecondsStringPrecisionRecord(smallestUnit, digits);
-		const result = roundIsoDateTime(
-			slot.$isoDateTime,
-			record.$increment,
-			record.$unit,
-			roundingMode,
+		return isoDateTimeToString(
+			validateIsoDateTime(
+				roundIsoDateTime(slot.$isoDateTime, record.$increment, record.$unit, roundingMode),
+			),
+			slot.$calendar,
+			record.$precision,
+			showCalendar,
 		);
-		if (!isoDateTimeWithinLimits(result)) {
-			throwRangeError(outOfBoundsDate);
-		}
-		return isoDateTimeToString(result, slot.$calendar, record.$precision, showCalendar);
 	}
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
 		getInternalSlotOrThrowForPlainDateTime(this);

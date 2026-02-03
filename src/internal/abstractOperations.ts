@@ -138,7 +138,7 @@ import {
 	Unit,
 	type SingularUnitKey,
 } from "./unit.ts";
-import { mapUnlessUndefined, throwRangeError } from "./utils.ts";
+import { mapUnlessUndefined, throwRangeError, throwTypeError } from "./utils.ts";
 
 /** `ISODateToEpochDays` (`month` is 0-indexed) */
 export function isoDateToEpochDays(year: number, month: number, day: number): number {
@@ -565,21 +565,21 @@ export function maximumTemporalDurationRoundingIncrement(unit: Unit): number | u
 	];
 }
 
-/** `IsPartialTemporalObject` */
-export function isPartialTemporalObject(value: unknown): boolean {
-	return (
-		isObject(value) &&
-		!(
-			isPlainDate(value) ||
-			isPlainDateTime(value) ||
-			isPlainMonthDay(value) ||
-			isPlainTime(value) ||
-			isPlainYearMonth(value) ||
-			isZonedDateTime(value)
-		) &&
-		(value as Record<string, unknown>)["calendar"] === undefined &&
-		(value as Record<string, unknown>)["timeZone"] === undefined
-	);
+/** `IsPartialTemporalObject` + throwing */
+export function validatePartialTemporalObject(value: unknown): asserts value is object {
+	if (
+		!isObject(value) ||
+		isPlainDate(value) ||
+		isPlainDateTime(value) ||
+		isPlainMonthDay(value) ||
+		isPlainTime(value) ||
+		isPlainYearMonth(value) ||
+		isZonedDateTime(value) ||
+		(value as Record<string, unknown>)["calendar"] !== undefined ||
+		(value as Record<string, unknown>)["timeZone"] !== undefined
+	) {
+		throwTypeError();
+	}
 }
 
 /** `FormatFractionalSeconds` */

@@ -27,6 +27,7 @@ import {
 	differenceInstant,
 	isValidEpochNanoseconds,
 	roundTemporalInstant,
+	validateEpochNanoseconds,
 } from "./Instant.ts";
 import {
 	checkIsoDaysRange,
@@ -45,11 +46,11 @@ import {
 	getUtcEpochNanoseconds,
 	isDateUnit,
 	isoDateTimeToFields,
-	isPartialTemporalObject,
 	largerOfTwoTemporalUnits,
 	maximumTemporalDurationRoundingIncrement,
 	roundNumberToIncrement,
 	toSecondsStringPrecisionRecord,
+	validatePartialTemporalObject,
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
@@ -125,7 +126,6 @@ import {
 	invalidField,
 	invalidMethodCall,
 	offsetMismatch,
-	outOfBoundsDate,
 	timeZoneMismatch,
 } from "./internal/errorMessages.ts";
 import { createNullPrototypeObject, isObject } from "./internal/object.ts";
@@ -166,8 +166,8 @@ import {
 	createTemporalDateTime,
 	interpretTemporalDateTimeFields,
 	isoDateTimeToString,
-	isoDateTimeWithinLimits,
 	roundIsoDateTime,
+	validateIsoDateTime,
 	type IsoDateTimeRecord,
 } from "./PlainDateTime.ts";
 import {
@@ -231,11 +231,7 @@ export function interpretISODateTimeOffset(
 			isoDateTime.$time.$nanosecond - offsetNanoseconds,
 		);
 		checkIsoDaysRange(balanced.$isoDate);
-		const epoch = getUtcEpochNanoseconds(balanced);
-		if (!isValidEpochNanoseconds(epoch)) {
-			throwRangeError(outOfBoundsDate);
-		}
-		return epoch;
+		return validateEpochNanoseconds(getUtcEpochNanoseconds(balanced));
 	}
 	assert(offsetOption === offsetPrefer || offsetOption === offsetReject);
 	checkIsoDaysRange(isoDate);
@@ -432,17 +428,15 @@ export function addZonedDateTime(
 		epochNanoseconds,
 		getOffsetNanosecondsFor(timeZone, epochNanoseconds, offsetCacheMap),
 	);
-	const intermediateDateTime = combineIsoDateAndTimeRecord(
-		calendarDateAdd(calendar, isoDateTime.$isoDate, duration.$date, overflow),
-		isoDateTime.$time,
-	);
-	if (!isoDateTimeWithinLimits(intermediateDateTime)) {
-		throwRangeError(outOfBoundsDate);
-	}
 	return addInstant(
 		getEpochNanosecondsFor(
 			timeZone,
-			intermediateDateTime,
+			validateIsoDateTime(
+				combineIsoDateAndTimeRecord(
+					calendarDateAdd(calendar, isoDateTime.$isoDate, duration.$date, overflow),
+					isoDateTime.$time,
+				),
+			),
 			disambiguationCompatible,
 			offsetCacheMap,
 		),
@@ -721,10 +715,9 @@ export function isZonedDateTime(item: unknown): boolean {
 
 export class ZonedDateTime {
 	constructor(epochNanoseconds: unknown, timeZone: unknown, calendar: unknown = "iso8601") {
-		const epoch = createEpochNanosecondsFromBigInt(toBigInt(epochNanoseconds));
-		if (!isValidEpochNanoseconds(epoch)) {
-			throwRangeError(outOfBoundsDate);
-		}
+		const epoch = validateEpochNanoseconds(
+			createEpochNanosecondsFromBigInt(toBigInt(epochNanoseconds)),
+		);
 		validateString(timeZone);
 		const result = parseTimeZoneIdentifier(timeZone);
 		const timeZoneString =
@@ -866,9 +859,7 @@ export class ZonedDateTime {
 		const cache = createOffsetCacheMap();
 
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
-		if (!isPartialTemporalObject(temporalZonedDateTimeLike)) {
-			throwTypeError();
-		}
+		validatePartialTemporalObject(temporalZonedDateTimeLike);
 		const offsetNanoseconds = getOffsetNanosecondsForZonedDateTimeSlot(slot);
 		const isoDateTime = getIsoDateTimeForZonedDateTimeSlot(slot);
 		const fields = calendarMergeFields(

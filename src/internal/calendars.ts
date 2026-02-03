@@ -10,6 +10,7 @@ import {
 	getInternalSlotForPlainDate,
 	isoDateWithinLimits,
 	regulateIsoDate,
+	validateIsoDate,
 	type IsoDateRecord,
 } from "../PlainDate.ts";
 import { getInternalSlotForPlainDateTime } from "../PlainDateTime.ts";
@@ -27,7 +28,7 @@ import {
 	mathematicalInLeapYear,
 	toOffsetString,
 } from "./abstractOperations.ts";
-import { assert, assertNotUndefined, assertUnreachable } from "./assertion.ts";
+import { assert, assertNotUndefined } from "./assertion.ts";
 import { parseTemporalCalendarString } from "./dateTimeParser.ts";
 import {
 	toIntegerWithTruncation,
@@ -255,14 +256,12 @@ export function calendarDateAdd(
 		isoDate.$year + duration.$years,
 		isoDate.$month + duration.$months,
 	);
-	const result = addDaysToIsoDate(
-		regulateIsoDate(balancedYearMonth.$year, balancedYearMonth.$month, isoDate.$day, overflow),
-		duration.$weeks * 7 + duration.$days,
+	return validateIsoDate(
+		addDaysToIsoDate(
+			regulateIsoDate(balancedYearMonth.$year, balancedYearMonth.$month, isoDate.$day, overflow),
+			duration.$weeks * 7 + duration.$days,
+		),
 	);
-	if (!isoDateWithinLimits(result)) {
-		throwRangeError(outOfBoundsDate);
-	}
-	return result;
 }
 
 /** `CalendarDateUntil` */
@@ -348,11 +347,7 @@ export function calendarDateFromFields(
 	overflow: Overflow,
 ): IsoDateRecord {
 	calendarResolveFields(calendar, fields);
-	const result = calendarDateToISO(calendar, fields, overflow);
-	if (!isoDateWithinLimits(result)) {
-		throwRangeError(outOfBoundsDate);
-	}
-	return result;
+	return validateIsoDate(calendarDateToISO(calendar, fields, overflow));
 }
 
 /** `CalendarYearMonthFromFields` */
@@ -450,29 +445,19 @@ export function isoDayOfWeek(isoDate: IsoDateRecord): number {
 	return modFloor(isoDateRecordToEpochDays(isoDate) + 3, 7) + 1;
 }
 
+/** `CalendarDateToISO` */
 function calendarDateToISO(
 	calendar: SupportedCalendars,
 	fields: CalendarFieldsRecord,
 	overflow: Overflow,
 ): IsoDateRecord {
-	if (calendar === "iso8601") {
-		return regulateIsoDate(
-			fields[calendarFieldKeys.$year]!,
-			fields[calendarFieldKeys.$month]!,
-			fields[calendarFieldKeys.$day]!,
-			overflow,
-		);
-	}
-	/** `NonISOCalendarDateToISO` */
-	if (calendar === "gregory") {
-		return regulateIsoDate(
-			fields[calendarFieldKeys.$year]!,
-			fields[calendarFieldKeys.$month]!,
-			fields[calendarFieldKeys.$day]!,
-			overflow,
-		);
-	}
-	assertUnreachable(calendar);
+	assert(calendar === "iso8601" || calendar === "gregory");
+	return regulateIsoDate(
+		fields[calendarFieldKeys.$year]!,
+		fields[calendarFieldKeys.$month]!,
+		fields[calendarFieldKeys.$day]!,
+		overflow,
+	);
 }
 
 /** `NonISOCalendarISOToDate` */
@@ -480,18 +465,16 @@ function nonIsoCalendarIsoToDate(
 	calendar: SupportedNonIsoCalendars,
 	isoDate: IsoDateRecord,
 ): CalendarDateRecord {
-	if (calendar === "gregory") {
-		return {
-			$era: isoDate.$year > 0 ? "ce" : "bce",
-			$eraYear: isoDate.$year > 0 ? isoDate.$year : 1 - isoDate.$year,
-			...isoCalendarIsoToDate(isoDate),
-			$weekOfYear: {
-				$year: undefined,
-				$week: undefined,
-			},
-		};
-	}
-	assertUnreachable(calendar);
+	assert(calendar === "gregory");
+	return {
+		$era: isoDate.$year > 0 ? "ce" : "bce",
+		$eraYear: isoDate.$year > 0 ? isoDate.$year : 1 - isoDate.$year,
+		...isoCalendarIsoToDate(isoDate),
+		$weekOfYear: {
+			$year: undefined,
+			$week: undefined,
+		},
+	};
 }
 
 function isoCalendarIsoToDate(isoDate: IsoDateRecord): CalendarDateRecord {
@@ -517,17 +500,14 @@ function calendarMonthDayToIsoReferenceDate(
 	fields: CalendarFieldsRecord,
 	overflow: Overflow,
 ): IsoDateRecord {
-	if (calendar === "iso8601" || calendar === "gregory") {
-		const y = fields[calendarFieldKeys.$year];
-		const result = regulateIsoDate(
-			y ?? 1972,
-			fields[calendarFieldKeys.$month]!,
-			fields[calendarFieldKeys.$day]!,
-			overflow,
-		);
-		return createIsoDateRecord(1972, result.$month, result.$day);
-	}
-	assertUnreachable(calendar);
+	assert(calendar === "iso8601" || calendar === "gregory");
+	const result = regulateIsoDate(
+		fields[calendarFieldKeys.$year] ?? 1972,
+		fields[calendarFieldKeys.$month]!,
+		fields[calendarFieldKeys.$day]!,
+		overflow,
+	);
+	return createIsoDateRecord(1972, result.$month, result.$day);
 }
 
 /** `CalendarISOToDate` */
@@ -617,7 +597,7 @@ function nonIsoResolveFields(
 	calendar: SupportedNonIsoCalendars,
 	fields: CalendarFieldsRecord,
 	type: typeof DATE | typeof YEAR_MONTH | typeof MONTH_DAY = DATE,
-) {
+): void {
 	const era = fields[calendarFieldKeys.$era];
 	const eraYear = fields[calendarFieldKeys.$eraYear];
 	const year = fields[calendarFieldKeys.$year];
@@ -658,11 +638,8 @@ function nonIsoResolveFields(
 		fields[calendarFieldKeys.$year] = arithmeticYear;
 	}
 	fields[calendarFieldKeys.$era] = fields[calendarFieldKeys.$eraYear] = undefined;
-	if (calendar === "gregory") {
-		isoResolveFields(fields, type);
-		return;
-	}
-	assertUnreachable(calendar);
+	assert(calendar === "gregory");
+	return isoResolveFields(fields, type);
 }
 
 /** `CalendarResolveFields` */
@@ -685,16 +662,14 @@ function calendarSupportsEra(calendar: SupportedCalendars): boolean {
 
 /** `canonicalizeEraInCalendar` */
 function canonicalizeEraInCalendar(calendar: SupportedNonIsoCalendars, era: string): string {
-	if (calendar === "gregory") {
-		if (era === "ad" || era === "ce") {
-			return "ce";
-		}
-		if (era === "bc" || era === "bce") {
-			return "bce";
-		}
-		throwRangeError(invalidEra(era));
+	assert(calendar === "gregory");
+	if (era === "ad" || era === "ce") {
+		return "ce";
 	}
-	assertUnreachable(calendar);
+	if (era === "bc" || era === "bce") {
+		return "bce";
+	}
+	throwRangeError(invalidEra(era));
 }
 
 /** `CalendarDateArithmeticYearForEraYear` */
@@ -703,13 +678,11 @@ function calendarDateArithmeticYearForEraYear(
 	era: string,
 	eraYear: number,
 ): number {
-	if (calendar === "gregory") {
-		if (canonicalizeEraInCalendar(calendar, era) === "ce") {
-			return eraYear;
-		}
-		return 1 - eraYear;
+	assert(calendar === "gregory");
+	if (canonicalizeEraInCalendar(calendar, era) === "ce") {
+		return eraYear;
 	}
-	assertUnreachable(calendar);
+	return 1 - eraYear;
 }
 
 export function createEmptyCalendarFieldsRecord(): CalendarFieldsRecord {

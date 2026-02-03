@@ -7,10 +7,10 @@ import {
 	getTemporalOverflowOption,
 	getTemporalUnitValuedOption,
 	isCalendarUnit,
-	isPartialTemporalObject,
 	maximumTemporalDurationRoundingIncrement,
 	roundNumberToIncrement,
 	toSecondsStringPrecisionRecord,
+	validatePartialTemporalObject,
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
@@ -495,9 +495,7 @@ export class PlainTime {
 	}
 	with(temporalTimeLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainTime(this);
-		if (!isPartialTemporalObject(temporalTimeLike)) {
-			throwTypeError();
-		}
+		validatePartialTemporalObject(temporalTimeLike);
 		return createTemporalTime(
 			regulateTime(
 				...(withArray(toTemporalTimeRecord(temporalTimeLike as object, true), [

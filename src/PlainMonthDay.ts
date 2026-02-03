@@ -3,7 +3,7 @@ import {
 	getTemporalOverflowOption,
 	getTemporalShowCalendarNameOption,
 	isoDateToFields,
-	isPartialTemporalObject,
+	validatePartialTemporalObject,
 } from "./internal/abstractOperations.ts";
 import { assertNotUndefined } from "./internal/assertion.ts";
 import {
@@ -32,7 +32,7 @@ import {
 	showCalendarName,
 	type ShowCalendarName,
 } from "./internal/enum.ts";
-import { invalidDateTime, invalidMethodCall, outOfBoundsDate } from "./internal/errorMessages.ts";
+import { invalidDateTime, invalidMethodCall } from "./internal/errorMessages.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
@@ -41,9 +41,9 @@ import {
 	compareIsoDate,
 	createIsoDateRecord,
 	createTemporalDate,
-	isoDateWithinLimits,
 	isValidIsoDate,
 	padIsoYear,
+	validateIsoDate,
 	type IsoDateRecord,
 } from "./PlainDate.ts";
 
@@ -88,14 +88,14 @@ function toTemporalMonthDay(item: unknown, options?: unknown): PlainMonthDay {
 		return createTemporalMonthDay(createIsoDateRecord(1972, result.$month, result.$day), calendar);
 	}
 	assertNotUndefined(result.$year);
-	const isoDate = createIsoDateRecord(result.$year, result.$month, result.$day);
-	if (!isoDateWithinLimits(isoDate)) {
-		throwRangeError(outOfBoundsDate);
-	}
 	return createTemporalMonthDay(
 		calendarMonthDayFromFields(
 			calendar,
-			isoDateToFields(calendar, isoDate, MONTH_DAY),
+			isoDateToFields(
+				calendar,
+				validateIsoDate(createIsoDateRecord(result.$year, result.$month, result.$day)),
+				MONTH_DAY,
+			),
 			overflowConstrain,
 		),
 		calendar,
@@ -108,10 +108,7 @@ export function createTemporalMonthDay(
 	calendar: SupportedCalendars,
 	instance = Object.create(PlainMonthDay.prototype) as PlainMonthDay,
 ): PlainMonthDay {
-	if (!isoDateWithinLimits(isoDate)) {
-		throwRangeError(outOfBoundsDate);
-	}
-	slots.set(instance, createPlainMonthDaySlot(isoDate, calendar));
+	slots.set(instance, createPlainMonthDaySlot(validateIsoDate(isoDate), calendar));
 	return instance;
 }
 
@@ -190,9 +187,7 @@ export class PlainMonthDay {
 	}
 	with(temporalMonthDayLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainMonthDay(this);
-		if (!isPartialTemporalObject(temporalMonthDayLike)) {
-			throwTypeError();
-		}
+		validatePartialTemporalObject(temporalMonthDayLike);
 		return createTemporalMonthDay(
 			calendarMonthDayFromFields(
 				slot.$calendar,
