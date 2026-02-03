@@ -45,11 +45,12 @@ import {
 } from "./epochNanoseconds.ts";
 import { ambiguousTime, invalidTimeZone, outOfBoundsDate } from "./errorMessages.ts";
 import { clamp, divFloor, isWithin, modFloor } from "./math.ts";
+import { createNullPrototypeObject } from "./object.ts";
 import { asciiCapitalize, asciiLowerCase, asciiUpperCase } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
 import { throwRangeError } from "./utils.ts";
 
-const intlCache = Object.create(null) as Record<string, Intl.DateTimeFormat>;
+const intlCache = createNullPrototypeObject({}) as Record<string, Intl.DateTimeFormat>;
 
 export function createOffsetCacheMap(
 	epochNanoseconds?: EpochNanoseconds | undefined,

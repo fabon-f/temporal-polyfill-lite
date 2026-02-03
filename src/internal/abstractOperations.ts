@@ -32,7 +32,6 @@ import {
 	calendarFieldKeys,
 	calendarIsoToDate,
 	canonicalizeCalendar,
-	createEmptyCalendarFieldsRecord,
 	getTemporalCalendarIdentifierWithIsoDefault,
 	prepareCalendarFields,
 	type CalendarFieldsRecord,
@@ -465,18 +464,18 @@ export function getTemporalRelativeToOption(options: object): RelativeToOptionRe
 			calendar,
 			value,
 			[
-				"year",
-				"month",
-				"monthCode",
-				"day",
-				"hour",
-				"minute",
-				"second",
-				"millisecond",
-				"microsecond",
-				"nanosecond",
-				"offset",
-				"timeZone",
+				calendarFieldKeys.$year,
+				calendarFieldKeys.$month,
+				calendarFieldKeys.$monthCode,
+				calendarFieldKeys.$day,
+				calendarFieldKeys.$hour,
+				calendarFieldKeys.$minute,
+				calendarFieldKeys.$second,
+				calendarFieldKeys.$millisecond,
+				calendarFieldKeys.$microsecond,
+				calendarFieldKeys.$nanosecond,
+				calendarFieldKeys.$offset,
+				calendarFieldKeys.$timeZone,
 			],
 			[],
 		);
@@ -767,12 +766,11 @@ export function isoDateToFields(
 	type: typeof DATE | typeof YEAR_MONTH | typeof MONTH_DAY,
 ): CalendarFieldsRecord {
 	const date = calendarIsoToDate(calendar, isoDate);
-	return {
-		...createEmptyCalendarFieldsRecord(),
+	return createNullPrototypeObject({
 		[calendarFieldKeys.$year]: type === MONTH_DAY ? undefined : date.$year,
 		[calendarFieldKeys.$monthCode]: date.$monthCode,
 		[calendarFieldKeys.$day]: type === YEAR_MONTH ? undefined : date.$day,
-	};
+	});
 }
 
 interface DifferenceSettings<Unit> {
@@ -858,4 +856,19 @@ export function epochDaysToIsoDate(epochDays: number): IsoDateRecord {
 		$month: date.getUTCMonth() + 1,
 		$day: date.getUTCDate(),
 	};
+}
+
+export function isoDateTimeToFields(
+	calendar: SupportedCalendars,
+	isoDateTime: IsoDateTimeRecord,
+): CalendarFieldsRecord {
+	return createNullPrototypeObject({
+		...isoDateToFields(calendar, isoDateTime.$isoDate, DATE),
+		[calendarFieldKeys.$hour]: isoDateTime.$time.$hour,
+		[calendarFieldKeys.$minute]: isoDateTime.$time.$minute,
+		[calendarFieldKeys.$second]: isoDateTime.$time.$second,
+		[calendarFieldKeys.$millisecond]: isoDateTime.$time.$millisecond,
+		[calendarFieldKeys.$microsecond]: isoDateTime.$time.$microsecond,
+		[calendarFieldKeys.$nanosecond]: isoDateTime.$time.$nanosecond,
+	});
 }

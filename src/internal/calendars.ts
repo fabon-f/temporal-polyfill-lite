@@ -56,6 +56,7 @@ import {
 	yearMismatch,
 } from "./errorMessages.ts";
 import { divFloor, modFloor } from "./math.ts";
+import { createNullPrototypeObject } from "./object.ts";
 import { asciiLowerCase, toZeroPaddedDecimalString } from "./string.ts";
 import { toTemporalTimeZoneIdentifier } from "./timeZones.ts";
 import { Unit } from "./unit.ts";
@@ -712,9 +713,5 @@ function calendarDateArithmeticYearForEraYear(
 }
 
 export function createEmptyCalendarFieldsRecord(): CalendarFieldsRecord {
-	const obj = Object.create(null) as CalendarFieldsRecord;
-	for (const k of calendarFieldKeyList) {
-		obj[k] = undefined;
-	}
-	return obj;
+	return createNullPrototypeObject({}) as CalendarFieldsRecord;
 }

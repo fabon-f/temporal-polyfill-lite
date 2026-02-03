@@ -4,7 +4,7 @@ export function isObject(obj: unknown): obj is object {
 
 export function pickObject<O extends object, K extends keyof O>(object: O, keys: K[]): Pick<O, K>;
 export function pickObject(object: object, keys: string[]) {
-	const result = Object.create(null);
+	const result = createNullPrototypeObject({});
 	for (const key of keys) {
 		// @ts-expect-error
 		result[key] = object[key];

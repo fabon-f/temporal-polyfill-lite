@@ -29,7 +29,7 @@ import {
 	getUtcEpochNanoseconds,
 	isDateUnit,
 	isoDateRecordToEpochDays,
-	isoDateToFields,
+	isoDateTimeToFields,
 	isPartialTemporalObject,
 	largerOfTwoTemporalUnits,
 	maximumTemporalDurationRoundingIncrement,
@@ -62,7 +62,6 @@ import {
 	validateString,
 } from "./internal/ecmascript.ts";
 import {
-	DATE,
 	DATETIME,
 	MINUTE,
 	REQUIRED,
@@ -204,16 +203,16 @@ function toTemporalDateTime(item: unknown, options?: unknown): PlainDateTime {
 			calendar,
 			item,
 			[
-				"year",
-				"month",
-				"monthCode",
-				"day",
-				"hour",
-				"minute",
-				"second",
-				"millisecond",
-				"microsecond",
-				"nanosecond",
+				calendarFieldKeys.$year,
+				calendarFieldKeys.$month,
+				calendarFieldKeys.$monthCode,
+				calendarFieldKeys.$day,
+				calendarFieldKeys.$hour,
+				calendarFieldKeys.$minute,
+				calendarFieldKeys.$second,
+				calendarFieldKeys.$millisecond,
+				calendarFieldKeys.$microsecond,
+				calendarFieldKeys.$nanosecond,
 			],
 			[],
 		);
@@ -620,15 +619,7 @@ export class PlainDateTime {
 		// « year, month, month-code, day », « hour, minute, second, millisecond, microsecond, nanosecond »
 		const fields = calendarMergeFields(
 			slot.$calendar,
-			{
-				...isoDateToFields(slot.$calendar, slot.$isoDateTime.$isoDate, DATE),
-				hour: slot.$isoDateTime.$time.$hour,
-				minute: slot.$isoDateTime.$time.$minute,
-				second: slot.$isoDateTime.$time.$second,
-				millisecond: slot.$isoDateTime.$time.$millisecond,
-				microsecond: slot.$isoDateTime.$time.$microsecond,
-				nanosecond: slot.$isoDateTime.$time.$nanosecond,
-			},
+			isoDateTimeToFields(slot.$calendar, slot.$isoDateTime),
 			prepareCalendarFields(slot.$calendar, temporalDateTimeLike as object, [
 				calendarFieldKeys.$year,
 				calendarFieldKeys.$month,

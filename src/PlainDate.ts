@@ -155,7 +155,17 @@ function toTemporalDate(item: unknown, options?: unknown): PlainDate {
 			return createTemporalDate(slot.$isoDateTime.$isoDate, slot.$calendar);
 		}
 		const calendar = getTemporalCalendarIdentifierWithIsoDefault(item);
-		const fields = prepareCalendarFields(calendar, item, ["year", "month", "monthCode", "day"], []);
+		const fields = prepareCalendarFields(
+			calendar,
+			item,
+			[
+				calendarFieldKeys.$year,
+				calendarFieldKeys.$month,
+				calendarFieldKeys.$monthCode,
+				calendarFieldKeys.$day,
+			],
+			[],
+		);
 		const oveflow = getTemporalOverflowOption(getOptionsObject(options));
 		return createTemporalDate(calendarDateFromFields(calendar, fields, oveflow), calendar);
 	}

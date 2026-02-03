@@ -44,7 +44,7 @@ import {
 	getTemporalUnitValuedOption,
 	getUtcEpochNanoseconds,
 	isDateUnit,
-	isoDateToFields,
+	isoDateTimeToFields,
 	isPartialTemporalObject,
 	largerOfTwoTemporalUnits,
 	maximumTemporalDurationRoundingIncrement,
@@ -83,7 +83,6 @@ import {
 	validateString,
 } from "./internal/ecmascript.ts";
 import {
-	DATE,
 	DATETIME,
 	disambiguationCompatible,
 	MINUTE,
@@ -129,7 +128,7 @@ import {
 	outOfBoundsDate,
 	timeZoneMismatch,
 } from "./internal/errorMessages.ts";
-import { isObject } from "./internal/object.ts";
+import { createNullPrototypeObject, isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import {
 	createTimeDurationFromSeconds,
@@ -290,20 +289,20 @@ function toTemporalZonedDateTime(item: unknown, options?: unknown): ZonedDateTim
 			calendar,
 			item,
 			[
-				"year",
-				"month",
-				"monthCode",
-				"day",
-				"hour",
-				"minute",
-				"second",
-				"millisecond",
-				"microsecond",
-				"nanosecond",
-				"offset",
-				"timeZone",
+				calendarFieldKeys.$year,
+				calendarFieldKeys.$month,
+				calendarFieldKeys.$monthCode,
+				calendarFieldKeys.$day,
+				calendarFieldKeys.$hour,
+				calendarFieldKeys.$minute,
+				calendarFieldKeys.$second,
+				calendarFieldKeys.$millisecond,
+				calendarFieldKeys.$microsecond,
+				calendarFieldKeys.$nanosecond,
+				calendarFieldKeys.$offset,
+				calendarFieldKeys.$timeZone,
 			],
-			["timeZone"],
+			[calendarFieldKeys.$timeZone],
 		);
 		assertNotUndefined(fields.timeZone);
 		timeZone = fields.timeZone;
@@ -874,16 +873,10 @@ export class ZonedDateTime {
 		const isoDateTime = getIsoDateTimeForZonedDateTimeSlot(slot);
 		const fields = calendarMergeFields(
 			slot.$calendar,
-			{
-				...isoDateToFields(slot.$calendar, isoDateTime.$isoDate, DATE),
-				[calendarFieldKeys.$hour]: isoDateTime.$time.$hour,
-				[calendarFieldKeys.$minute]: isoDateTime.$time.$minute,
-				[calendarFieldKeys.$second]: isoDateTime.$time.$second,
-				[calendarFieldKeys.$millisecond]: isoDateTime.$time.$millisecond,
-				[calendarFieldKeys.$microsecond]: isoDateTime.$time.$microsecond,
-				[calendarFieldKeys.$nanosecond]: isoDateTime.$time.$nanosecond,
+			createNullPrototypeObject({
+				...isoDateTimeToFields(slot.$calendar, isoDateTime),
 				[calendarFieldKeys.$offset]: formatUtcOffsetNanoseconds(offsetNanoseconds),
-			},
+			}),
 			prepareCalendarFields(slot.$calendar, temporalZonedDateTimeLike as object, [
 				calendarFieldKeys.$year,
 				calendarFieldKeys.$month,

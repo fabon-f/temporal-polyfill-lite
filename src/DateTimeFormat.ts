@@ -264,7 +264,7 @@ function hasAnyOptions(
 /** `CreateDateTimeFormat` */
 export function createDateTimeFormat(
 	locales: unknown,
-	options: {} | null = Object.create(null),
+	options: {} | null = createNullPrototypeObject({}),
 	required: typeof DATE | typeof TIME | typeof DATETIME,
 	toLocaleStringTimeZone?: string,
 	instance = Object.create(DateTimeFormatImpl.prototype) as DateTimeFormatImpl,
