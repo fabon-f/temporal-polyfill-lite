@@ -616,7 +616,6 @@ export class PlainDateTime {
 	with(temporalDateTimeLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);
 		validatePartialTemporalObject(temporalDateTimeLike);
-		// « year, month, month-code, day », « hour, minute, second, millisecond, microsecond, nanosecond »
 		const fields = calendarMergeFields(
 			slot.$calendar,
 			isoDateTimeToFields(slot.$calendar, slot.$isoDateTime),
