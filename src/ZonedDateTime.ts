@@ -417,26 +417,26 @@ function temporalZonedDateTimeToString(
 
 /** `AddZonedDateTime` */
 export function addZonedDateTime(
-	epochNanoseconds: EpochNanoseconds,
-	timeZone: string,
-	calendar: SupportedCalendars,
+	zonedDateTimeSlot: ZonedDateTimeSlot,
 	duration: InternalDurationRecord,
 	overflow: Overflow,
 	offsetCacheMap?: Map<number, number>,
 ): EpochNanoseconds {
 	if (dateDurationSign(duration.$date) === 0) {
-		return addInstant(epochNanoseconds, duration.$time);
+		return addInstant(zonedDateTimeSlot.$epochNanoseconds, duration.$time);
 	}
-	const isoDateTime = getIsoDateTimeFromOffsetNanoseconds(
-		epochNanoseconds,
-		getOffsetNanosecondsFor(timeZone, epochNanoseconds, offsetCacheMap),
-	);
+	const isoDateTime = getIsoDateTimeForZonedDateTimeSlot(zonedDateTimeSlot);
 	return addInstant(
 		getEpochNanosecondsFor(
-			timeZone,
+			zonedDateTimeSlot.$timeZone,
 			validateIsoDateTime(
 				combineIsoDateAndTimeRecord(
-					calendarDateAdd(calendar, isoDateTime.$isoDate, duration.$date, overflow),
+					calendarDateAdd(
+						zonedDateTimeSlot.$calendar,
+						isoDateTime.$isoDate,
+						duration.$date,
+						overflow,
+					),
 					isoDateTime.$time,
 				),
 			),
@@ -643,19 +643,9 @@ function addDurationToZonedDateTime(
 ): ZonedDateTime {
 	const duration = applySignToDurationSlot(toTemporalDuration(temporalDurationLike), operationSign);
 	const overflow = getTemporalOverflowOption(getOptionsObject(options));
-	const cache = createOffsetCacheMap(
-		zonedDateTime.$epochNanoseconds,
-		zonedDateTime.$offsetNanoseconds,
-	);
+	const cache = createOffsetCacheMap();
 	return createTemporalZonedDateTime(
-		addZonedDateTime(
-			zonedDateTime.$epochNanoseconds,
-			zonedDateTime.$timeZone,
-			zonedDateTime.$calendar,
-			toInternalDurationRecord(duration),
-			overflow,
-			cache,
-		),
+		addZonedDateTime(zonedDateTime, toInternalDurationRecord(duration), overflow, cache),
 		zonedDateTime.$timeZone,
 		zonedDateTime.$calendar,
 		undefined,

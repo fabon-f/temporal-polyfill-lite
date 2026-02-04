@@ -80,7 +80,7 @@ import {
 	timeDurationToSubsecondsNumber,
 	type TimeDuration,
 } from "./internal/timeDuration.ts";
-import { createOffsetCacheMap, getEpochNanosecondsFor } from "./internal/timeZones.ts";
+import { getEpochNanosecondsFor } from "./internal/timeZones.ts";
 import {
 	getIndexFromUnit,
 	getUnitFromIndex,
@@ -1058,24 +1058,9 @@ export class Duration {
 		const duration1 = toInternalDurationRecord(slot1);
 		const duration2 = toInternalDurationRecord(slot2);
 		if (relativeToRecord.$zoned && (isDateUnit(largestUnit1) || isDateUnit(largestUnit2))) {
-			const cache = createOffsetCacheMap();
 			return compareEpochNanoseconds(
-				addZonedDateTime(
-					relativeToRecord.$zoned.$epochNanoseconds,
-					relativeToRecord.$zoned.$timeZone,
-					relativeToRecord.$zoned.$calendar,
-					duration1,
-					overflowConstrain,
-					cache,
-				),
-				addZonedDateTime(
-					relativeToRecord.$zoned.$epochNanoseconds,
-					relativeToRecord.$zoned.$timeZone,
-					relativeToRecord.$zoned.$calendar,
-					duration2,
-					overflowConstrain,
-					cache,
-				),
+				addZonedDateTime(relativeToRecord.$zoned, duration1, overflowConstrain),
+				addZonedDateTime(relativeToRecord.$zoned, duration2, overflowConstrain),
 			);
 		}
 		let days1: number;
@@ -1199,9 +1184,7 @@ export class Duration {
 					differenceZonedDateTimeWithRounding(
 						relativeToRecord.$zoned.$epochNanoseconds,
 						addZonedDateTime(
-							relativeToRecord.$zoned.$epochNanoseconds,
-							relativeToRecord.$zoned.$timeZone,
-							relativeToRecord.$zoned.$calendar,
+							relativeToRecord.$zoned,
 							toInternalDurationRecord(durationSlot),
 							overflowConstrain,
 						),
@@ -1290,9 +1273,7 @@ export class Duration {
 			return differenceZonedDateTimeWithTotal(
 				relativeToRecord.$zoned.$epochNanoseconds,
 				addZonedDateTime(
-					relativeToRecord.$zoned.$epochNanoseconds,
-					relativeToRecord.$zoned.$timeZone,
-					relativeToRecord.$zoned.$calendar,
+					relativeToRecord.$zoned,
 					toInternalDurationRecord(duration),
 					overflowConstrain,
 				),
