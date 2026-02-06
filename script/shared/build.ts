@@ -10,6 +10,7 @@ function createTerserPlugin(beautify: boolean) {
 	return terser({
 		compress: {
 			ecma: 2015,
+			unsafe_arrows: true,
 		},
 		mangle: {
 			keep_fnames: beautify,
