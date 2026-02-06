@@ -112,7 +112,7 @@ import {
 	outOfBoundsDate,
 	parseError,
 } from "./errorMessages.ts";
-import { divFloor, isWithin, modFloor, type NumberSign } from "./math.ts";
+import { divFloor, divTrunc, isWithin, modFloor, type NumberSign } from "./math.ts";
 import { createNullPrototypeObject, isObject } from "./object.ts";
 import {
 	roundExpand,
@@ -150,7 +150,7 @@ export function isoDateToEpochDays(year: number, month: number, day: number): nu
 	return (
 		Date.UTC((balancedYearMonth.$year % 400) - 400, balancedYearMonth.$month - 1, 0) /
 			millisecondsPerDay +
-		(Math.trunc(balancedYearMonth.$year / 400) + 1) * daysPer400Years +
+		(divTrunc(balancedYearMonth.$year, 400) + 1) * daysPer400Years +
 		day
 	);
 }

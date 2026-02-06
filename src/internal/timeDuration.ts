@@ -9,7 +9,7 @@ import {
 import { toNumber } from "./ecmascript.ts";
 import type { RoundingMode } from "./enum.ts";
 import { compareEpochNanoseconds, normalizeEpochNanoseconds } from "./epochNanoseconds.ts";
-import { compare, type NumberSign } from "./math.ts";
+import { compare, divTrunc, type NumberSign } from "./math.ts";
 import { toZeroPaddedDecimalString } from "./string.ts";
 
 const timeDurationBrand = /*#__PURE__*/ Symbol();
@@ -25,11 +25,11 @@ export function normalize(days: number, nanoseconds: number): TimeDuration {
 }
 
 export function createTimeDurationFromSeconds(sec: number): TimeDuration {
-	return normalize(Math.trunc(sec / secondsPerDay), (sec % secondsPerDay) * 1e9);
+	return normalize(divTrunc(sec, secondsPerDay), (sec % secondsPerDay) * 1e9);
 }
 
 export function createTimeDurationFromNanoseconds(nanosec: number): TimeDuration {
-	// `Math.trunc(nanosec / nanosecondsPerDay)` can return wrong result for unsafe integer due to floating-point precision.
+	// `divTrunc(nanosec / nanosecondsPerDay)` can return wrong result for unsafe integer due to floating-point precision.
 	// `(nanosec - nanosec % nanosecondsPerDay) / nanosecondsPerDay` can be slightly larger or smaller than "actual" integer,
 	// but `nanosecondsPerDay` is large enough compared to maximum ulp (unit in the last place) in valid duration range (2 ** 30),
 	// so calling `Math.round` can return precise integer.
@@ -48,10 +48,7 @@ export function createTimeDurationFromMicroseconds(microsec: number): TimeDurati
 }
 
 export function createTimeDurationFromMilliseconds(millisec: number): TimeDuration {
-	return normalize(
-		Math.trunc(millisec / millisecondsPerDay),
-		(millisec % millisecondsPerDay) * 1e6,
-	);
+	return normalize(divTrunc(millisec, millisecondsPerDay), (millisec % millisecondsPerDay) * 1e6);
 }
 
 export function addNanosecondsToTimeDuration(
@@ -104,8 +101,8 @@ export function timeDurationToSubsecondsNumber(
 	return (
 		sign *
 			toNumber(
-				`${timeDuration[0] * 864 + Math.trunc(timeDuration[1] / 1e11)}${toZeroPaddedDecimalString(
-					Math.trunc((timeDuration[1] % 1e11) / 10 ** (9 + digitsInNanoseconds)),
+				`${timeDuration[0] * 864 + divTrunc(timeDuration[1], 1e11)}${toZeroPaddedDecimalString(
+					divTrunc(timeDuration[1] % 1e11, 10 ** (9 + digitsInNanoseconds)),
 					2 - digitsInNanoseconds,
 				)}.${
 					includeFractionalPart
@@ -121,7 +118,7 @@ export function timeDurationToSubsecondsNumber(
 }
 
 export function timeDurationToSecondsNumber(timeDuration: TimeDuration): number {
-	return timeDuration[0] * secondsPerDay + Math.trunc(timeDuration[1] / 1e9);
+	return timeDuration[0] * secondsPerDay + divTrunc(timeDuration[1], 1e9);
 }
 
 export function roundTimeDuration(

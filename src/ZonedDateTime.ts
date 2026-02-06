@@ -54,7 +54,7 @@ import {
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
-import { assert, assertNotUndefined } from "./internal/assertion.ts";
+import { assert, assertIsoDaysRange, assertNotUndefined } from "./internal/assertion.ts";
 import {
 	calendarDateAdd,
 	calendarDateUntil,
@@ -230,10 +230,12 @@ export function interpretISODateTimeOffset(
 			isoDateTime.$time.$microsecond,
 			isoDateTime.$time.$nanosecond - offsetNanoseconds,
 		);
-		checkIsoDaysRange(balanced.$isoDate);
+		assertIsoDaysRange(balanced.$isoDate);
 		return validateEpochNanoseconds(getUtcEpochNanoseconds(balanced));
 	}
 	assert(offsetOption === offsetPrefer || offsetOption === offsetReject);
+	// `checkIsoDaysRange` isn't an assertion here
+	// cf. https://github.com/tc39/proposal-temporal/pull/3014#issuecomment-3856086253
 	checkIsoDaysRange(isoDate);
 	const possibleEpochNs = getPossibleEpochNanoseconds(timeZone, isoDateTime, offsetCacheMap);
 	for (const candidate of possibleEpochNs) {
@@ -708,10 +710,10 @@ export class ZonedDateTime {
 		);
 		validateString(timeZone);
 		const result = parseTimeZoneIdentifier(timeZone);
-		const timeZoneString =
-			result.$name !== undefined
-				? getAvailableNamedTimeZoneIdentifier(result.$name)
-				: formatOffsetTimeZoneIdentifier(result.$offsetMinutes);
+		const timeZoneString = result.$name
+			? getAvailableNamedTimeZoneIdentifier(result.$name)
+			: (assertNotUndefined(result.$offsetMinutes),
+				formatOffsetTimeZoneIdentifier(result.$offsetMinutes));
 		validateString(calendar);
 		createTemporalZonedDateTime(epoch, timeZoneString, canonicalizeCalendar(calendar), this);
 	}

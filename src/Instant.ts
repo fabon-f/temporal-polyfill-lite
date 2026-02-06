@@ -14,7 +14,6 @@ import {
 	type InternalDurationRecord,
 } from "./Duration.ts";
 import {
-	checkIsoDaysRange,
 	getDifferenceSettings,
 	getRoundingIncrementOption,
 	getRoundingModeOption,
@@ -26,7 +25,7 @@ import {
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
-import { assert, assertNotUndefined } from "./internal/assertion.ts";
+import { assert, assertIsoDaysRange, assertNotUndefined } from "./internal/assertion.ts";
 import {
 	parseDateTimeUtcOffset,
 	parseIsoDateTime,
@@ -141,7 +140,7 @@ function toTemporalInstant(item: unknown): Instant {
 		time.$microsecond,
 		time.$nanosecond - offsetNanoseconds,
 	);
-	checkIsoDaysRange(balanced.$isoDate);
+	assertIsoDaysRange(balanced.$isoDate);
 	return createTemporalInstant(validateEpochNanoseconds(getUtcEpochNanoseconds(balanced)));
 }
 

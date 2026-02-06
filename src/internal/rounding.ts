@@ -3,25 +3,25 @@ function isIntegerAndHalf(num: number): boolean {
 }
 
 export function roundExpand(num: number): number {
-	return 0 + (num < 0 ? Math.floor(num) : Math.ceil(num));
+	return (num < 0 ? Math.floor(num) : Math.ceil(num)) + 0;
 }
 
 export function roundHalfCeil(num: number): number {
-	return 0 + (isIntegerAndHalf(num) ? Math.ceil(num) : Math.round(num));
+	return (isIntegerAndHalf(num) ? Math.ceil(num) : Math.round(num)) + 0;
 }
 
 export function roundHalfFloor(num: number): number {
-	return 0 + (isIntegerAndHalf(num) ? Math.floor(num) : Math.round(num));
+	return (isIntegerAndHalf(num) ? Math.floor(num) : Math.round(num)) + 0;
 }
 
 export function roundHalfExpand(num: number): number {
-	return 0 + (isIntegerAndHalf(num) ? roundExpand(num) : Math.round(num));
+	return (isIntegerAndHalf(num) ? roundExpand(num) : Math.round(num)) + 0;
 }
 
 export function roundHalfTrunc(num: number): number {
-	return 0 + (isIntegerAndHalf(num) ? Math.trunc(num) : Math.round(num));
+	return (isIntegerAndHalf(num) ? Math.trunc(num) : Math.round(num)) + 0;
 }
 
 export function roundHalfEven(num: number): number {
-	return 0 + (isIntegerAndHalf(num) ? (num = Math.trunc(num)) + (num % 2) : Math.round(num));
+	return (isIntegerAndHalf(num) ? (num = Math.trunc(num)) + (num % 2) : Math.round(num)) + 0;
 }

@@ -11,6 +11,10 @@ export function modFloor(num: number, divisor: number): number {
 	return (((num % divisor) + divisor) % divisor) + 0;
 }
 
+export function divTrunc(num: number, divisor: number): number {
+	return Math.trunc(num / divisor) + 0;
+}
+
 export function sign(v: number): NumberSign {
 	assert(typeof v === "number" && !Number.isNaN(v));
 	return v < 0 ? -1 : v ? 1 : 0;

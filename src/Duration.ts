@@ -56,7 +56,7 @@ import {
 	missingField,
 	outOfBoundsDuration,
 } from "./internal/errorMessages.ts";
-import { sign, type NumberSign } from "./internal/math.ts";
+import { divTrunc, sign, type NumberSign } from "./internal/math.ts";
 import { createNullPrototypeObject, isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import {
@@ -980,15 +980,15 @@ function balanceTimeDuration(
 ): [days: number, ...TimeDurationTuple] {
 	const nanoseconds = timeDurationDaysAndRemainderNanoseconds(d)[1];
 	const remNanoseconds = (nanoseconds % 1000) + 0;
-	const remMicroseconds = (Math.trunc(nanoseconds / 1e3) % 1000) + 0;
-	const remMilliseconds = (Math.trunc(nanoseconds / 1e6) % 1000) + 0;
+	const remMicroseconds = (divTrunc(nanoseconds, 1e3) % 1000) + 0;
+	const remMilliseconds = (divTrunc(nanoseconds, 1e6) % 1000) + 0;
 	const seconds = timeDurationToSecondsNumber(d);
 	const remSeconds = (seconds % 60) + 0;
-	const minutes = Math.trunc(seconds / 60) + 0;
+	const minutes = divTrunc(seconds, 60);
 	const remMinutes = (minutes % 60) + 0;
-	const hours = Math.trunc(minutes / 60) + 0;
+	const hours = divTrunc(minutes, 60);
 	const remHours = (hours % 24) + 0;
-	const days = Math.trunc(hours / 24) + 0;
+	const days = divTrunc(hours, 24);
 
 	if (largestUnit === Unit.Nanosecond) {
 		return [0, 0, 0, 0, 0, 0, timeDurationToSubsecondsNumber(d, -9)];

@@ -56,7 +56,7 @@ import {
 	outOfBoundsDate,
 	yearMismatch,
 } from "./errorMessages.ts";
-import { divFloor, modFloor } from "./math.ts";
+import { divFloor, divTrunc, modFloor } from "./math.ts";
 import { createNullPrototypeObject } from "./object.ts";
 import { asciiLowerCase, toZeroPaddedDecimalString } from "./string.ts";
 import { toTemporalTimeZoneIdentifier } from "./timeZones.ts";
@@ -280,7 +280,7 @@ export function calendarDateUntil(
 			isoDateToEpochDays(two.$year, two.$month - 1, two.$day) -
 			isoDateToEpochDays(one.$year, one.$month - 1, one.$day);
 		return largestUnit === Unit.Week
-			? createDateDurationRecord(0, 0, Math.trunc(days / 7) + 0, (days % 7) + 0)
+			? createDateDurationRecord(0, 0, divTrunc(days, 7) + 0, (days % 7) + 0)
 			: createDateDurationRecord(0, 0, 0, days);
 	}
 	const months =
@@ -302,7 +302,7 @@ export function calendarDateUntil(
 			),
 		);
 	if (largestUnit === Unit.Year) {
-		return createDateDurationRecord(Math.trunc(months / 12) + 0, (months % 12) + 0, 0, days);
+		return createDateDurationRecord(divTrunc(months, 12), (months % 12) + 0, 0, days);
 	}
 	return createDateDurationRecord(0, months, 0, days);
 }
