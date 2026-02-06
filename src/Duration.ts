@@ -913,16 +913,14 @@ function temporalDurationToString(duration: DurationSlot, precision?: number | u
 		string,
 		string,
 	];
-	const time = [
-		hourPart,
-		minutePart,
+	const time = `${hourPart}${minutePart}${
 		timeDurationSign(secondsDuration) ||
 		largerOfTwoTemporalUnits(defaultTemporalLargestUnit(duration), Unit.Second) === Unit.Second ||
 		precision !== undefined
 			? `${toString(seconds)}${formatFractionalSeconds(milliseconds * 1e6 + microseconds * 1e3 + nanoseconds, precision)}S`
-			: "",
-	].join("");
-	return `${sign < 0 ? "-" : ""}P${[yearPart, monthPart, weekPart, dayPart].join("")}${time === "" ? "" : `T${time}`}`;
+			: ""
+	}`;
+	return `${sign < 0 ? "-" : ""}P${yearPart}${monthPart}${weekPart}${dayPart}${time && `T${time}`}`;
 }
 
 /** `AddDurations` */
@@ -1058,14 +1056,14 @@ export class Duration {
 		const largestUnit2 = defaultTemporalLargestUnit(slot2);
 		const duration1 = toInternalDurationRecord(slot1);
 		const duration2 = toInternalDurationRecord(slot2);
+		let days1: number;
+		let days2: number;
 		if (relativeToRecord.$zoned && (isDateUnit(largestUnit1) || isDateUnit(largestUnit2))) {
 			return compareEpochNanoseconds(
 				addZonedDateTime(relativeToRecord.$zoned, duration1, overflowConstrain),
 				addZonedDateTime(relativeToRecord.$zoned, duration2, overflowConstrain),
 			);
 		}
-		let days1: number;
-		let days2: number;
 		if (isCalendarUnit(largestUnit1) || isCalendarUnit(largestUnit2)) {
 			if (!relativeToRecord.$plain) {
 				throwRangeError(missingField("relativeTo"));

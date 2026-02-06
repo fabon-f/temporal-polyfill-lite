@@ -634,11 +634,16 @@ function addDurationToZonedDateTime(
 	temporalDurationLike: unknown,
 	options: unknown,
 ): ZonedDateTime {
-	const duration = applySignToDurationSlot(toTemporalDuration(temporalDurationLike), operationSign);
-	const overflow = getTemporalOverflowOption(getOptionsObject(options));
 	const cache = createOffsetCacheMap();
 	return createTemporalZonedDateTime(
-		addZonedDateTime(zonedDateTime, toInternalDurationRecord(duration), overflow, cache),
+		addZonedDateTime(
+			zonedDateTime,
+			toInternalDurationRecord(
+				applySignToDurationSlot(toTemporalDuration(temporalDurationLike), operationSign),
+			),
+			getTemporalOverflowOption(getOptionsObject(options)),
+			cache,
+		),
 		zonedDateTime.$timeZone,
 		zonedDateTime.$calendar,
 		undefined,
@@ -651,10 +656,7 @@ function getOffsetNanosecondsForZonedDateTimeSlot(
 	slot: ZonedDateTimeSlot,
 	cacheMap?: Map<number, number>,
 ): number {
-	if (slot.$offsetNanoseconds !== undefined) {
-		return slot.$offsetNanoseconds;
-	}
-	return (slot.$offsetNanoseconds = getOffsetNanosecondsFor(
+	return (slot.$offsetNanoseconds ??= getOffsetNanosecondsFor(
 		slot.$timeZone,
 		slot.$epochNanoseconds,
 		cacheMap,

@@ -56,7 +56,7 @@ import {
 	yearMonthAddition,
 } from "./internal/errorMessages.ts";
 import { divFloor, isWithin, modFloor } from "./internal/math.ts";
-import { isObject } from "./internal/object.ts";
+import { createNullPrototypeObject, isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
 import { createTimeDurationFromSeconds, signTimeDuration } from "./internal/timeDuration.ts";
@@ -192,12 +192,22 @@ function differenceTemporalPlainYearMonth(
 	if (!compareIsoDate(yearMonth.$isoDate, otherSlot.$isoDate)) {
 		return createTemporalDuration(createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	}
-	const thisFields = isoDateToFields(yearMonth.$calendar, yearMonth.$isoDate, YEAR_MONTH);
-	thisFields.day = 1;
-	const thisDate = calendarDateFromFields(yearMonth.$calendar, thisFields, overflowConstrain);
-	const otherFields = isoDateToFields(yearMonth.$calendar, otherSlot.$isoDate, YEAR_MONTH);
-	otherFields.day = 1;
-	const otherDate = calendarDateFromFields(yearMonth.$calendar, otherFields, overflowConstrain);
+	const thisDate = calendarDateFromFields(
+		yearMonth.$calendar,
+		createNullPrototypeObject({
+			...isoDateToFields(yearMonth.$calendar, yearMonth.$isoDate, YEAR_MONTH),
+			[calendarFieldKeys.$day]: 1,
+		}),
+		overflowConstrain,
+	);
+	const otherDate = calendarDateFromFields(
+		yearMonth.$calendar,
+		createNullPrototypeObject({
+			...isoDateToFields(yearMonth.$calendar, otherSlot.$isoDate, YEAR_MONTH),
+			[calendarFieldKeys.$day]: 1,
+		}),
+		overflowConstrain,
+	);
 
 	let duration = combineDateAndTimeDuration(
 		adjustDateDurationRecord(
@@ -245,8 +255,6 @@ function addDurationToYearMonth(
 	) {
 		throwRangeError(yearMonthAddition);
 	}
-	const fields = isoDateToFields(yearMonth.$calendar, yearMonth.$isoDate, YEAR_MONTH);
-	fields.day = 1;
 	return createTemporalYearMonth(
 		calendarYearMonthFromFields(
 			yearMonth.$calendar,
@@ -254,7 +262,14 @@ function addDurationToYearMonth(
 				yearMonth.$calendar,
 				calendarDateAdd(
 					yearMonth.$calendar,
-					calendarDateFromFields(yearMonth.$calendar, fields, overflowConstrain),
+					calendarDateFromFields(
+						yearMonth.$calendar,
+						createNullPrototypeObject({
+							...isoDateToFields(yearMonth.$calendar, yearMonth.$isoDate, YEAR_MONTH),
+							[calendarFieldKeys.$day]: 1,
+						}),
+						overflowConstrain,
+					),
 					internalDuration.$date,
 					overflow,
 				),
