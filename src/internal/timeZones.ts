@@ -184,7 +184,7 @@ export function getTimeZoneTransition(
 	direction: -1 | 1,
 	offsetCacheMap: Map<number, number>,
 ): EpochNanoseconds | null {
-	if (timeZone === "UTC" || isFixedOffsetTimeZone(timeZone)) {
+	if (timeZone === "UTC" || isOffsetTimeZoneIdentifier(timeZone)) {
 		return null;
 	}
 	// corresponds to 1843-03-31T16:53:20Z, before the first offset transition recorded in tz database (1845-01-01)
@@ -314,7 +314,7 @@ export function getOffsetNanosecondsFor(
 	epoch: EpochNanoseconds,
 	offsetCacheMap?: Map<number, number>,
 ): number {
-	return isFixedOffsetTimeZone(timeZone)
+	return isOffsetTimeZoneIdentifier(timeZone)
 		? parseDateTimeUtcOffset(timeZone)
 		: getNamedTimeZoneOffsetNanosecondsForEpochSecond(
 				timeZone,
@@ -376,7 +376,7 @@ export function getPossibleEpochNanoseconds(
 	isoDateTime: IsoDateTimeRecord,
 	offsetCacheMap?: Map<number, number>,
 ): EpochNanoseconds[] {
-	if (isFixedOffsetTimeZone(timeZone)) {
+	if (isOffsetTimeZoneIdentifier(timeZone)) {
 		const balanced = balanceIsoDateTime(
 			isoDateTime.$isoDate.$year,
 			isoDateTime.$isoDate.$month,
@@ -420,8 +420,8 @@ export function getStartOfDay(
 export function timeZoneEquals(one: string, two: string): boolean {
 	return (
 		one === two ||
-		(!isFixedOffsetTimeZone(one) &&
-			!isFixedOffsetTimeZone(two) &&
+		(!isOffsetTimeZoneIdentifier(one) &&
+			!isOffsetTimeZoneIdentifier(two) &&
 			getFormatterForTimeZone(one).resolvedOptions().timeZone ===
 				getFormatterForTimeZone(two).resolvedOptions().timeZone)
 	);
@@ -443,7 +443,7 @@ export function parseTimeZoneIdentifier(identifier: string): TimeZoneIdentifierP
 		throwRangeError(invalidTimeZone(identifier));
 	}
 	return createNullPrototypeObject(
-		isFixedOffsetTimeZone(identifier)
+		isOffsetTimeZoneIdentifier(identifier)
 			? {
 					$offsetMinutes: parseDateTimeUtcOffset(identifier) / nanosecondsPerMinute,
 				}
@@ -470,7 +470,8 @@ function getNamedTimeZoneEpochNanoseconds(
 	);
 }
 
-export function isFixedOffsetTimeZone(identifier: string) {
+/** `IsOffsetTimeZoneIdentifier` */
+export function isOffsetTimeZoneIdentifier(identifier: string) {
 	assert(isTimeZoneIdentifier(identifier));
 	return /^[+-]/.test(identifier);
 }
