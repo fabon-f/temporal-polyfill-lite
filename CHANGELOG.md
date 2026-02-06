@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Improve performance for `ZonedDateTime` ([#3](https://github.com/fabon-f/temporal-polyfill-lite/pull/3))
+
 ### Fixed
 
 - Stop display fractional seconds for date classes in `Intl.DateTimeFormat` ([#2](https://github.com/fabon-f/temporal-polyfill-lite/pull/2))
