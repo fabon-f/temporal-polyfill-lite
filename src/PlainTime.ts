@@ -59,7 +59,13 @@ import {
 	zeroDateDuration,
 } from "./Duration.ts";
 import { createDateTimeFormat, formatDateTime } from "./DateTimeFormat.ts";
-import { invalidDateTime, invalidField, invalidMethodCall } from "./internal/errorMessages.ts";
+import {
+	emptyFields,
+	forbiddenValueOf,
+	invalidDateTime,
+	invalidField,
+	invalidMethodCall,
+} from "./internal/errorMessages.ts";
 import { throwRangeError, throwTypeError, withArray } from "./internal/utils.ts";
 
 export interface TimeRecord {
@@ -289,7 +295,7 @@ function toTemporalTimeRecord(item: object, partial = false) {
 		}
 	});
 	if (!any) {
-		throwTypeError();
+		throwTypeError(emptyFields);
 	}
 	return [0, 3, 5, 2, 1, 4].map((i) => timeUnitsByAlphabeticalOrder[i]);
 }
@@ -562,7 +568,7 @@ export class PlainTime {
 		return timeRecordToString(getInternalSlotOrThrowForPlainTime(this), undefined);
 	}
 	valueOf() {
-		throwTypeError();
+		throwTypeError(forbiddenValueOf);
 	}
 }
 

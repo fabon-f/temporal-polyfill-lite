@@ -5,6 +5,8 @@ import {
 	invalidOptionsObject,
 	missingField,
 	notString,
+	toPrimitiveFailed,
+	undefinedArgument,
 } from "./errorMessages.ts";
 import { createNullPrototypeObject, isObject } from "./object.ts";
 import { throwRangeError, throwTypeError } from "./utils.ts";
@@ -27,7 +29,7 @@ export function toPrimitive(input: unknown): unknown {
 		if (!isObject(result)) {
 			return result;
 		}
-		throwTypeError();
+		throwTypeError(toPrimitiveFailed);
 	}
 	// `Date.prototype[Symbol.toPrimitive]` do almost same things to `OrdinaryToPrimitive`
 	return Date.prototype[Symbol.toPrimitive].call(input, "string");
@@ -119,7 +121,7 @@ export function getOption<V extends string | undefined>(
 
 export function getRoundToOptionsObject(roundTo: unknown): object {
 	if (roundTo === undefined) {
-		throwTypeError();
+		throwTypeError(undefinedArgument);
 	}
 	return typeof roundTo === "string"
 		? createNullPrototypeObject({ smallestUnit: roundTo })

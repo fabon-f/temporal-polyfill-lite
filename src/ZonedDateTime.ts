@@ -123,10 +123,12 @@ import {
 } from "./internal/epochNanoseconds.ts";
 import {
 	calendarMismatch,
+	forbiddenValueOf,
 	invalidField,
 	invalidMethodCall,
 	offsetMismatch,
 	timeZoneMismatch,
+	undefinedArgument,
 } from "./internal/errorMessages.ts";
 import { createNullPrototypeObject, isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
@@ -1097,7 +1099,7 @@ export class ZonedDateTime {
 		);
 	}
 	valueOf() {
-		throwTypeError();
+		throwTypeError(forbiddenValueOf);
 	}
 	startOfDay() {
 		const cache = createOffsetCacheMap();
@@ -1113,7 +1115,7 @@ export class ZonedDateTime {
 	getTimeZoneTransition(directionParam: unknown) {
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
 		if (directionParam === undefined) {
-			throwTypeError();
+			throwTypeError(undefinedArgument);
 		}
 		const direction = getDirectionOption(
 			typeof directionParam === "string"

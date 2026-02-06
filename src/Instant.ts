@@ -61,6 +61,7 @@ import {
 } from "./internal/epochNanoseconds.ts";
 import {
 	durationWithDateUnit,
+	forbiddenValueOf,
 	invalidField,
 	invalidMethodCall,
 	outOfBoundsDate,
@@ -391,7 +392,7 @@ export class Instant {
 		);
 	}
 	valueOf() {
-		throwTypeError();
+		throwTypeError(forbiddenValueOf);
 	}
 	toZonedDateTimeISO(timeZone: unknown) {
 		return createTemporalZonedDateTime(

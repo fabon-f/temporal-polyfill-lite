@@ -32,7 +32,12 @@ import {
 	showCalendarName,
 	type ShowCalendarName,
 } from "./internal/enum.ts";
-import { invalidDateTime, invalidMethodCall } from "./internal/errorMessages.ts";
+import {
+	forbiddenValueOf,
+	invalidDateTime,
+	invalidMethodCall,
+	notObject,
+} from "./internal/errorMessages.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
@@ -231,12 +236,12 @@ export class PlainMonthDay {
 		);
 	}
 	valueOf() {
-		throwTypeError();
+		throwTypeError(forbiddenValueOf);
 	}
 	toPlainDate(item: unknown) {
 		const slot = getInternalSlotOrThrowForPlainMonthDay(this);
 		if (!isObject(item)) {
-			throwTypeError();
+			throwTypeError(notObject(item));
 		}
 		return createTemporalDate(
 			calendarDateFromFields(

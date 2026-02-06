@@ -50,8 +50,10 @@ import {
 } from "./internal/enum.ts";
 import {
 	calendarMismatch,
+	forbiddenValueOf,
 	invalidDateTime,
 	invalidMethodCall,
+	notObject,
 	outOfBoundsDate,
 	yearMonthAddition,
 } from "./internal/errorMessages.ts";
@@ -452,12 +454,12 @@ export class PlainYearMonth {
 		);
 	}
 	valueOf() {
-		throwTypeError();
+		throwTypeError(forbiddenValueOf);
 	}
 	toPlainDate(item: unknown) {
 		const slot = getInternalSlotOrThrowForPlainYearMonth(this);
 		if (!isObject(item)) {
-			throwTypeError();
+			throwTypeError(notObject(item));
 		}
 		return createTemporalDate(
 			calendarDateFromFields(

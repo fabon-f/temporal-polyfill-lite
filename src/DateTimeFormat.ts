@@ -8,6 +8,8 @@ import {
 	disallowedField,
 	invalidFormattingOptions,
 	invalidMethodCall,
+	notFormattable,
+	temporalTypeMismatch,
 } from "./internal/errorMessages.ts";
 import { createNullPrototypeObject, isObject, pickObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
@@ -329,7 +331,7 @@ function validateSameTemporalType(x: unknown, y: unknown) {
 			isPlainMonthDay,
 		].some((f) => f(x) !== f(y))
 	) {
-		throwTypeError();
+		throwTypeError(temporalTypeMismatch);
 	}
 }
 
@@ -450,7 +452,7 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 		];
 	}
 	if (isZonedDateTime(x)) {
-		throwTypeError();
+		throwTypeError(notFormattable);
 	}
 	return [dateTimeFormat.$rawDtf, x as any];
 }
@@ -480,7 +482,7 @@ export class DateTimeFormatImpl {
 	}
 	formatRange(startDate: unknown, endDate: unknown) {
 		if (startDate === undefined || endDate === undefined) {
-			throwTypeError();
+			throwTypeError(notFormattable);
 		}
 		return formatDateTimeRange(
 			this,
@@ -490,7 +492,7 @@ export class DateTimeFormatImpl {
 	}
 	formatRangeToParts(startDate: unknown, endDate: unknown) {
 		if (startDate === undefined || endDate === undefined) {
-			throwTypeError();
+			throwTypeError(notFormattable);
 		}
 		return formatDateTimeRangeToParts(
 			this,

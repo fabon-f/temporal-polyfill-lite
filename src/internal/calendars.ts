@@ -49,6 +49,7 @@ import {
 } from "./enum.ts";
 import {
 	calendarNotSupported,
+	emptyFields,
 	invalidEra,
 	invalidMonthCode,
 	missingField,
@@ -212,7 +213,7 @@ export function prepareCalendarFields(
 		}
 	}
 	if (!requiredFieldNames && !hasAnyField) {
-		throwTypeError();
+		throwTypeError(emptyFields);
 	}
 	return result;
 }

@@ -56,6 +56,7 @@ import {
 } from "./internal/enum.ts";
 import {
 	calendarMismatch,
+	forbiddenValueOf,
 	invalidDateTime,
 	invalidMethodCall,
 	outOfBoundsDate,
@@ -561,7 +562,7 @@ export class PlainDate {
 		return temporalDateToString(getInternalSlotOrThrowForPlainDate(this), showCalendarName.$auto);
 	}
 	valueOf() {
-		throwTypeError();
+		throwTypeError(forbiddenValueOf);
 	}
 }
 

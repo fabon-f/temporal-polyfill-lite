@@ -74,6 +74,7 @@ import {
 } from "./internal/enum.ts";
 import {
 	calendarMismatch,
+	forbiddenValueOf,
 	invalidDateTime,
 	invalidField,
 	invalidMethodCall,
@@ -747,7 +748,7 @@ export class PlainDateTime {
 		);
 	}
 	valueOf() {
-		throwTypeError();
+		throwTypeError(forbiddenValueOf);
 	}
 	toZonedDateTime(temporalTimeZoneLike: unknown, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);

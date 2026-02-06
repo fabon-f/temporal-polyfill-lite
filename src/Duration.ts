@@ -55,6 +55,10 @@ import {
 	invalidLargestAndSmallestUnitOptions,
 	missingField,
 	outOfBoundsDuration,
+	notObject,
+	emptyFields,
+	forbiddenValueOf,
+	undefinedArgument,
 } from "./internal/errorMessages.ts";
 import { divTrunc, sign, type NumberSign } from "./internal/math.ts";
 import { createNullPrototypeObject, isObject } from "./internal/object.ts";
@@ -345,7 +349,7 @@ export function defaultTemporalLargestUnit(duration: DurationSlot): Unit {
 /** `ToTemporalPartialDurationRecord` */
 function toTemporalPartialDurationRecord(temporalDurationLike: unknown): PartialDurationRecord {
 	if (!isObject(temporalDurationLike)) {
-		throwTypeError();
+		throwTypeError(notObject(temporalDurationLike));
 	}
 	const unitsByAlphabeticalOrder = ([3, 4, 8, 7, 5, 1, 9, 6, 2, 0] as const).map((i) =>
 		mapUnlessUndefined(
@@ -365,7 +369,7 @@ function toTemporalPartialDurationRecord(temporalDurationLike: unknown): Partial
 		number | undefined,
 	];
 	if (unitsByAlphabeticalOrder.every((v) => v === undefined)) {
-		throwTypeError();
+		throwTypeError(emptyFields);
 	}
 	return [9, 5, 8, 0, 1, 4, 7, 3, 2, 6].map(
 		(i) => unitsByAlphabeticalOrder[i],
@@ -1261,7 +1265,7 @@ export class Duration {
 	total(totalOf: unknown) {
 		const duration = getInternalSlotOrThrowForDuration(this);
 		if (totalOf === undefined) {
-			throwTypeError();
+			throwTypeError(undefinedArgument);
 		}
 		const totalOfOptions =
 			typeof totalOf === "string"
@@ -1352,7 +1356,7 @@ export class Duration {
 		return new Intl.DurationFormat(locales, options).format(record);
 	}
 	valueOf() {
-		throwTypeError();
+		throwTypeError(forbiddenValueOf);
 	}
 }
 

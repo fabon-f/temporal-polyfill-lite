@@ -108,6 +108,7 @@ import {
 	disallowedUnit,
 	invalidField,
 	invalidLargestAndSmallestUnitOptions,
+	invalidPartialTemporalObject,
 	invalidTimeZone,
 	outOfBoundsDate,
 	parseError,
@@ -578,7 +579,7 @@ export function validatePartialTemporalObject(value: unknown): asserts value is 
 		(value as Record<string, unknown>)["calendar"] !== undefined ||
 		(value as Record<string, unknown>)["timeZone"] !== undefined
 	) {
-		throwTypeError();
+		throwTypeError(invalidPartialTemporalObject);
 	}
 }
 
