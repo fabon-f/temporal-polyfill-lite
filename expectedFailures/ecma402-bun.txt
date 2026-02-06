@@ -2,6 +2,7 @@
 intl402/DateTimeFormat/proto-from-ctor-realm.js
 # not implemented yet in JSC
 intl402/DateTimeFormat/constructor-options-calendar-islamic-fallback.js
+intl402/DateTimeFormat/prototype/formatToParts/era.js
 # time zone canonicalization issues in `Intl.DateTimeFormat`
 intl402/Temporal/ZonedDateTime/links.js
 intl402/Temporal/ZonedDateTime/prototype/equals/argument-object.js

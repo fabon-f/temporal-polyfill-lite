@@ -9,6 +9,7 @@ intl402/DateTimeFormat/constructor-options-calendar-islamic-fallback.js
 intl402/DateTimeFormat/offset-timezone-no-unicode-minus-sign.js
 intl402/DateTimeFormat/prototype/format/temporal-objects-resolved-time-zone.js
 intl402/DateTimeFormat/prototype/format/timedatestyle-en.js
+intl402/DateTimeFormat/prototype/formatToParts/era.js
 intl402/DateTimeFormat/prototype/resolvedOptions/hourCycle-default.js
 intl402/DateTimeFormat/prototype/resolvedOptions/order-dayPeriod.js
 intl402/DateTimeFormat/prototype/resolvedOptions/resolved-calendar-unicode-extensions-and-options.js
