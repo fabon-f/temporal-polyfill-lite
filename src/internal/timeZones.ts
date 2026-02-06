@@ -185,7 +185,7 @@ export function getTimeZoneTransition(
 	direction: -1 | 1,
 	offsetCacheMap: Map<number, number>,
 ): EpochNanoseconds | null {
-	if (timeZone === "UTC") {
+	if (timeZone === "UTC" || !parseTimeZoneIdentifier(timeZone).$name) {
 		return null;
 	}
 	// corresponds to 1843-03-31T16:53:20Z, before the first offset transition recorded in tz database (1845-01-01)
