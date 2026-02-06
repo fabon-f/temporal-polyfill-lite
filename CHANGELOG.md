@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Improve performance for `ZonedDateTime` ([#3](https://github.com/fabon-f/temporal-polyfill-lite/pull/3))
+- Improve performance for `ZonedDateTime` ([#3](https://github.com/fabon-f/temporal-polyfill-lite/pull/3), [e9b5cbf](https://github.com/fabon-f/temporal-polyfill-lite/commit/e9b5cbf3e06cd1db24c086ec5b41f7c5faf5861e))
+- Improve error messages ([94990ad](https://github.com/fabon-f/temporal-polyfill-lite/commit/94990adca9052a785db16f74716cccf653f51a83))
 
 ### Fixed
 
