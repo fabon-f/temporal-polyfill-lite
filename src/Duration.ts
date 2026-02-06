@@ -106,6 +106,7 @@ import {
 import { addTime, midnightTimeRecord } from "./PlainTime.ts";
 import {
 	addZonedDateTime,
+	createZonedDateTimeSlot,
 	differenceZonedDateTimeWithRounding,
 	differenceZonedDateTimeWithTotal,
 } from "./ZonedDateTime.ts";
@@ -1182,14 +1183,16 @@ export class Duration {
 			return createTemporalDuration(
 				temporalDurationFromInternal(
 					differenceZonedDateTimeWithRounding(
-						relativeToRecord.$zoned.$epochNanoseconds,
-						addZonedDateTime(
-							relativeToRecord.$zoned,
-							toInternalDurationRecord(durationSlot),
-							overflowConstrain,
+						relativeToRecord.$zoned,
+						createZonedDateTimeSlot(
+							addZonedDateTime(
+								relativeToRecord.$zoned,
+								toInternalDurationRecord(durationSlot),
+								overflowConstrain,
+							),
+							relativeToRecord.$zoned.$timeZone,
+							relativeToRecord.$zoned.$calendar,
 						),
-						relativeToRecord.$zoned.$timeZone,
-						relativeToRecord.$zoned.$calendar,
 						largestUnit,
 						roundingIncrement,
 						smallestUnit,
@@ -1271,14 +1274,16 @@ export class Duration {
 		validateTemporalUnitValue(unit, DATETIME);
 		if (relativeToRecord.$zoned) {
 			return differenceZonedDateTimeWithTotal(
-				relativeToRecord.$zoned.$epochNanoseconds,
-				addZonedDateTime(
-					relativeToRecord.$zoned,
-					toInternalDurationRecord(duration),
-					overflowConstrain,
+				relativeToRecord.$zoned,
+				createZonedDateTimeSlot(
+					addZonedDateTime(
+						relativeToRecord.$zoned,
+						toInternalDurationRecord(duration),
+						overflowConstrain,
+					),
+					relativeToRecord.$zoned.$timeZone,
+					relativeToRecord.$zoned.$calendar,
 				),
-				relativeToRecord.$zoned.$timeZone,
-				relativeToRecord.$zoned.$calendar,
 				unit,
 			);
 		}

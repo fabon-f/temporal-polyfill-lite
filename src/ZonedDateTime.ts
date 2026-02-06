@@ -449,31 +449,25 @@ export function addZonedDateTime(
 
 /** `DifferenceZonedDateTime` */
 function differenceZonedDateTime(
-	ns1: EpochNanoseconds,
-	ns2: EpochNanoseconds,
-	timeZone: string,
-	calendar: SupportedCalendars,
+	slot1: ZonedDateTimeSlot,
+	slot2: ZonedDateTimeSlot,
 	largestUnit: Unit,
 	offsetCacheMap?: Map<number, number>,
 ): InternalDurationRecord {
-	const sign = compareEpochNanoseconds(ns1, ns2);
+	const sign = compareEpochNanoseconds(slot1.$epochNanoseconds, slot2.$epochNanoseconds);
 	if (!sign) {
 		return combineDateAndTimeDuration(zeroDateDuration(), createTimeDurationFromSeconds(0));
 	}
-	const startDateTime = getIsoDateTimeFromOffsetNanoseconds(
-		ns1,
-		getOffsetNanosecondsFor(timeZone, ns1, offsetCacheMap),
-	);
-	const endDateTime = getIsoDateTimeFromOffsetNanoseconds(
-		ns2,
-		getOffsetNanosecondsFor(timeZone, ns2, offsetCacheMap),
-	);
+	assert(timeZoneEquals(slot1.$timeZone, slot2.$timeZone));
+	const startDateTime = getIsoDateTimeForZonedDateTimeSlot(slot1);
+	const endDateTime = getIsoDateTimeForZonedDateTimeSlot(slot2);
 	if (!compareIsoDate(startDateTime.$isoDate, endDateTime.$isoDate)) {
 		return combineDateAndTimeDuration(
 			zeroDateDuration(),
-			timeDurationFromEpochNanosecondsDifference(ns2, ns1),
+			timeDurationFromEpochNanosecondsDifference(slot2.$epochNanoseconds, slot1.$epochNanoseconds),
 		);
 	}
+	assert(calendarEquals(slot1.$calendar, slot2.$calendar));
 	let timeDuration = differenceTime(startDateTime.$time, endDateTime.$time);
 	let intermediateDateTime: IsoDateTimeRecord | undefined;
 	for (
@@ -486,9 +480,9 @@ function differenceZonedDateTime(
 			startDateTime.$time,
 		);
 		timeDuration = timeDurationFromEpochNanosecondsDifference(
-			ns2,
+			slot2.$epochNanoseconds,
 			getEpochNanosecondsFor(
-				timeZone,
+				slot1.$timeZone,
 				intermediateDateTime,
 				disambiguationCompatible,
 				offsetCacheMap,
@@ -501,7 +495,7 @@ function differenceZonedDateTime(
 	assertNotUndefined(intermediateDateTime);
 	return combineDateAndTimeDuration(
 		calendarDateUntil(
-			calendar,
+			slot1.$calendar,
 			startDateTime.$isoDate,
 			intermediateDateTime.$isoDate,
 			largerOfTwoTemporalUnits(largestUnit, Unit.Day) as Unit.Date,
@@ -512,35 +506,35 @@ function differenceZonedDateTime(
 
 /** `DifferenceZonedDateTimeWithRounding` */
 export function differenceZonedDateTimeWithRounding(
-	ns1: EpochNanoseconds,
-	ns2: EpochNanoseconds,
-	timeZone: string,
-	calendar: SupportedCalendars,
+	slot1: ZonedDateTimeSlot,
+	slot2: ZonedDateTimeSlot,
 	largestUnit: Unit,
 	roundingIncrement: number,
 	smallestUnit: Unit,
 	roundingMode: RoundingMode,
-	offsetCacheMap?: Map<number, number>,
 ): InternalDurationRecord {
 	if (!isDateUnit(largestUnit)) {
 		assert(!isDateUnit(smallestUnit));
-		return differenceInstant(ns1, ns2, roundingIncrement, smallestUnit, roundingMode);
+		return differenceInstant(
+			slot1.$epochNanoseconds,
+			slot2.$epochNanoseconds,
+			roundingIncrement,
+			smallestUnit,
+			roundingMode,
+		);
 	}
-	const difference = differenceZonedDateTime(ns1, ns2, timeZone, calendar, largestUnit);
+	const difference = differenceZonedDateTime(slot1, slot2, largestUnit);
 	if (smallestUnit === Unit.Nanosecond && roundingIncrement === 1) {
 		return difference;
 	}
 
 	return roundRelativeDuration(
 		difference,
-		ns1,
-		ns2,
-		getIsoDateTimeFromOffsetNanoseconds(
-			ns1,
-			getOffsetNanosecondsFor(timeZone, ns1, offsetCacheMap),
-		),
-		timeZone,
-		calendar,
+		slot1.$epochNanoseconds,
+		slot2.$epochNanoseconds,
+		getIsoDateTimeForZonedDateTimeSlot(slot1),
+		slot1.$timeZone,
+		slot1.$calendar,
 		largestUnit,
 		roundingIncrement,
 		smallestUnit,
@@ -550,23 +544,24 @@ export function differenceZonedDateTimeWithRounding(
 
 /** `DifferenceZonedDateTimeWithTotal` */
 export function differenceZonedDateTimeWithTotal(
-	ns1: EpochNanoseconds,
-	ns2: EpochNanoseconds,
-	timeZone: string,
-	calendar: SupportedCalendars,
+	slot1: ZonedDateTimeSlot,
+	slot2: ZonedDateTimeSlot,
 	unit: Unit,
 ) {
 	if (!isDateUnit(unit)) {
-		return totalTimeDuration(timeDurationFromEpochNanosecondsDifference(ns2, ns1), unit);
+		return totalTimeDuration(
+			timeDurationFromEpochNanosecondsDifference(slot2.$epochNanoseconds, slot1.$epochNanoseconds),
+			unit,
+		);
 	}
 
 	return totalRelativeDuration(
-		differenceZonedDateTime(ns1, ns2, timeZone, calendar, unit),
-		ns1,
-		ns2,
-		getIsoDateTimeFromOffsetNanoseconds(ns1, getOffsetNanosecondsFor(timeZone, ns1)),
-		timeZone,
-		calendar,
+		differenceZonedDateTime(slot1, slot2, unit),
+		slot1.$epochNanoseconds,
+		slot2.$epochNanoseconds,
+		getIsoDateTimeForZonedDateTimeSlot(slot1),
+		slot1.$timeZone,
+		slot1.$calendar,
 		unit,
 	);
 }
@@ -618,10 +613,8 @@ function differenceTemporalZonedDateTime(
 		applySignToDurationSlot(
 			temporalDurationFromInternal(
 				differenceZonedDateTimeWithRounding(
-					zonedDateTime.$epochNanoseconds,
-					otherSlot.$epochNanoseconds,
-					zonedDateTime.$timeZone,
-					zonedDateTime.$calendar,
+					zonedDateTime,
+					otherSlot,
 					settings.$largestUnit,
 					settings.$roundingIncrement,
 					settings.$smallestUnit,
