@@ -67,7 +67,6 @@ import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
 import { createTimeDurationFromSeconds } from "./internal/timeDuration.ts";
 import {
-	createOffsetCacheMap,
 	getEpochNanosecondsFor,
 	getStartOfDay,
 	toTemporalTimeZoneIdentifier,
@@ -520,14 +519,12 @@ export class PlainDate {
 			timeZone = toTemporalTimeZoneIdentifier(item);
 			temporalTime = undefined;
 		}
-		const cache = createOffsetCacheMap();
 		if (temporalTime === undefined) {
 			return createTemporalZonedDateTime(
-				getStartOfDay(timeZone, slot.$isoDate, cache),
+				getStartOfDay(timeZone, slot.$isoDate),
 				timeZone,
 				slot.$calendar,
 				undefined,
-				cache,
 			);
 		}
 		return createTemporalZonedDateTime(
@@ -540,12 +537,10 @@ export class PlainDate {
 					),
 				),
 				disambiguationCompatible,
-				cache,
 			),
 			timeZone,
 			slot.$calendar,
 			undefined,
-			cache,
 		);
 	}
 	toString(options: unknown = undefined) {
