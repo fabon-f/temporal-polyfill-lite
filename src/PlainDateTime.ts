@@ -85,11 +85,7 @@ import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
 import { createTimeDurationFromSeconds } from "./internal/timeDuration.ts";
-import {
-	createOffsetCacheMap,
-	getEpochNanosecondsFor,
-	toTemporalTimeZoneIdentifier,
-} from "./internal/timeZones.ts";
+import { getEpochNanosecondsFor, toTemporalTimeZoneIdentifier } from "./internal/timeZones.ts";
 import { Unit } from "./internal/unit.ts";
 import { throwRangeError, throwTypeError } from "./internal/utils.ts";
 import {
@@ -754,13 +750,11 @@ export class PlainDateTime {
 		const slot = getInternalSlotOrThrowForPlainDateTime(this);
 		const timeZone = toTemporalTimeZoneIdentifier(temporalTimeZoneLike);
 		const disambiguation = getTemporalDisambiguationOption(getOptionsObject(options));
-		const cache = createOffsetCacheMap();
 		return createTemporalZonedDateTime(
-			getEpochNanosecondsFor(timeZone, slot.$isoDateTime, disambiguation, cache),
+			getEpochNanosecondsFor(timeZone, slot.$isoDateTime, disambiguation),
 			timeZone,
 			slot.$calendar,
 			undefined,
-			cache,
 		);
 	}
 	toPlainDate() {

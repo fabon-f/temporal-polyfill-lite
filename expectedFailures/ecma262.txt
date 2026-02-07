@@ -2,7 +2,6 @@
 built-ins/Temporal/Duration/prototype/total/precision-exact-mathematical-values-5.js
 built-ins/Temporal/Duration/prototype/total/precision-exact-mathematical-values-6.js
 # We use array spreading internally.
-built-ins/Temporal/PlainDate/prototype/toZonedDateTime/no-observable-array-iteration.js
 built-ins/Temporal/PlainDateTime/prototype/toZonedDateTime/no-observable-array-iteration.js
 built-ins/Temporal/PlainYearMonth/prototype/since/builtin-calendar-no-array-iteration.js
 built-ins/Temporal/PlainYearMonth/prototype/subtract/builtin-calendar-no-array-iteration.js

@@ -126,7 +126,6 @@ import {
 import { asciiLowerCase, toZeroPaddedDecimalString } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
 import {
-	createOffsetCacheMap,
 	parseTimeZoneIdentifier,
 	toTemporalTimeZoneIdentifier,
 	type TimeZoneIdentifierParseRecord,
@@ -514,7 +513,6 @@ export function getTemporalRelativeToOption(options: object): RelativeToOptionRe
 			$plain: getInternalSlotOrThrowForPlainDate(createTemporalDate(isoDate, calendar)),
 		});
 	}
-	const cache = createOffsetCacheMap();
 	const offsetNs =
 		offsetBehaviour === offsetBehaviourOption
 			? parseDateTimeUtcOffset((assertNotUndefined(offsetString), offsetString))
@@ -531,12 +529,10 @@ export function getTemporalRelativeToOption(options: object): RelativeToOptionRe
 					disambiguationCompatible,
 					offsetReject,
 					matchExactly,
-					cache,
 				),
 				timeZone,
 				calendar,
 				undefined,
-				cache,
 			),
 		),
 	});

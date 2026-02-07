@@ -16,6 +16,7 @@ import {
 	roundNumberToIncrement,
 } from "./abstractOperations.ts";
 import { assert, assertIsoDaysRange, assertNotUndefined } from "./assertion.ts";
+import { createLruCache, type LruCacheMap } from "./cacheMap.ts";
 import {
 	millisecondsPerDay,
 	nanosecondsPerDay,
@@ -50,34 +51,32 @@ import { utcEpochMilliseconds } from "./time.ts";
 import { throwRangeError } from "./utils.ts";
 
 const intlCache = createNullPrototypeObject({}) as Record<string, Intl.DateTimeFormat>;
-
-export function createOffsetCacheMap(
-	epochNanoseconds?: EpochNanoseconds | undefined,
-	offsetNanoseconds?: number | undefined,
-): Map<number, number> {
-	return new Map(
-		epochNanoseconds !== undefined && offsetNanoseconds !== undefined
-			? [[clampEpochSecond(epochSeconds(epochNanoseconds)), offsetNanoseconds]]
-			: [],
-	);
-}
+const timeZoneCache = createNullPrototypeObject({}) as Record<string, LruCacheMap<number, number>>;
 
 function clampEpochSecond(epochSecond: number): number {
 	// avoid CE / BCE confusion while retrieving offset info, clamp to 1653 BC (no offset transition in pre-modern years)
 	return clamp(epochSecond, -1e10, Infinity);
 }
 
+export function getTimeZoneOffsetNanosecondsForEpochSecondFromCache(
+	timeZone: string,
+	epochSeconds: number,
+): number | undefined {
+	return timeZoneCache[timeZone] && timeZoneCache[timeZone].$get(clampEpochSecond(epochSeconds));
+}
+
 function getNamedTimeZoneOffsetNanosecondsForEpochSecond(
 	timeZone: string,
 	epochSecond: number,
-	offsetCacheMap?: Map<number, number>,
+	stopUpdateCache?: boolean,
 ): number {
 	if (timeZone === "UTC") {
 		return 0;
 	}
 	const clampedEpochSecond = clampEpochSecond(epochSecond);
 
-	const cachedOffsetNanoseconds = offsetCacheMap && offsetCacheMap.get(clampedEpochSecond);
+	const cache = (timeZoneCache[timeZone] ||= createLruCache(5000));
+	const cachedOffsetNanoseconds = cache.$get(clampedEpochSecond);
 	if (cachedOffsetNanoseconds !== undefined) {
 		return cachedOffsetNanoseconds;
 	}
@@ -88,8 +87,8 @@ function getNamedTimeZoneOffsetNanosecondsForEpochSecond(
 	) as [number, number, number, number, number, number];
 	const offsetNanoseconds =
 		(utcEpochMilliseconds(...units) - clampedEpochSecond * 1000) * nanosecondsPerMilliseconds;
-	if (offsetCacheMap) {
-		offsetCacheMap.set(clampedEpochSecond, offsetNanoseconds);
+	if (!stopUpdateCache) {
+		cache.$set(clampedEpochSecond, offsetNanoseconds);
 	}
 	return offsetNanoseconds;
 }
@@ -111,21 +110,18 @@ function bisectOffsetTransition(
 	timeZone: string,
 	startEpochSecond: number,
 	endEpochSecond: number,
-	offsetCacheMap: Map<number, number>,
 ): number {
-	const startOffset = getNamedTimeZoneOffsetNanosecondsForEpochSecond(
-		timeZone,
-		startEpochSecond,
-		offsetCacheMap,
-	);
+	const startOffset = getNamedTimeZoneOffsetNanosecondsForEpochSecond(timeZone, startEpochSecond);
 	// left: always same offset to `start`
 	// right: always different offset to `start` (same to `end`)
 	let left = startEpochSecond;
 	let right = endEpochSecond;
 	while (right - left > 1) {
 		const mid = Math.floor((right + left) / 2);
+		// cache only few seconds around the result
 		if (
-			getNamedTimeZoneOffsetNanosecondsForEpochSecond(timeZone, mid, offsetCacheMap) === startOffset
+			getNamedTimeZoneOffsetNanosecondsForEpochSecond(timeZone, mid, right - left > 3) ===
+			startOffset
 		) {
 			left = mid;
 		} else {
@@ -153,7 +149,6 @@ function searchTimeZoneTransition(
 	startEpochSeconds: number,
 	endEpochSeconds: number,
 	direction: -1 | 1,
-	offsetCacheMap: Map<number, number>,
 ): EpochNanoseconds | null {
 	endEpochSeconds = clamp(endEpochSeconds, -8.64e12, 8.64e12);
 	// 48 hours for the initial scan
@@ -162,13 +157,13 @@ function searchTimeZoneTransition(
 	let currentEnd = startEpochSeconds + window;
 	while ((endEpochSeconds - currentEnd) * direction > 0) {
 		if (
-			getNamedTimeZoneOffsetNanosecondsForEpochSecond(timeZone, currentStart) !==
-			getNamedTimeZoneOffsetNanosecondsForEpochSecond(timeZone, currentEnd)
+			getNamedTimeZoneOffsetNanosecondsForEpochSecond(timeZone, currentStart, true) !==
+			getNamedTimeZoneOffsetNanosecondsForEpochSecond(timeZone, currentEnd, true)
 		) {
 			const transition =
 				direction > 0
-					? bisectOffsetTransition(timeZone, currentStart, currentEnd, offsetCacheMap)
-					: bisectOffsetTransition(timeZone, currentEnd, currentStart, offsetCacheMap);
+					? bisectOffsetTransition(timeZone, currentStart, currentEnd)
+					: bisectOffsetTransition(timeZone, currentEnd, currentStart);
 			return createEpochNanosecondsFromEpochSeconds(transition);
 		}
 		window = adjustWindowForEpoch(currentStart) * direction;
@@ -182,7 +177,6 @@ export function getTimeZoneTransition(
 	timeZone: string,
 	epoch: EpochNanoseconds,
 	direction: -1 | 1,
-	offsetCacheMap: Map<number, number>,
 ): EpochNanoseconds | null {
 	if (timeZone === "UTC" || isOffsetTimeZoneIdentifier(timeZone)) {
 		return null;
@@ -201,27 +195,16 @@ export function getTimeZoneTransition(
 		}
 		if (start > upperLimit) {
 			return (
-				searchTimeZoneTransition(
-					timeZone,
-					start,
-					start - secondsPerDay * 365,
-					direction,
-					offsetCacheMap,
-				) || searchTimeZoneTransition(timeZone, upperLimit, lowerLimit, direction, offsetCacheMap)
+				searchTimeZoneTransition(timeZone, start, start - secondsPerDay * 365, direction) ||
+				searchTimeZoneTransition(timeZone, upperLimit, lowerLimit, direction)
 			);
 		}
-		return searchTimeZoneTransition(timeZone, start, lowerLimit, direction, offsetCacheMap);
+		return searchTimeZoneTransition(timeZone, start, lowerLimit, direction);
 	}
 	if (start > upperLimit) {
-		return searchTimeZoneTransition(
-			timeZone,
-			start,
-			start + secondsPerDay * 365,
-			direction,
-			offsetCacheMap,
-		);
+		return searchTimeZoneTransition(timeZone, start, start + secondsPerDay * 365, direction);
 	}
-	return searchTimeZoneTransition(timeZone, start, upperLimit, direction, offsetCacheMap);
+	return searchTimeZoneTransition(timeZone, start, upperLimit, direction);
 }
 
 /** normalize upper/lower case of IANA time zone IDs */
@@ -309,18 +292,10 @@ export function toTemporalTimeZoneIdentifier(temporalTimeZoneLike: unknown): str
 }
 
 /** `GetOffsetNanosecondsFor` */
-export function getOffsetNanosecondsFor(
-	timeZone: string,
-	epoch: EpochNanoseconds,
-	offsetCacheMap?: Map<number, number>,
-): number {
+export function getOffsetNanosecondsFor(timeZone: string, epoch: EpochNanoseconds): number {
 	return isOffsetTimeZoneIdentifier(timeZone)
 		? parseDateTimeUtcOffset(timeZone)
-		: getNamedTimeZoneOffsetNanosecondsForEpochSecond(
-				timeZone,
-				epochSeconds(epoch),
-				offsetCacheMap,
-			);
+		: getNamedTimeZoneOffsetNanosecondsForEpochSecond(timeZone, epochSeconds(epoch));
 }
 
 /** `GetEpochNanosecondsFor` */
@@ -328,14 +303,12 @@ export function getEpochNanosecondsFor(
 	timeZone: string,
 	isoDateTime: IsoDateTimeRecord,
 	disambiguation: Disambiguation,
-	offsetCacheMap?: Map<number, number>,
 ): EpochNanoseconds {
 	return disambiguatePossibleEpochNanoseconds(
-		getPossibleEpochNanoseconds(timeZone, isoDateTime, offsetCacheMap),
+		getPossibleEpochNanoseconds(timeZone, isoDateTime),
 		timeZone,
 		isoDateTime,
 		disambiguation,
-		offsetCacheMap,
 	);
 }
 
@@ -345,7 +318,6 @@ export function disambiguatePossibleEpochNanoseconds(
 	timeZone: string,
 	isoDateTime: IsoDateTimeRecord,
 	disambiguation: Disambiguation,
-	offsetCacheMap?: Map<number, number>,
 ): EpochNanoseconds {
 	if (possibleEpochNs.length === 1) {
 		assertNotUndefined(possibleEpochNs[0]);
@@ -358,8 +330,8 @@ export function disambiguatePossibleEpochNanoseconds(
 
 	// We are not sure whether handling of dates near boundary is correct here
 	// TODO: verify
-	possibleEpochNs = getNamedTimeZoneEpochCandidates(timeZone, isoDateTime, offsetCacheMap).map(
-		(epoch) => validateEpochNanoseconds(epoch),
+	possibleEpochNs = getNamedTimeZoneEpochCandidates(timeZone, isoDateTime).map((epoch) =>
+		validateEpochNanoseconds(epoch),
 	);
 	if (disambiguation === disambiguationCompatible) {
 		return isForwardTransition ? possibleEpochNs[1]! : possibleEpochNs[0]!;
@@ -374,7 +346,6 @@ export function disambiguatePossibleEpochNanoseconds(
 export function getPossibleEpochNanoseconds(
 	timeZone: string,
 	isoDateTime: IsoDateTimeRecord,
-	offsetCacheMap?: Map<number, number>,
 ): EpochNanoseconds[] {
 	if (isOffsetTimeZoneIdentifier(timeZone)) {
 		const balanced = balanceIsoDateTime(
@@ -391,28 +362,21 @@ export function getPossibleEpochNanoseconds(
 		assertIsoDaysRange(balanced.$isoDate);
 		return [validateEpochNanoseconds(getUtcEpochNanoseconds(balanced))];
 	} else {
-		return getNamedTimeZoneEpochNanoseconds(timeZone, isoDateTime, offsetCacheMap).map(
-			validateEpochNanoseconds,
-		);
+		return getNamedTimeZoneEpochNanoseconds(timeZone, isoDateTime).map(validateEpochNanoseconds);
 	}
 }
 
 /** `GetStartOfDay` */
-export function getStartOfDay(
-	timeZone: string,
-	isoDate: IsoDateRecord,
-	offsetCacheMap: Map<number, number>,
-): EpochNanoseconds {
+export function getStartOfDay(timeZone: string, isoDate: IsoDateRecord): EpochNanoseconds {
 	const isoDateTime = combineIsoDateAndTimeRecord(isoDate, midnightTimeRecord());
-	const possibleEpochNs = getPossibleEpochNanoseconds(timeZone, isoDateTime, offsetCacheMap);
+	const possibleEpochNs = getPossibleEpochNanoseconds(timeZone, isoDateTime);
 	if (possibleEpochNs[0]) {
 		return possibleEpochNs[0];
 	}
 	return getTimeZoneTransition(
 		timeZone,
-		getNamedTimeZoneEpochCandidates(timeZone, isoDateTime, offsetCacheMap)[0]!,
+		getNamedTimeZoneEpochCandidates(timeZone, isoDateTime)[0]!,
 		1,
-		offsetCacheMap,
 	)!;
 }
 
@@ -455,16 +419,12 @@ export function parseTimeZoneIdentifier(identifier: string): TimeZoneIdentifierP
 function getNamedTimeZoneEpochNanoseconds(
 	timeZone: string,
 	isoDateTime: IsoDateTimeRecord,
-	offsetCacheMap?: Map<number, number>,
 ): EpochNanoseconds[] {
 	const utcEpoch = getUtcEpochNanoseconds(isoDateTime);
-	return getNamedTimeZoneEpochCandidates(timeZone, isoDateTime, offsetCacheMap).filter(
+	return getNamedTimeZoneEpochCandidates(timeZone, isoDateTime).filter(
 		(epoch) =>
 			!compareEpochNanoseconds(
-				addNanosecondsToEpochSeconds(
-					epoch,
-					getOffsetNanosecondsFor(timeZone, epoch, offsetCacheMap),
-				),
+				addNanosecondsToEpochSeconds(epoch, getOffsetNanosecondsFor(timeZone, epoch)),
 				utcEpoch,
 			),
 	);
@@ -479,7 +439,6 @@ export function isOffsetTimeZoneIdentifier(identifier: string) {
 function getNamedTimeZoneEpochCandidates(
 	timeZone: string,
 	isoDateTime: IsoDateTimeRecord,
-	offsetCacheMap?: Map<number, number>,
 ): EpochNanoseconds[] {
 	const utcEpoch = getUtcEpochNanoseconds(isoDateTime);
 	if (timeZone === "UTC") {
@@ -491,14 +450,12 @@ function getNamedTimeZoneEpochCandidates(
 		clampEpochNanoseconds(
 			addNanosecondsToEpochSeconds(utcEpoch, -millisecondsPerDay * nanosecondsPerMilliseconds),
 		),
-		offsetCacheMap,
 	);
 	const offsetNanoseconds2 = getOffsetNanosecondsFor(
 		timeZone,
 		clampEpochNanoseconds(
 			addNanosecondsToEpochSeconds(utcEpoch, millisecondsPerDay * nanosecondsPerMilliseconds),
 		),
-		offsetCacheMap,
 	);
 	const epoch1 = addNanosecondsToEpochSeconds(utcEpoch, -offsetNanoseconds1);
 	const epoch2 = addNanosecondsToEpochSeconds(utcEpoch, -offsetNanoseconds2);
