@@ -11,6 +11,7 @@ function createTerserPlugin(beautify: boolean) {
 		compress: {
 			ecma: 2015,
 			unsafe_arrows: true,
+			hoist_funs: true,
 		},
 		mangle: {
 			keep_fnames: beautify,
