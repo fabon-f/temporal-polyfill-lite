@@ -505,9 +505,9 @@ export class DateTimeFormatImpl {
 	}
 }
 
-export const DateTimeFormat = function (locale: unknown, options: unknown) {
+export function DateTimeFormat(locale: unknown, options: unknown) {
 	return new DateTimeFormatImpl(locale, options);
-} as unknown as Intl.DateTimeFormatConstructor;
+}
 
 const dtfDescriptors = Object.getOwnPropertyDescriptors(Intl.DateTimeFormat);
 dtfDescriptors.prototype.value = DateTimeFormatImpl.prototype;
