@@ -1,7 +1,7 @@
 {
 	"type": "module",
 	"name": "temporal-polyfill-lite",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"description": "Lightweight Temporal polyfill supporting all time zones and basic calendars",
 	"keywords": [
 		"Temporal"
