@@ -348,7 +348,7 @@ function toTemporalZonedDateTime(item: unknown, options?: unknown): ZonedDateTim
 		offsetOption,
 		matchExactly,
 	);
-	return createTemporalZonedDateTime(epoch, timeZone, calendar, undefined);
+	return createTemporalZonedDateTime(epoch, timeZone, calendar);
 }
 
 /** ` CreateTemporalZonedDateTime` */
@@ -635,7 +635,6 @@ function addDurationToZonedDateTime(
 		),
 		zonedDateTime.$timeZone,
 		zonedDateTime.$calendar,
-		undefined,
 	);
 }
 
@@ -869,7 +868,6 @@ export class ZonedDateTime {
 			),
 			slot.$timeZone,
 			slot.$calendar,
-			undefined,
 		);
 	}
 	withPlainTime(plainTimeLike: unknown = undefined) {
@@ -880,7 +878,6 @@ export class ZonedDateTime {
 				getStartOfDay(slot.$timeZone, isoDateTime.$isoDate),
 				slot.$timeZone,
 				slot.$calendar,
-				undefined,
 			);
 		}
 		return createTemporalZonedDateTime(
@@ -894,7 +891,6 @@ export class ZonedDateTime {
 			),
 			slot.$timeZone,
 			slot.$calendar,
-			undefined,
 		);
 	}
 	withTimeZone(timeZoneLike: unknown) {
@@ -983,7 +979,6 @@ export class ZonedDateTime {
 				),
 				slot.$timeZone,
 				slot.$calendar,
-				undefined,
 			);
 		}
 		const roundResult = roundIsoDateTime(
@@ -1006,7 +1001,6 @@ export class ZonedDateTime {
 			),
 			slot.$timeZone,
 			slot.$calendar,
-			undefined,
 		);
 	}
 	equals(other: unknown) {
@@ -1073,7 +1067,6 @@ export class ZonedDateTime {
 			getStartOfDay(slot.$timeZone, getIsoDateTimeForZonedDateTimeSlot(slot).$isoDate),
 			slot.$timeZone,
 			slot.$calendar,
-			undefined,
 		);
 	}
 	getTimeZoneTransition(directionParam: unknown) {
@@ -1094,7 +1087,7 @@ export class ZonedDateTime {
 		if (transition === null) {
 			return null;
 		}
-		return createTemporalZonedDateTime(transition, slot.$timeZone, slot.$calendar, undefined);
+		return createTemporalZonedDateTime(transition, slot.$timeZone, slot.$calendar);
 	}
 	toInstant() {
 		return createTemporalInstant(getInternalSlotOrThrowForZonedDateTime(this).$epochNanoseconds);

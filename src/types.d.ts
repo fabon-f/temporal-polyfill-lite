@@ -12,6 +12,6 @@ namespace Intl {
 		format(duration: unknown): string;
 	}
 	const DurationFormat: {
-		new (locales: unknown, options: unknown): DurationFormat;
+		new (locales?: unknown, options?: unknown): DurationFormat;
 	};
 }

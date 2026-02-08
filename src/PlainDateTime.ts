@@ -440,10 +440,14 @@ function addDurationToDateTime(
 	const overflow = getTemporalOverflowOption(getOptionsObject(options));
 	const internalDuration = toInternalDurationRecordWith24HourDays(duration);
 	const timeResult = addTime(dateTime.$isoDateTime.$time, internalDuration.$time);
-	const dateDuration = adjustDateDurationRecord(internalDuration.$date, timeResult.$days);
 	return createTemporalDateTime(
 		combineIsoDateAndTimeRecord(
-			calendarDateAdd(dateTime.$calendar, dateTime.$isoDateTime.$isoDate, dateDuration, overflow),
+			calendarDateAdd(
+				dateTime.$calendar,
+				dateTime.$isoDateTime.$isoDate,
+				adjustDateDurationRecord(internalDuration.$date, timeResult.$days),
+				overflow,
+			),
 			timeResult,
 		),
 		dateTime.$calendar,
@@ -754,7 +758,6 @@ export class PlainDateTime {
 			getEpochNanosecondsFor(timeZone, slot.$isoDateTime, disambiguation),
 			timeZone,
 			slot.$calendar,
-			undefined,
 		);
 	}
 	toPlainDate() {

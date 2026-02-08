@@ -116,7 +116,7 @@ function bisectOffsetTransition(
 	// right: always different offset to `start` (same to `end`)
 	let left = startEpochSecond;
 	let right = endEpochSecond;
-	while (right - left > 1) {
+	for (; right - left > 1; ) {
 		const mid = Math.floor((right + left) / 2);
 		// cache only few seconds around the result
 		if (
@@ -151,11 +151,15 @@ function searchTimeZoneTransition(
 	direction: -1 | 1,
 ): EpochNanoseconds | null {
 	endEpochSeconds = clamp(endEpochSeconds, -8.64e12, 8.64e12);
-	// 48 hours for the initial scan
-	let window = secondsPerDay * 2 * direction;
-	let currentStart = startEpochSeconds;
-	let currentEnd = startEpochSeconds + window;
-	while ((endEpochSeconds - currentEnd) * direction > 0) {
+	for (
+		let window = secondsPerDay * 2 * direction,
+			currentStart = startEpochSeconds,
+			currentEnd = startEpochSeconds + window;
+		(endEpochSeconds - currentEnd) * direction > 0;
+		window = adjustWindowForEpoch(currentStart) * direction,
+			currentStart = currentEnd,
+			currentEnd = clamp(currentEnd + window, -8.64e12, 8.64e12)
+	) {
 		if (
 			getNamedTimeZoneOffsetNanosecondsForEpochSecond(timeZone, currentStart, true) !==
 			getNamedTimeZoneOffsetNanosecondsForEpochSecond(timeZone, currentEnd, true)
@@ -166,9 +170,6 @@ function searchTimeZoneTransition(
 					: bisectOffsetTransition(timeZone, currentEnd, currentStart);
 			return createEpochNanosecondsFromEpochSeconds(transition);
 		}
-		window = adjustWindowForEpoch(currentStart) * direction;
-		currentStart = currentEnd;
-		currentEnd = clamp(currentEnd + window, -8.64e12, 8.64e12);
 	}
 	return null;
 }
@@ -369,15 +370,20 @@ export function getPossibleEpochNanoseconds(
 /** `GetStartOfDay` */
 export function getStartOfDay(timeZone: string, isoDate: IsoDateRecord): EpochNanoseconds {
 	const isoDateTime = combineIsoDateAndTimeRecord(isoDate, midnightTimeRecord());
-	const possibleEpochNs = getPossibleEpochNanoseconds(timeZone, isoDateTime);
-	if (possibleEpochNs[0]) {
-		return possibleEpochNs[0];
+	const possibleEarlierEpochNs = getPossibleEpochNanoseconds(timeZone, isoDateTime)[0];
+	if (possibleEarlierEpochNs) {
+		// backward transition or no transition
+		return possibleEarlierEpochNs;
 	}
-	return getTimeZoneTransition(
-		timeZone,
-		getNamedTimeZoneEpochCandidates(timeZone, isoDateTime)[0]!,
-		1,
-	)!;
+	// cf. https://github.com/tc39/proposal-temporal/issues/2910
+	const disambiguatedEpochs = getNamedTimeZoneEpochCandidates(timeZone, isoDateTime);
+	assert(disambiguatedEpochs.length === 2);
+	return createEpochNanosecondsFromEpochSeconds(
+		bisectOffsetTransition(
+			timeZone,
+			...(disambiguatedEpochs.map(epochSeconds) as [number, number]),
+		),
+	);
 }
 
 /** `TimeZoneEquals` */

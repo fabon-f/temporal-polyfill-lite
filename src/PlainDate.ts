@@ -524,7 +524,6 @@ export class PlainDate {
 				getStartOfDay(timeZone, slot.$isoDate),
 				timeZone,
 				slot.$calendar,
-				undefined,
 			);
 		}
 		return createTemporalZonedDateTime(
@@ -540,7 +539,6 @@ export class PlainDate {
 			),
 			timeZone,
 			slot.$calendar,
-			undefined,
 		);
 	}
 	toString(options: unknown = undefined) {

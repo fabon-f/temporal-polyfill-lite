@@ -118,14 +118,14 @@ function toTemporalYearMonth(item: unknown, options?: unknown): PlainYearMonth {
 	const calendar = canonicalizeCalendar(result.$calendar || "iso8601");
 	getTemporalOverflowOption(getOptionsObject(options));
 	assertNotUndefined(result.$year);
-	const isoDate = createIsoDateRecord(result.$year, result.$month, result.$day);
-	if (!isoYearMonthWithinLimits(isoDate)) {
-		throwRangeError(outOfBoundsDate);
-	}
 	return createTemporalYearMonth(
 		calendarYearMonthFromFields(
 			calendar,
-			isoDateToFields(calendar, isoDate, YEAR_MONTH),
+			isoDateToFields(
+				calendar,
+				validateIsoYearMonth(createIsoDateRecord(result.$year, result.$month, result.$day)),
+				YEAR_MONTH,
+			),
 			overflowConstrain,
 		),
 		calendar,
@@ -133,7 +133,7 @@ function toTemporalYearMonth(item: unknown, options?: unknown): PlainYearMonth {
 }
 
 /** `ISOYearMonthWithinLimits` */
-export function isoYearMonthWithinLimits(isoDate: IsoDateRecord): boolean {
+function isoYearMonthWithinLimits(isoDate: IsoDateRecord): boolean {
 	return isWithin(isoDate.$year * 12 + isoDate.$month, -3261848, 3309129);
 }
 
@@ -151,10 +151,7 @@ export function createTemporalYearMonth(
 	calendar: SupportedCalendars,
 	instance = Object.create(PlainYearMonth.prototype) as PlainYearMonth,
 ): PlainYearMonth {
-	if (!isoYearMonthWithinLimits(isoDate)) {
-		throwRangeError(outOfBoundsDate);
-	}
-	slots.set(instance, createPlainYearMonthSlot(isoDate, calendar));
+	slots.set(instance, createPlainYearMonthSlot(validateIsoYearMonth(isoDate), calendar));
 	return instance;
 }
 
@@ -281,6 +278,13 @@ function addDurationToYearMonth(
 		),
 		yearMonth.$calendar,
 	);
+}
+
+export function validateIsoYearMonth(isoDate: IsoDateRecord) {
+	if (!isoYearMonthWithinLimits(isoDate)) {
+		throwRangeError(outOfBoundsDate);
+	}
+	return isoDate;
 }
 
 function createPlainYearMonthSlot(

@@ -18,7 +18,7 @@ import { getInternalSlotForPlainMonthDay } from "../PlainMonthDay.ts";
 import {
 	balanceIsoYearMonth,
 	getInternalSlotForPlainYearMonth,
-	isoYearMonthWithinLimits,
+	validateIsoYearMonth,
 } from "../PlainYearMonth.ts";
 import { getInternalSlotForZonedDateTime } from "../ZonedDateTime.ts";
 import {
@@ -54,7 +54,6 @@ import {
 	invalidMonthCode,
 	missingField,
 	monthMismatch,
-	outOfBoundsDate,
 	yearMismatch,
 } from "./errorMessages.ts";
 import { divFloor, divTrunc, modFloor } from "./math.ts";
@@ -159,12 +158,12 @@ export function canonicalizeCalendar(id: string): SupportedCalendars {
 function parseMonthCode(arg: unknown): [monthNumber: number, isLeapMonth: boolean] {
 	const monthCode = toPrimitive(arg);
 	validateString(monthCode);
-	const result = monthCode.match(/M(\d\d)L?/);
+	const result = monthCode.match(/M(\d\d)(L?)/);
 	if (!result || monthCode === "M00") {
 		throwRangeError(invalidMonthCode(monthCode));
 	}
 	assert(result[1] !== undefined);
-	return [toNumber(result[1]), monthCode.length === 4];
+	return [toNumber(result[1]), !!result[2]];
 }
 
 /** `CreateMonthCode` */
@@ -248,7 +247,7 @@ export function calendarMergeFields(
 
 /** `CalendarDateAdd` */
 export function calendarDateAdd(
-	calendar: SupportedCalendars,
+	_calendar: SupportedCalendars,
 	isoDate: IsoDateRecord,
 	duration: DateDurationRecord,
 	overflow: Overflow,
@@ -359,11 +358,7 @@ export function calendarYearMonthFromFields(
 ): IsoDateRecord {
 	fields.day = 1;
 	calendarResolveFields(calendar, fields, YEAR_MONTH);
-	const result = calendarDateToISO(calendar, fields, overflow);
-	if (!isoYearMonthWithinLimits(result)) {
-		throwRangeError(outOfBoundsDate);
-	}
-	return result;
+	return validateIsoYearMonth(calendarDateToISO(calendar, fields, overflow));
 }
 
 /** `CalendarMonthDayFromFields` */

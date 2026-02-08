@@ -532,7 +532,6 @@ export function getTemporalRelativeToOption(options: object): RelativeToOptionRe
 				),
 				timeZone,
 				calendar,
-				undefined,
 			),
 		),
 	});

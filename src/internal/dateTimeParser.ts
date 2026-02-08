@@ -63,6 +63,7 @@ const annotationKey = "[a-z_][a-z\\d_-]*";
 const annotationValue = join("[a-zA-Z\\d]+", "-");
 const annotation = `\\[(!)?(${annotationKey})=(${annotationValue})\\]`;
 const annotations = `(?<k>(${annotation})*)`;
+const annotationRegExp = RegExp(annotation, "g");
 
 export const temporalZonedDateTimeStringRegExp = createRegExp(
 	`${optionalChain([date, `[ tT]${time}`, dateTimeUtcOffset])}${timeZoneAnnotation}${annotations}`,
@@ -123,9 +124,7 @@ interface IsoDateTimeParseRecord {
 function parseAnnotationsAndGetCalendar(annotationsString: string): string | undefined {
 	let calendar: string | undefined;
 	let calendarWasCritical = false;
-	const regexp = RegExp(annotation, "g");
-	let match: RegExpExecArray | null;
-	while ((match = regexp.exec(annotationsString))) {
+	for (const match of annotationsString.matchAll(annotationRegExp)) {
 		const isCritical = !!match[1];
 		if (match[2] === "u-ca") {
 			if (calendar === undefined) {
