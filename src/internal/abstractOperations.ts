@@ -132,6 +132,7 @@ import {
 } from "./timeZones.ts";
 import {
 	getIndexFromUnit,
+	getUnitFromIndex,
 	getUnitFromString,
 	pluralUnitKeys,
 	singularUnitKeys,
@@ -286,13 +287,14 @@ export function getTemporalFractionalSecondDigitsOption(options: object): number
 		throwRangeError(invalidField(property));
 	}
 	const digitCount = Math.floor(digitsValue);
-	if (digitCount < 0 || digitCount > 9) {
+	if (!isWithin(digitCount, 0, 9)) {
 		throwRangeError(invalidField(property));
 	}
 	return digitCount;
 }
 
 interface PrecisionRecord {
+	/** `undefined` means `AUTO` */
 	$precision: number | typeof MINUTE | undefined;
 	$unit: Exclude<Unit.Time, Unit.Hour>;
 	$increment: number;
@@ -303,54 +305,26 @@ export function toSecondsStringPrecisionRecord(
 	smallestUnit: Exclude<Unit.Time, Unit.Hour> | undefined,
 	fractionalDigitCount: number | undefined,
 ): PrecisionRecord {
-	if (smallestUnit !== undefined) {
+	if (smallestUnit) {
 		return {
-			$precision:
-				smallestUnit === Unit.Minute
-					? MINUTE
-					: smallestUnit === Unit.Second
-						? 0
-						: smallestUnit === Unit.Millisecond
-							? 3
-							: smallestUnit === Unit.Microsecond
-								? 6
-								: 9,
+			$precision: smallestUnit === Unit.Minute ? MINUTE : (getIndexFromUnit(smallestUnit) - 6) * 3,
 			$unit: smallestUnit,
 			$increment: 1,
 		};
 	}
-	if (fractionalDigitCount === undefined) {
-		return {
-			$precision: undefined,
-			$unit: Unit.Nanosecond,
-			$increment: 1,
-		};
-	}
-	if (fractionalDigitCount === 0) {
-		return {
-			$precision: 0,
-			$unit: Unit.Second,
-			$increment: 1,
-		};
-	}
-	if (isWithin(fractionalDigitCount, 1, 3)) {
-		return {
-			$precision: fractionalDigitCount,
-			$unit: Unit.Millisecond,
-			$increment: 10 ** (3 - fractionalDigitCount),
-		};
-	}
-	if (isWithin(fractionalDigitCount, 4, 6)) {
-		return {
-			$precision: fractionalDigitCount,
-			$unit: Unit.Microsecond,
-			$increment: 10 ** (6 - fractionalDigitCount),
-		};
-	}
+	const unit = getUnitFromIndex(
+		(divFloor((fractionalDigitCount ?? 9) - 1, 3) + 7) as 6 | 7 | 8 | 9,
+	);
+	assert(
+		unit === Unit.Second ||
+			unit === Unit.Millisecond ||
+			unit === Unit.Microsecond ||
+			unit === Unit.Nanosecond,
+	);
 	return {
 		$precision: fractionalDigitCount,
-		$unit: Unit.Nanosecond,
-		$increment: 10 ** (9 - fractionalDigitCount),
+		$unit: unit,
+		$increment: 10 ** ((9 - (fractionalDigitCount ?? 9)) % 3),
 	};
 }
 
@@ -553,12 +527,8 @@ export function isDateUnit(unit: Unit): unit is Unit.Date {
 }
 
 /** `MaximumTemporalDurationRoundingIncrement` */
-export function maximumTemporalDurationRoundingIncrement(unit: Unit.Time): number;
-export function maximumTemporalDurationRoundingIncrement(unit: Unit): number | undefined;
-export function maximumTemporalDurationRoundingIncrement(unit: Unit): number | undefined {
-	return [undefined, undefined, undefined, undefined, 24, 60, 60, 1000, 1000, 1000][
-		getIndexFromUnit(unit)
-	];
+export function maximumTemporalDurationRoundingIncrement(unit: Unit.Time): number {
+	return [24, 60, 60][getIndexFromUnit(unit) - 4] || 1000;
 }
 
 /** `IsPartialTemporalObject` + throwing */
@@ -601,12 +571,11 @@ export function formatTimeString(
 	subSecondNanoseconds: number,
 	precision?: typeof MINUTE | number,
 ): string {
-	const hh = toZeroPaddedDecimalString(hour, 2);
-	const mm = toZeroPaddedDecimalString(minute, 2);
-	if (precision === MINUTE) {
-		return `${hh}:${mm}`;
-	}
-	return `${hh}:${mm}:${toZeroPaddedDecimalString(second, 2)}${formatFractionalSeconds(subSecondNanoseconds, precision)}`;
+	return `${toZeroPaddedDecimalString(hour, 2)}:${toZeroPaddedDecimalString(minute, 2)}${
+		precision === MINUTE
+			? ""
+			: `:${toZeroPaddedDecimalString(second, 2)}${formatFractionalSeconds(subSecondNanoseconds, precision)}`
+	}`;
 }
 
 const roundingFunctions: Record<RoundingMode, (num: number) => number> = {

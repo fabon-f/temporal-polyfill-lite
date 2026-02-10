@@ -76,7 +76,7 @@ import {
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
 import { nanosecondsForTimeUnit, timeUnitLengths, Unit } from "./internal/unit.ts";
-import { throwRangeError, throwTypeError } from "./internal/utils.ts";
+import { mapUnlessUndefined, throwRangeError, throwTypeError } from "./internal/utils.ts";
 import { balanceIsoDateTime, isoDateTimeToString } from "./PlainDateTime.ts";
 import { createTemporalZonedDateTime, getInternalSlotForZonedDateTime } from "./ZonedDateTime.ts";
 
@@ -354,7 +354,6 @@ export class Instant {
 		);
 	}
 	toString(options: unknown = undefined) {
-		let timeZone: string | undefined;
 		const slot = getInternalSlotOrThrowForInstant(this);
 		const resolvedOptions = getOptionsObject(options);
 		const digits = getTemporalFractionalSecondDigitsOption(resolvedOptions);
@@ -365,9 +364,7 @@ export class Instant {
 		if (smallestUnit === Unit.Hour) {
 			throwRangeError(invalidField("smallestUnit"));
 		}
-		if (rawTz !== undefined) {
-			timeZone = toTemporalTimeZoneIdentifier(rawTz);
-		}
+		const timeZone = mapUnlessUndefined(rawTz, toTemporalTimeZoneIdentifier);
 		const precisionRecord = toSecondsStringPrecisionRecord(smallestUnit, digits);
 		// `createTemporalInstant` doesn't do any validations, so we can directly pass epoch to `TemporalInstantToString`
 		return temporalInstantToString(
