@@ -298,7 +298,7 @@ function compareIsoDateTime(
 export function roundIsoDateTime(
 	isoDateTime: IsoDateTimeRecord,
 	increment: number,
-	unit: Unit,
+	unit: Unit.Day | Unit.Time,
 	roundingMode: RoundingMode,
 ): IsoDateTimeRecord {
 	assert(isoDateTimeWithinLimits(isoDateTime));

@@ -1341,7 +1341,7 @@ export class Duration {
 		pluralUnitKeys.map((k, i) => {
 			record[k] = slot[i]!;
 		});
-		return new Intl.DurationFormat(locales, options).format(record);
+		return new Intl.DurationFormat(locales as any, options as any).format(record);
 	}
 	valueOf() {
 		throwTypeError(forbiddenValueOf);

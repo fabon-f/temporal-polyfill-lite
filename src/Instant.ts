@@ -180,10 +180,9 @@ export function differenceInstant(
 export function roundTemporalInstant(
 	ns: EpochNanoseconds,
 	increment: number,
-	unit: Unit,
+	unit: Unit.Time,
 	roundingMode: RoundingMode,
 ): EpochNanoseconds {
-	assert(!isDateUnit(unit));
 	return roundEpochNanoseconds(ns, increment * nanosecondsForTimeUnit(unit), roundingMode);
 }
 
