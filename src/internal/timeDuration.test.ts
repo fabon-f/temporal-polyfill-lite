@@ -1,10 +1,10 @@
 import { expect, test } from "vitest";
+import { nanosecondsPerDay } from "./constants.ts";
 import {
 	createTimeDurationFromMicroseconds,
 	createTimeDurationFromNanoseconds,
 	normalize,
 } from "./timeDuration.ts";
-import { nanosecondsPerDay } from "./constants.ts";
 
 function fromNanosecondsBigInt(n: bigint) {
 	return [Number(n / BigInt(nanosecondsPerDay)), Number(n % BigInt(nanosecondsPerDay))] as const;

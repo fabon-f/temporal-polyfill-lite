@@ -1,6 +1,6 @@
+import { copyFile } from "node:fs/promises";
 import strip from "@rollup/plugin-strip";
 import terser from "@rollup/plugin-terser";
-import { copyFile } from "node:fs/promises";
 import { format } from "oxfmt";
 import { rolldown, type RolldownPluginOption } from "rolldown";
 import unpluginIsolatedDecl from "unplugin-isolated-decl/rolldown";

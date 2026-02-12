@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { nanosecondsPerDay } from "./constants.ts";
 import {
 	compareEpochNanoseconds,
 	convertEpochNanosecondsToBigInt,
@@ -7,7 +8,6 @@ import {
 	epochMilliseconds,
 	normalizeEpochNanoseconds,
 } from "./epochNanoseconds.ts";
-import { nanosecondsPerDay } from "./constants.ts";
 
 function daysToNanoseconds(n: number) {
 	return BigInt(n * nanosecondsPerDay);

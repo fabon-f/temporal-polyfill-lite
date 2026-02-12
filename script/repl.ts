@@ -1,5 +1,5 @@
-import repl from "node:repl";
 import "../src/global.ts";
+import repl from "node:repl";
 import { inspect } from "node:util";
 import type { Temporal as TemporalNamespace } from "../src/Temporal.ts";
 

@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
-import { isoDayOfWeek, isoDayOfYear, isoDaysInMonth, isoWeekOfYear } from "./calendars.ts";
 import { createIsoDateRecord } from "../PlainDate.ts";
+import { isoDayOfWeek, isoDayOfYear, isoDaysInMonth, isoWeekOfYear } from "./calendars.ts";
 
 test("isoDaysInMonth", () => {
 	expect(isoDaysInMonth(2025, 1)).toEqual(31);

@@ -6,5 +6,15 @@
 		"test262",
 		"pnpm-lock.yaml",
 		"*.json"
-	]
+	],
+	"experimentalSortImports": {
+		"groups": [
+			["side-effect"],
+			["builtin"],
+			["external"],
+			["parent"],
+			["sibling", "index"],
+		],
+		"newlinesBetween": false
+	}
 }
