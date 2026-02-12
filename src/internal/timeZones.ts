@@ -242,31 +242,30 @@ export function getAvailableNamedTimeZoneIdentifier(timeZone: string): string {
 
 /** `GetISOPartsFromEpoch` */
 function getIsoPartsFromEpoch(epochNanoseconds: EpochNanoseconds): IsoDateTimeRecord {
-	const [epochDays, remainderNanoseconds] = epochDaysAndRemainderNanoseconds(epochNanoseconds);
-	assert(isWithin(remainderNanoseconds, 0, nanosecondsPerDay - 1));
+	const daysAndNanoseconds = epochDaysAndRemainderNanoseconds(epochNanoseconds);
+	assert(isWithin(daysAndNanoseconds[1], 0, nanosecondsPerDay - 1));
 	return combineIsoDateAndTimeRecord(
-		epochDaysToIsoDate(epochDays),
-		balanceTime(0, 0, 0, 0, 0, remainderNanoseconds),
+		epochDaysToIsoDate(daysAndNanoseconds[0]),
+		balanceTime(0, 0, 0, 0, 0, daysAndNanoseconds[1]),
 	);
 }
 
 /** `FormatOffsetTimeZoneIdentifier` */
 export function formatOffsetTimeZoneIdentifier(offsetMinutes: number): string {
-	const abs = Math.abs(offsetMinutes);
-	return `${offsetMinutes < 0 ? "-" : "+"}${formatTimeString(divFloor(abs, 60), modFloor(abs, 60), 0, 0, MINUTE)}`;
+	return formatUtcOffsetNanoseconds(offsetMinutes * nanosecondsPerMinute);
 }
 
 /** `FormatUTCOffsetNanoseconds` */
 export function formatUtcOffsetNanoseconds(offsetNanoseconds: number): string {
 	const abs = Math.abs(offsetNanoseconds);
-	const second = modFloor(divFloor(abs, 1e9), 60);
-	const nanosecond = modFloor(abs, 1e9);
+	// this polyfill assumes that there are no sub-second offsets
+	assert(abs % 1e9 === 0);
 	return `${offsetNanoseconds < 0 ? "-" : "+"}${formatTimeString(
 		divFloor(abs, nanosecondsPerHour),
 		modFloor(divFloor(abs, nanosecondsPerMinute), 60),
-		second,
-		nanosecond,
-		second === 0 && nanosecond === 0 ? MINUTE : undefined,
+		modFloor(divFloor(abs, 1e9), 60),
+		0,
+		abs % nanosecondsPerMinute ? undefined : MINUTE,
 	)}`;
 }
 
@@ -327,20 +326,21 @@ export function disambiguatePossibleEpochNanoseconds(
 	if (disambiguation === disambiguationReject) {
 		throwRangeError(ambiguousTime);
 	}
-	const isForwardTransition = possibleEpochNs.length === 0;
 
 	// We are not sure whether handling of dates near boundary is correct here
 	// TODO: verify
-	possibleEpochNs = getNamedTimeZoneEpochCandidates(timeZone, isoDateTime).map((epoch) =>
-		validateEpochNanoseconds(epoch),
+	const candidates = getNamedTimeZoneEpochCandidates(timeZone, isoDateTime).map(
+		validateEpochNanoseconds,
 	);
+	assertNotUndefined(candidates[0]);
+	assertNotUndefined(candidates[1]);
 	if (disambiguation === disambiguationCompatible) {
-		return isForwardTransition ? possibleEpochNs[1]! : possibleEpochNs[0]!;
+		return possibleEpochNs.length === 0 ? candidates[1] : candidates[0];
 	}
 	if (disambiguation === disambiguationLater) {
-		return possibleEpochNs[1]!;
+		return candidates[1];
 	}
-	return possibleEpochNs[0]!;
+	return candidates[0];
 }
 
 /** `GetPossibleEpochNanoseconds` */

@@ -148,7 +148,7 @@ export interface CalendarFieldsRecord {
 /** `CanonicalizeCalendar` */
 export function canonicalizeCalendar(id: string): SupportedCalendars {
 	id = asciiLowerCase(id);
-	if (!["iso8601", "gregory"].includes(id)) {
+	if (id !== "iso8601" && id !== "gregory") {
 		throwRangeError(calendarNotSupported(id));
 	}
 	return id as SupportedCalendars;
@@ -217,27 +217,20 @@ export function prepareCalendarFields(
 	return result;
 }
 
-/** `CalendarFieldKeysPresent` */
-function calendarFieldKeysPresent(additionalFields: CalendarFieldsRecord): CalendarFieldKey[] {
-	return calendarFieldKeyList.filter((k) => additionalFields[k] !== undefined);
-}
-
 /** `CalendarMergeFields` */
 export function calendarMergeFields(
 	calendar: SupportedCalendars,
 	fields: CalendarFieldsRecord,
 	additionalFields: CalendarFieldsRecord,
 ): CalendarFieldsRecord {
-	const additionalKeys = calendarFieldKeysPresent(additionalFields);
-	const overriddenKeys = calendarFieldKeysToIgnore(calendar, additionalKeys);
+	const overriddenKeys = calendarFieldKeysToIgnore(calendar, additionalFields);
 	const merged = createEmptyCalendarFieldsRecord();
-	const fieldsKeys = calendarFieldKeysPresent(fields);
 	for (const k of calendarFieldKeyList) {
-		if (fieldsKeys.includes(k) && !overriddenKeys.includes(k)) {
+		if (fields[k] !== undefined && !overriddenKeys.includes(k)) {
 			// @ts-expect-error
 			merged[k] = fields[k];
 		}
-		if (additionalKeys.includes(k)) {
+		if (additionalFields[k] !== undefined) {
 			// @ts-expect-error
 			merged[k] = additionalFields[k];
 		}
@@ -333,11 +326,12 @@ export function getTemporalCalendarIdentifierWithIsoDefault(item: object): Suppo
 	if (slot) {
 		return slot.$calendar;
 	}
-	const calendarLike = (item as Record<string, unknown>)["calendar"];
-	if (calendarLike === undefined) {
-		return "iso8601";
-	}
-	return toTemporalCalendarIdentifier(calendarLike);
+	return (
+		mapUnlessUndefined(
+			(item as Record<string, unknown>)["calendar"],
+			toTemporalCalendarIdentifier,
+		) || "iso8601"
+	);
 }
 
 /** `CalendarDateFromFields` */
@@ -532,27 +526,33 @@ function calendarExtraFields(
 /** `CalendarFieldKeysToIgnore` */
 function calendarFieldKeysToIgnore(
 	calendar: SupportedCalendars,
-	keys: CalendarFieldKey[],
+	fields: CalendarFieldsRecord,
 ): CalendarFieldKey[] {
 	const ignoredKeys: CalendarFieldKey[] = [];
-	for (const k of keys) {
-		if (k === calendarFieldKeys.$month) {
-			ignoredKeys.push(calendarFieldKeys.$monthCode);
-		}
-		if (k === calendarFieldKeys.$monthCode) {
-			ignoredKeys.push(calendarFieldKeys.$month);
-		}
-		if (
-			calendarSupportsEra(calendar) &&
-			(
-				[
+	for (const k of calendarFieldKeyList) {
+		if (fields[k] !== undefined) {
+			if (k === calendarFieldKeys.$month) {
+				ignoredKeys.push(calendarFieldKeys.$monthCode);
+			}
+			if (k === calendarFieldKeys.$monthCode) {
+				ignoredKeys.push(calendarFieldKeys.$month);
+			}
+			if (
+				calendarSupportsEra(calendar) &&
+				(
+					[
+						calendarFieldKeys.$era,
+						calendarFieldKeys.$eraYear,
+						calendarFieldKeys.$year,
+					] as CalendarFieldKey[]
+				).includes(k)
+			) {
+				ignoredKeys.push(
 					calendarFieldKeys.$era,
 					calendarFieldKeys.$eraYear,
 					calendarFieldKeys.$year,
-				] as CalendarFieldKey[]
-			).includes(k)
-		) {
-			ignoredKeys.push(calendarFieldKeys.$era, calendarFieldKeys.$eraYear, calendarFieldKeys.$year);
+				);
+			}
 		}
 	}
 	return ignoredKeys;
@@ -594,6 +594,7 @@ function nonIsoResolveFields(
 	fields: CalendarFieldsRecord,
 	type: typeof DATE | typeof YEAR_MONTH | typeof MONTH_DAY = DATE,
 ): void {
+	assert(calendar === "gregory");
 	const era = fields[calendarFieldKeys.$era];
 	const eraYear = fields[calendarFieldKeys.$eraYear];
 	const year = fields[calendarFieldKeys.$year];
@@ -602,17 +603,12 @@ function nonIsoResolveFields(
 	const day = fields[calendarFieldKeys.$day];
 	if (type !== MONTH_DAY || monthCode === undefined || month !== undefined) {
 		// requires year component
-		if (
-			year === undefined &&
-			(!calendarSupportsEra(calendar) || era === undefined || eraYear === undefined)
-		) {
+		if (year === undefined && (era === undefined || eraYear === undefined)) {
 			throwTypeError(missingField("year, era, eraYear"));
 		}
 	}
-	if (calendarSupportsEra(calendar)) {
-		if ((era === undefined) !== (eraYear === undefined)) {
-			throwTypeError();
-		}
+	if ((era === undefined) !== (eraYear === undefined)) {
+		throwTypeError();
 	}
 	if (type !== YEAR_MONTH && day === undefined) {
 		throwTypeError(missingField("day"));
@@ -621,7 +617,7 @@ function nonIsoResolveFields(
 		// both are `undefined`
 		throwTypeError(missingField("month, monthCode"));
 	}
-	if (calendarSupportsEra(calendar) && eraYear !== undefined) {
+	if (eraYear !== undefined) {
 		assertNotUndefined(era);
 		const arithmeticYear = calendarDateArithmeticYearForEraYear(
 			calendar,
@@ -634,7 +630,6 @@ function nonIsoResolveFields(
 		fields[calendarFieldKeys.$year] = arithmeticYear;
 	}
 	fields[calendarFieldKeys.$era] = fields[calendarFieldKeys.$eraYear] = undefined;
-	assert(calendar === "gregory");
 	return isoResolveFields(fields, type);
 }
 

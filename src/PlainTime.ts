@@ -31,7 +31,7 @@ import {
 	type Overflow,
 	type RoundingMode,
 } from "./internal/enum.ts";
-import { getIndexFromUnit, timeUnitLengths, Unit, unitIndices } from "./internal/unit.ts";
+import { nanosecondsForTimeUnit, Unit } from "./internal/unit.ts";
 import { clamp, compare, divFloor, isWithin, modFloor, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
@@ -67,6 +67,7 @@ import {
 	invalidMethodCall,
 } from "./internal/errorMessages.ts";
 import { throwRangeError, throwTypeError, withArray } from "./internal/utils.ts";
+import { nanosecondsPerHour, nanosecondsPerMinute } from "./internal/constants.ts";
 
 export interface TimeRecord {
 	$hour: number;
@@ -339,38 +340,26 @@ export function addTime(time: TimeRecord, timeDuration: TimeDuration): TimeRecor
 export function roundTime(
 	time: TimeRecord,
 	increment: number,
-	unit: Unit,
+	unit: Unit.Day | Unit.Time,
 	roundingMode: RoundingMode,
 ): TimeRecord {
 	assert(!isCalendarUnit(unit));
-	const unitIndex = getIndexFromUnit(unit);
-	const values = [
-		time.$hour,
-		time.$minute,
-		time.$second,
-		time.$millisecond,
-		time.$microsecond,
-		time.$nanosecond,
-	];
-	let quantity = 0;
-	for (
-		let i = unitIndex === unitIndices.$day ? unitIndices.$hour : unitIndex;
-		i <= unitIndices.$nanosecond;
-		i++
-	) {
-		quantity += timeUnitLengths[i - 3]! * values[i - 4]!;
-	}
-	const unitLength = timeUnitLengths[unitIndex - 3]!;
-	const result =
-		roundNumberToIncrement(quantity, increment * unitLength, roundingMode) / unitLength;
-	if (unitIndex === unitIndices.$day) {
-		return createTimeRecord(0, 0, 0, 0, 0, 0, result);
-	}
 	return balanceTime(
-		// @ts-expect-error
-		...values.slice(0, unitIndex - unitIndices.$hour),
-		result,
-		...Array.from({ length: unitIndices.$nanosecond - unitIndex }, () => 0),
+		0,
+		0,
+		0,
+		0,
+		0,
+		roundNumberToIncrement(
+			time.$hour * nanosecondsPerHour +
+				time.$minute * nanosecondsPerMinute +
+				time.$second * 1e9 +
+				time.$millisecond * 1e6 +
+				time.$microsecond * 1e3 +
+				time.$nanosecond,
+			increment * nanosecondsForTimeUnit(unit),
+			roundingMode,
+		),
 	);
 }
 

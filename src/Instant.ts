@@ -26,6 +26,7 @@ import {
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
 import { assert, assertIsoDaysRange, assertNotUndefined } from "./internal/assertion.ts";
+import { nanosecondsPerDay } from "./internal/constants.ts";
 import {
 	parseDateTimeUtcOffset,
 	parseIsoDateTime,
@@ -75,7 +76,7 @@ import {
 	getOffsetNanosecondsFor,
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
-import { nanosecondsForTimeUnit, timeUnitLengths, Unit } from "./internal/unit.ts";
+import { nanosecondsForTimeUnit, Unit } from "./internal/unit.ts";
 import { mapUnlessUndefined, throwRangeError, throwTypeError } from "./internal/utils.ts";
 import { balanceIsoDateTime, isoDateTimeToString } from "./PlainDateTime.ts";
 import { createTemporalZonedDateTime, getInternalSlotForZonedDateTime } from "./ZonedDateTime.ts";
@@ -336,7 +337,7 @@ export class Instant {
 		const roundingMode = getRoundingModeOption(roundToOptions, roundingModeHalfExpand);
 		const smallestUnit = getTemporalUnitValuedOption(roundToOptions, "smallestUnit", REQUIRED);
 		validateTemporalUnitValue(smallestUnit, TIME);
-		const maximum = timeUnitLengths[0] / nanosecondsForTimeUnit(smallestUnit);
+		const maximum = nanosecondsPerDay / nanosecondsForTimeUnit(smallestUnit);
 		validateTemporalRoundingIncrement(roundingIncrement, maximum, true);
 		return createTemporalInstant(
 			roundTemporalInstant(slot.$epochNanoseconds, roundingIncrement, smallestUnit, roundingMode),

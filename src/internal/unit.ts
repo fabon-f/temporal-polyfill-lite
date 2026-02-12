@@ -1,9 +1,5 @@
 import { assertNotUndefined, assertUnitIndex } from "./assertion.ts";
-import {
-	millisecondsPerDay,
-	nanosecondsPerMilliseconds,
-	nanosecondsPerMinute,
-} from "./constants.ts";
+import { nanosecondsPerDay, nanosecondsPerHour, nanosecondsPerMinute } from "./constants.ts";
 
 export const Unit = {
 	Year: 0,
@@ -103,8 +99,8 @@ export type SingularUnitKey = (typeof singularUnitKeys)[number];
 export type PluralUnitKey = (typeof pluralUnitKeys)[number];
 
 export const timeUnitLengths = [
-	millisecondsPerDay * nanosecondsPerMilliseconds,
-	3.6e12,
+	nanosecondsPerDay,
+	nanosecondsPerHour,
 	nanosecondsPerMinute,
 	1e9,
 	1e6,

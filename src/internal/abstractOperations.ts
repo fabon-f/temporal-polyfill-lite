@@ -778,7 +778,7 @@ export function getDifferenceSettings<
 	if (largestUnit === "auto") {
 		largestUnit = largerOfTwoTemporalUnits(smallestLargestDefaultUnit, smallestUnit);
 	}
-	if (largerOfTwoTemporalUnits(largestUnit, smallestUnit) !== largestUnit) {
+	if (getIndexFromUnit(largestUnit) > getIndexFromUnit(smallestUnit)) {
 		throwRangeError(invalidLargestAndSmallestUnitOptions);
 	}
 	if (!isDateUnit(smallestUnit)) {

@@ -60,7 +60,7 @@ import {
 	forbiddenValueOf,
 	undefinedArgument,
 } from "./internal/errorMessages.ts";
-import { divTrunc, sign, type NumberSign } from "./internal/math.ts";
+import { clamp, divTrunc, sign, type NumberSign } from "./internal/math.ts";
 import { createNullPrototypeObject, isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import {
@@ -90,6 +90,7 @@ import {
 	getUnitFromIndex,
 	nanosecondsForTimeUnit,
 	pluralUnitKeys,
+	timeUnitLengths,
 	Unit,
 	unitIndices,
 	type PluralUnitKey,
@@ -919,7 +920,7 @@ function temporalDurationToString(duration: DurationSlot, precision?: number | u
 	];
 	const time = `${hourPart}${minutePart}${
 		timeDurationSign(secondsDuration) ||
-		largerOfTwoTemporalUnits(defaultTemporalLargestUnit(duration), Unit.Second) === Unit.Second ||
+		getIndexFromUnit(defaultTemporalLargestUnit(duration)) >= getIndexFromUnit(Unit.Second) ||
 		precision !== undefined
 			? `${toString(seconds)}${formatFractionalSeconds(milliseconds * 1e6 + microseconds * 1e3 + nanoseconds, precision)}S`
 			: ""
@@ -982,37 +983,27 @@ function balanceTimeDuration(
 	d: TimeDuration,
 	largestUnit: Unit,
 ): [days: number, ...TimeDurationTuple] {
-	const nanoseconds = timeDurationDaysAndRemainderNanoseconds(d)[1];
-	const remNanoseconds = (nanoseconds % 1000) + 0;
-	const remMicroseconds = (divTrunc(nanoseconds, 1e3) % 1000) + 0;
-	const remMilliseconds = (divTrunc(nanoseconds, 1e6) % 1000) + 0;
-	const seconds = timeDurationToSecondsNumber(d);
-	const remSeconds = (seconds % 60) + 0;
-	const minutes = divTrunc(seconds, 60);
-	const remMinutes = (minutes % 60) + 0;
-	const hours = divTrunc(minutes, 60);
-	const remHours = (hours % 24) + 0;
-	const days = divTrunc(hours, 24);
-
-	if (largestUnit === Unit.Nanosecond) {
-		return [0, 0, 0, 0, 0, 0, timeDurationToSubsecondsNumber(d, -9)];
-	}
-	if (largestUnit === Unit.Microsecond) {
-		return [0, 0, 0, 0, 0, timeDurationToSubsecondsNumber(d, -6), remNanoseconds];
-	}
-	if (largestUnit === Unit.Millisecond) {
-		return [0, 0, 0, 0, timeDurationToSubsecondsNumber(d, -3), remMicroseconds, remNanoseconds];
-	}
-	if (largestUnit === Unit.Second) {
-		return [0, 0, 0, seconds, remMilliseconds, remMicroseconds, remNanoseconds];
-	}
-	if (largestUnit === Unit.Minute) {
-		return [0, 0, minutes, remSeconds, remMilliseconds, remMicroseconds, remNanoseconds];
-	}
-	if (largestUnit === Unit.Hour) {
-		return [0, hours, remMinutes, remSeconds, remMilliseconds, remMicroseconds, remNanoseconds];
-	}
-	return [days, remHours, remMinutes, remSeconds, remMilliseconds, remMicroseconds, remNanoseconds];
+	const unitIndex = clamp(getIndexFromUnit(largestUnit), 3, 9);
+	return [
+		// above `largestUnit`
+		...[0, 0, 0, 0, 0, 0].slice(0, unitIndex - unitIndices.$day),
+		// `largestUnit`
+		unitIndex > unitIndices.$second
+			? timeDurationToSubsecondsNumber(d, 18 - unitIndex * 3)
+			: divTrunc(
+					timeDurationToSecondsNumber(d),
+					timeUnitLengths[unitIndex - unitIndices.$day]! / 1e9,
+				),
+		// balanced units below `largestUnit`
+		...[0, 1, 2, 3, 4, 5]
+			.map(
+				(i) =>
+					(divTrunc(timeDurationDaysAndRemainderNanoseconds(d)[1], timeUnitLengths[i + 1]!) %
+						(timeUnitLengths[i]! / timeUnitLengths[i + 1]!)) +
+					0,
+			)
+			.slice(unitIndex - unitIndices.$day),
+	] as [days: number, ...TimeDurationTuple];
 }
 
 export class Duration {
@@ -1164,7 +1155,7 @@ export class Duration {
 		}
 		if (
 			(!smallestUnitPresent && !largestUnitPresent) ||
-			largerOfTwoTemporalUnits(largestUnit, smallestUnit) !== largestUnit
+			getIndexFromUnit(largestUnit) > getIndexFromUnit(smallestUnit)
 		) {
 			throwRangeError(invalidLargestAndSmallestUnitOptions);
 		}
