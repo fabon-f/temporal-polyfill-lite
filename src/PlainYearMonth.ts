@@ -151,7 +151,10 @@ export function createTemporalYearMonth(
 	calendar: SupportedCalendars,
 	instance = Object.create(PlainYearMonth.prototype) as PlainYearMonth,
 ): PlainYearMonth {
-	slots.set(instance, createPlainYearMonthSlot(validateIsoYearMonth(isoDate), calendar));
+	slots.set(instance, {
+		$isoDate: validateIsoYearMonth(isoDate),
+		$calendar: calendar,
+	} as PlainYearMonthSlot);
 	return instance;
 }
 
@@ -189,7 +192,7 @@ function differenceTemporalPlainYearMonth(
 		Unit.Year,
 	);
 	if (!compareIsoDate(yearMonth.$isoDate, otherSlot.$isoDate)) {
-		return createTemporalDuration(createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+		return createTemporalDuration(createTemporalDurationSlot([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]));
 	}
 	const thisDate = calendarDateFromFields(
 		yearMonth.$calendar,
@@ -285,16 +288,6 @@ export function validateIsoYearMonth(isoDate: IsoDateRecord) {
 		throwRangeError(outOfBoundsDate);
 	}
 	return isoDate;
-}
-
-function createPlainYearMonthSlot(
-	isoDate: IsoDateRecord,
-	calendar: SupportedCalendars,
-): PlainYearMonthSlot {
-	return {
-		$isoDate: isoDate,
-		$calendar: calendar,
-	} as PlainYearMonthSlot;
 }
 
 export function getInternalSlotForPlainYearMonth(

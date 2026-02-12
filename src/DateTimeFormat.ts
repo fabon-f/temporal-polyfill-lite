@@ -63,17 +63,6 @@ new OriginalDateTimeFormat(
 
 const slots = new WeakMap<any, DateTimeFormatSlot>();
 
-function createInternalSlot(
-	rawDTF: RawDTF,
-	originalOptions: Intl.DateTimeFormatOptions,
-): DateTimeFormatSlot {
-	return createNullPrototypeObject({
-		$rawDtf: rawDTF,
-		$originalOptions: originalOptions,
-		$locale: rawDTF.resolvedOptions().locale,
-	}) as DateTimeFormatSlot;
-}
-
 export function getInternalSlotOrThrowForDateTimeFormat(dtf: any): DateTimeFormatSlot {
 	const slot = slots.get(dtf);
 	if (!slot) {
@@ -310,10 +299,13 @@ export function createDateTimeFormat(
 	) {
 		throwTypeError(invalidFormattingOptions);
 	}
-
 	slots.set(
 		instance,
-		createInternalSlot(rawDtf, coercedOriginalOptions as Intl.DateTimeFormatOptions),
+		createNullPrototypeObject({
+			$rawDtf: rawDtf,
+			$originalOptions: coercedOriginalOptions as Intl.DateTimeFormatOptions,
+			$locale: rawDtf.resolvedOptions().locale,
+		}) as DateTimeFormatSlot,
 	);
 	return instance;
 }

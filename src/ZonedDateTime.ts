@@ -175,7 +175,6 @@ import {
 import {
 	createTemporalTime,
 	differenceTime,
-	getInternalSlotOrThrowForPlainTime,
 	toTemporalTime,
 	type TimeRecord,
 } from "./PlainTime.ts";
@@ -264,7 +263,7 @@ export function interpretISODateTimeOffset(
 }
 
 /** `ToTemporalZonedDateTime` */
-function toTemporalZonedDateTime(item: unknown, options?: unknown): ZonedDateTime {
+function toTemporalZonedDateTime(item: unknown, options?: unknown): ZonedDateTimeSlot {
 	let timeZone: string;
 	let offsetString: string | undefined;
 	let hasUtcDesignator = false;
@@ -280,7 +279,7 @@ function toTemporalZonedDateTime(item: unknown, options?: unknown): ZonedDateTim
 			getTemporalDisambiguationOption(resolvedOptions);
 			getTemporalOffsetOption(resolvedOptions, overflowReject);
 			getTemporalOverflowOption(resolvedOptions);
-			return createTemporalZonedDateTimeFromSlot(getInternalSlotOrThrowForZonedDateTime(item));
+			return getInternalSlotOrThrowForZonedDateTime(item);
 		}
 		calendar = getTemporalCalendarIdentifierWithIsoDefault(item);
 		const fields = prepareCalendarFields(
@@ -348,7 +347,7 @@ function toTemporalZonedDateTime(item: unknown, options?: unknown): ZonedDateTim
 		offsetOption,
 		matchExactly,
 	);
-	return createTemporalZonedDateTime(epoch, timeZone, calendar);
+	return createZonedDateTimeSlot(epoch, timeZone, calendar);
 }
 
 /** ` CreateTemporalZonedDateTime` */
@@ -356,7 +355,7 @@ export function createTemporalZonedDateTime(
 	epochNanoseconds: EpochNanoseconds,
 	timeZone: string,
 	calendar: SupportedCalendars,
-	instance = Object.create(ZonedDateTime.prototype) as ZonedDateTime,
+	instance?: ZonedDateTime,
 ): ZonedDateTime {
 	assert(isValidEpochNanoseconds(epochNanoseconds));
 	return createTemporalZonedDateTimeFromSlot(
@@ -564,7 +563,7 @@ function differenceTemporalZonedDateTime(
 	other: unknown,
 	options: unknown,
 ): Duration {
-	const otherSlot = getInternalSlotOrThrowForZonedDateTime(toTemporalZonedDateTime(other));
+	const otherSlot = toTemporalZonedDateTime(other);
 	if (!calendarEquals(zonedDateTime.$calendar, otherSlot.$calendar)) {
 		throwRangeError(calendarMismatch);
 	}
@@ -598,7 +597,7 @@ function differenceTemporalZonedDateTime(
 		throwRangeError(timeZoneMismatch);
 	}
 	if (!compareEpochNanoseconds(zonedDateTime.$epochNanoseconds, otherSlot.$epochNanoseconds)) {
-		return createTemporalDuration(createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+		return createTemporalDuration(createTemporalDurationSlot([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]));
 	}
 	return createTemporalDuration(
 		applySignToDurationSlot(
@@ -699,12 +698,12 @@ export class ZonedDateTime {
 		createTemporalZonedDateTime(epoch, timeZoneString, canonicalizeCalendar(calendar), this);
 	}
 	static from(item: unknown, options: unknown = undefined) {
-		return toTemporalZonedDateTime(item, options);
+		return createTemporalZonedDateTimeFromSlot(toTemporalZonedDateTime(item, options));
 	}
 	static compare(one: unknown, two: unknown) {
 		return compareEpochNanoseconds(
-			getInternalSlotOrThrowForZonedDateTime(toTemporalZonedDateTime(one)).$epochNanoseconds,
-			getInternalSlotOrThrowForZonedDateTime(toTemporalZonedDateTime(two)).$epochNanoseconds,
+			toTemporalZonedDateTime(one).$epochNanoseconds,
+			toTemporalZonedDateTime(two).$epochNanoseconds,
 		);
 	}
 	get calendarId() {
@@ -883,10 +882,7 @@ export class ZonedDateTime {
 		return createTemporalZonedDateTime(
 			getEpochNanosecondsFor(
 				slot.$timeZone,
-				combineIsoDateAndTimeRecord(
-					isoDateTime.$isoDate,
-					getInternalSlotOrThrowForPlainTime(toTemporalTime(plainTimeLike)),
-				),
+				combineIsoDateAndTimeRecord(isoDateTime.$isoDate, toTemporalTime(plainTimeLike)),
 				disambiguationCompatible,
 			),
 			slot.$timeZone,
@@ -1005,7 +1001,7 @@ export class ZonedDateTime {
 	}
 	equals(other: unknown) {
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
-		const otherSlot = getInternalSlotOrThrowForZonedDateTime(toTemporalZonedDateTime(other));
+		const otherSlot = toTemporalZonedDateTime(other);
 		return (
 			!compareEpochNanoseconds(slot.$epochNanoseconds, otherSlot.$epochNanoseconds) &&
 			timeZoneEquals(slot.$timeZone, otherSlot.$timeZone) &&

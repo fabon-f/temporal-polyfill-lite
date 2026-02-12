@@ -83,7 +83,6 @@ import {
 } from "./PlainDateTime.ts";
 import { createTemporalMonthDay } from "./PlainMonthDay.ts";
 import {
-	getInternalSlotOrThrowForPlainTime,
 	midnightTimeRecord,
 	noonTimeRecord,
 	toTemporalTime,
@@ -129,8 +128,10 @@ export function createTemporalDate(
 	calendar: SupportedCalendars,
 	instance = Object.create(PlainDate.prototype) as PlainDate,
 ): PlainDate {
-	const slot = createPlainDateSlot(validateIsoDate(date), calendar);
-	slots.set(instance, slot);
+	slots.set(instance, {
+		$isoDate: validateIsoDate(date),
+		$calendar: calendar,
+	} as PlainDateSlot);
 	return instance;
 }
 
@@ -250,7 +251,7 @@ function differenceTemporalPlainDate(
 		Unit.Day,
 	);
 	if (!compareIsoDate(temporalDate.$isoDate, otherSlot.$isoDate)) {
-		return createTemporalDuration(createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+		return createTemporalDuration(createTemporalDurationSlot([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]));
 	}
 	let duration = combineDateAndTimeDuration(
 		calendarDateUntil(
@@ -315,13 +316,6 @@ export function getInternalSlotOrThrowForPlainDate(plainDate: unknown): PlainDat
 
 export function isPlainDate(item: unknown): boolean {
 	return !!getInternalSlotForPlainDate(item);
-}
-
-function createPlainDateSlot(date: IsoDateRecord, calendar: SupportedCalendars): PlainDateSlot {
-	return {
-		$isoDate: date,
-		$calendar: calendar,
-	} as PlainDateSlot;
 }
 
 export function validateIsoDate(isoDate: IsoDateRecord) {
@@ -530,10 +524,7 @@ export class PlainDate {
 			getEpochNanosecondsFor(
 				timeZone,
 				validateIsoDateTime(
-					combineIsoDateAndTimeRecord(
-						slot.$isoDate,
-						getInternalSlotOrThrowForPlainTime(toTemporalTime(temporalTime)),
-					),
+					combineIsoDateAndTimeRecord(slot.$isoDate, toTemporalTime(temporalTime)),
 				),
 				disambiguationCompatible,
 			),

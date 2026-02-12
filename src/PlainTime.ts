@@ -140,23 +140,23 @@ export function differenceTime(time1: TimeRecord, time2: TimeRecord): TimeDurati
 }
 
 /** `ToTemporalTime` */
-export function toTemporalTime(item: unknown, options?: unknown): PlainTime {
+export function toTemporalTime(item: unknown, options?: unknown): PlainTimeSlot {
 	if (isObject(item)) {
 		if (isPlainTime(item)) {
 			getTemporalOverflowOption(getOptionsObject(options));
-			return createTemporalTime(getInternalSlotOrThrowForPlainTime(item));
+			return getInternalSlotOrThrowForPlainTime(item);
 		}
 		if (isPlainDateTime(item)) {
 			getTemporalOverflowOption(getOptionsObject(options));
-			return createTemporalTime(getInternalSlotOrThrowForPlainDateTime(item).$isoDateTime.$time);
+			return createPlainTimeSlot(getInternalSlotOrThrowForPlainDateTime(item).$isoDateTime.$time);
 		}
 		if (isZonedDateTime(item)) {
 			getTemporalOverflowOption(getOptionsObject(options));
-			return createTemporalTime(
+			return createPlainTimeSlot(
 				getIsoDateTimeForZonedDateTimeSlot(getInternalSlotOrThrowForZonedDateTime(item)).$time,
 			);
 		}
-		return createTemporalTime(
+		return createPlainTimeSlot(
 			regulateTime(
 				...toTemporalTimeRecord(item),
 				getTemporalOverflowOption(getOptionsObject(options)),
@@ -167,14 +167,12 @@ export function toTemporalTime(item: unknown, options?: unknown): PlainTime {
 	const result = parseIsoDateTime(item, [temporalTimeStringRegExp]);
 	assert(result.$time !== undefined);
 	getTemporalOverflowOption(getOptionsObject(options));
-	return createTemporalTime(result.$time);
+	return createPlainTimeSlot(result.$time);
 }
 
 /** `ToTimeRecordOrMidnight` */
 export function toTimeRecordOrMidnight(item: unknown): TimeRecord {
-	return item === undefined
-		? midnightTimeRecord()
-		: getInternalSlotOrThrowForPlainTime(toTemporalTime(item));
+	return item === undefined ? midnightTimeRecord() : toTemporalTime(item);
 }
 
 /** `RegulateTime` */
@@ -383,7 +381,7 @@ function differenceTemporalPlainTime(
 	other: unknown,
 	options: unknown,
 ) {
-	const otherTime = getInternalSlotOrThrowForPlainTime(toTemporalTime(other));
+	const otherTime = toTemporalTime(other);
 	const settings = getDifferenceSettings(
 		operationSign,
 		getOptionsObject(options),
@@ -461,13 +459,10 @@ export class PlainTime {
 		createTemporalTime(createTimeRecord(...units), this);
 	}
 	static from(item: unknown, options: unknown = undefined) {
-		return toTemporalTime(item, options);
+		return createTemporalTime(toTemporalTime(item, options));
 	}
 	static compare(one: unknown, two: unknown) {
-		return compareTimeRecord(
-			getInternalSlotOrThrowForPlainTime(toTemporalTime(one)),
-			getInternalSlotOrThrowForPlainTime(toTemporalTime(two)),
-		);
+		return compareTimeRecord(toTemporalTime(one), toTemporalTime(two));
 	}
 	get hour() {
 		const slot = getInternalSlotOrThrowForPlainTime(this);
@@ -539,10 +534,7 @@ export class PlainTime {
 		return createTemporalTime(roundTime(slot, roundingIncrement, smallestUnit, roundingMode));
 	}
 	equals(other: unknown) {
-		return !compareTimeRecord(
-			getInternalSlotOrThrowForPlainTime(this),
-			getInternalSlotOrThrowForPlainTime(toTemporalTime(other)),
-		);
+		return !compareTimeRecord(getInternalSlotOrThrowForPlainTime(this), toTemporalTime(other));
 	}
 	toString(options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForPlainTime(this);

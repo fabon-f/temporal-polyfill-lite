@@ -258,8 +258,10 @@ export function createTemporalDateTime(
 	calendar: SupportedCalendars,
 	instance = Object.create(PlainDateTime.prototype) as PlainDateTime,
 ): PlainDateTime {
-	const slot = createPlainDateTimeSlot(validateIsoDateTime(isoDateTime), calendar);
-	slots.set(instance, slot);
+	slots.set(instance, {
+		$isoDateTime: validateIsoDateTime(isoDateTime),
+		$calendar: calendar,
+	} as PlainDateTimeSlot);
 	return instance;
 }
 
@@ -408,7 +410,7 @@ function differenceTemporalPlainDateTime(
 		Unit.Day,
 	);
 	if (!compareIsoDateTime(dateTime.$isoDateTime, otherSlot.$isoDateTime)) {
-		return createTemporalDuration(createTemporalDurationSlot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+		return createTemporalDuration(createTemporalDurationSlot([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]));
 	}
 	return createTemporalDuration(
 		applySignToDurationSlot(
@@ -459,16 +461,6 @@ export function validateIsoDateTime(isoDateTime: IsoDateTimeRecord): IsoDateTime
 		throwRangeError(outOfBoundsDate);
 	}
 	return isoDateTime;
-}
-
-function createPlainDateTimeSlot(
-	isoDateTime: IsoDateTimeRecord,
-	calendar: SupportedCalendars,
-): PlainDateTimeSlot {
-	return {
-		$isoDateTime: isoDateTime,
-		$calendar: calendar,
-	} as PlainDateTimeSlot;
 }
 
 export function getInternalSlotForPlainDateTime(

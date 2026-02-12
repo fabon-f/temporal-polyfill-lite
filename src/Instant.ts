@@ -107,8 +107,9 @@ export function createTemporalInstant(
 	instance = Object.create(Instant.prototype) as Instant,
 ): Instant {
 	assert(isValidEpochNanoseconds(epochNanoseconds));
-	const slot = createInternalSlot(epochNanoseconds);
-	slots.set(instance, slot);
+	slots.set(instance, {
+		$epochNanoseconds: epochNanoseconds,
+	} as InstantSlot);
 	return instance;
 }
 
@@ -270,12 +271,6 @@ export function getInternalSlotOrThrowForInstant(instant: unknown): InstantSlot 
 
 export function isInstant(value: unknown) {
 	return slots.has(value);
-}
-
-function createInternalSlot(epoch: EpochNanoseconds): InstantSlot {
-	return {
-		$epochNanoseconds: epoch,
-	} as InstantSlot;
 }
 
 export function clampEpochNanoseconds(epoch: EpochNanoseconds) {

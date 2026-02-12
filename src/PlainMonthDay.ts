@@ -113,7 +113,10 @@ export function createTemporalMonthDay(
 	calendar: SupportedCalendars,
 	instance = Object.create(PlainMonthDay.prototype) as PlainMonthDay,
 ): PlainMonthDay {
-	slots.set(instance, createPlainMonthDaySlot(validateIsoDate(isoDate), calendar));
+	slots.set(instance, {
+		$isoDate: validateIsoDate(isoDate),
+		$calendar: calendar,
+	} as PlainMonthDaySlot);
 	return instance;
 }
 
@@ -129,16 +132,6 @@ function temporalMonthDayToString(
 			? `${padIsoYear(monthDaySlot.$isoDate.$year)}-`
 			: ""
 	}${toZeroPaddedDecimalString(monthDaySlot.$isoDate.$month, 2)}-${toZeroPaddedDecimalString(monthDaySlot.$isoDate.$day, 2)}${formatCalendarAnnotation(monthDaySlot.$calendar, showCalendar)}`;
-}
-
-function createPlainMonthDaySlot(
-	isoDate: IsoDateRecord,
-	calendar: SupportedCalendars,
-): PlainMonthDaySlot {
-	return {
-		$isoDate: isoDate,
-		$calendar: calendar,
-	} as PlainMonthDaySlot;
 }
 
 export function getInternalSlotForPlainMonthDay(

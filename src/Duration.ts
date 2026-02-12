@@ -233,13 +233,13 @@ export function temporalDurationFromInternal(
 	largestUnit: Unit,
 ): DurationSlot {
 	const [days, ...timeUnits] = balanceTimeDuration(internalDuration.$time, largestUnit);
-	return createTemporalDurationSlot(
+	return createTemporalDurationSlot([
 		internalDuration.$date.$years,
 		internalDuration.$date.$months,
 		internalDuration.$date.$weeks,
 		internalDuration.$date.$days + days,
 		...timeUnits,
-	);
+	]);
 }
 
 /** `CreateDateDurationRecord` */
@@ -290,7 +290,7 @@ export function toTemporalDuration(item: unknown): DurationSlot {
 		return parseTemporalDurationString(item);
 	}
 	return createTemporalDurationSlot(
-		...(toTemporalPartialDurationRecord(item).map((v) => v || 0) as DurationTuple),
+		toTemporalPartialDurationRecord(item).map((v) => v || 0) as DurationTuple,
 	);
 }
 
@@ -377,7 +377,7 @@ function toTemporalPartialDurationRecord(temporalDurationLike: unknown): Partial
 }
 
 /** part of `CreateTemporalDuration` */
-export function createTemporalDurationSlot(...units: DurationTuple): DurationSlot {
+export function createTemporalDurationSlot(units: DurationTuple): DurationSlot {
 	validateDuration(...units);
 	return units as DurationSlot;
 }
@@ -964,7 +964,7 @@ function getInternalSlotOrThrowForDuration(duration: unknown): DurationSlot {
 }
 
 export function applySignToDurationSlot(duration: DurationSlot, sign: NumberSign): DurationSlot {
-	return createTemporalDurationSlot(...(duration.map((v) => v * sign + 0) as DurationTuple));
+	return createTemporalDurationSlot(duration.map((v) => v * sign + 0) as DurationTuple);
 }
 
 function timeDurationWithinLimits(d: TimeDuration): boolean {
@@ -1030,7 +1030,7 @@ export class Duration {
 	) {
 		createTemporalDuration(
 			createTemporalDurationSlot(
-				...([
+				[
 					years,
 					months,
 					weeks,
@@ -1041,7 +1041,7 @@ export class Duration {
 					milliseconds,
 					microseconds,
 					nanoseconds,
-				].map(toIntegerIfIntegral) as DurationTuple),
+				].map(toIntegerIfIntegral) as DurationTuple,
 			),
 			this,
 		);
@@ -1123,10 +1123,7 @@ export class Duration {
 		const thisSlot = getInternalSlotOrThrowForDuration(this);
 		return createTemporalDuration(
 			createTemporalDurationSlot(
-				...(withArray(
-					toTemporalPartialDurationRecord(temporalDurationLike),
-					thisSlot,
-				) as DurationTuple),
+				withArray(toTemporalPartialDurationRecord(temporalDurationLike), thisSlot) as DurationTuple,
 			),
 		);
 	}
@@ -1138,7 +1135,7 @@ export class Duration {
 	abs() {
 		return createTemporalDuration(
 			createTemporalDurationSlot(
-				...(getInternalSlotOrThrowForDuration(this).map(Math.abs) as DurationTuple),
+				getInternalSlotOrThrowForDuration(this).map(Math.abs) as DurationTuple,
 			),
 		);
 	}

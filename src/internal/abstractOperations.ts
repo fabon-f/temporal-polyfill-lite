@@ -700,7 +700,7 @@ export function parseTemporalDurationString(isoString: string): DurationSlot {
 			toIntegerWithTruncation((result[11] || "").padEnd(9, "0")),
 	);
 	return applySignToDurationSlot(
-		createTemporalDurationSlot(
+		createTemporalDurationSlot([
 			toIntegerWithTruncation(result[2] || ""),
 			toIntegerWithTruncation(result[3] || ""),
 			toIntegerWithTruncation(result[4] || ""),
@@ -711,7 +711,7 @@ export function parseTemporalDurationString(isoString: string): DurationSlot {
 			fracPart.$millisecond,
 			fracPart.$microsecond,
 			fracPart.$nanosecond,
-		),
+		]),
 		toIntegerWithTruncation(`${result[1]}1`) as NumberSign,
 	);
 }
