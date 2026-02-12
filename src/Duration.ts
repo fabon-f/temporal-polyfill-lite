@@ -66,7 +66,6 @@ import { defineStringTag, renameFunction } from "./internal/property.ts";
 import {
 	absTimeDuration,
 	addDaysToTimeDuration,
-	addNanosecondsToTimeDuration,
 	addTimeDuration,
 	compareTimeDuration,
 	createTimeDurationFromMicroseconds,
@@ -166,11 +165,6 @@ export interface InternalDurationRecord {
 }
 
 export type DurationSlot = DurationTuple & { [internalSlotBrand]: unknown };
-
-const maxTimeDuration = addNanosecondsToTimeDuration(
-	createTimeDurationFromSeconds(2 ** 53 - 1),
-	999999999,
-);
 
 const slots = new WeakMap<any, DurationSlot>();
 
@@ -969,7 +963,9 @@ export function applySignToDurationSlot(duration: DurationSlot, sign: NumberSign
 }
 
 function timeDurationWithinLimits(d: TimeDuration): boolean {
-	return compareTimeDuration(absTimeDuration(d), maxTimeDuration) !== 1;
+	// `createTimeDurationFromSeconds(2 ** 53)` returns the expected result here,
+	// even though 2 ** 53 is an unsafe integer.
+	return compareTimeDuration(absTimeDuration(d), createTimeDurationFromSeconds(2 ** 53)) < 0;
 }
 
 function validateTimeDurationRange(d: TimeDuration): TimeDuration {

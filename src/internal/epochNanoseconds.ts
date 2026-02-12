@@ -6,6 +6,9 @@ import { normalize as normalizeTimeDuration, type TimeDuration } from "./timeDur
 
 const epochNanosecondsBrand = /*#__PURE__*/ Symbol();
 
+export const minEpochNanoseconds = createEpochNanosecondsFromEpochMilliseconds(-8.64e15);
+export const maxEpochNanoseconds = createEpochNanosecondsFromEpochMilliseconds(8.64e15);
+
 /** remainder is always positive */
 export type EpochNanoseconds = [days: number, remainderNanoseconds: number] & {
 	[epochNanosecondsBrand]: unknown;

@@ -57,6 +57,8 @@ import {
 	createEpochNanosecondsFromBigInt,
 	createEpochNanosecondsFromEpochMilliseconds,
 	epochMilliseconds,
+	maxEpochNanoseconds,
+	minEpochNanoseconds,
 	roundEpochNanoseconds,
 	type EpochNanoseconds,
 } from "./internal/epochNanoseconds.ts";
@@ -87,9 +89,6 @@ interface InstantSlot {
 	$epochNanoseconds: EpochNanoseconds;
 	[internalSlotBrand]: unknown;
 }
-
-const minEpochNanoseconds = createEpochNanosecondsFromEpochMilliseconds(-8.64e15);
-const maxEpochNanoseconds = createEpochNanosecondsFromEpochMilliseconds(8.64e15);
 
 const slots = new WeakMap<any, InstantSlot>();
 
