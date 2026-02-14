@@ -203,7 +203,7 @@ export function interpretISODateTimeOffset(
 	offsetOption: Offset,
 	matchExactly: boolean,
 ): EpochNanoseconds {
-	if (time === undefined) {
+	if (!time) {
 		assert(offsetBehaviour === offsetBehaviourWall);
 		assert(offsetNanoseconds === 0);
 		return getStartOfDay(timeZone, isoDate);
@@ -320,7 +320,7 @@ function toTemporalZonedDateTime(item: unknown, options?: unknown): ZonedDateTim
 		hasUtcDesignator = result.$timeZone.$z;
 		calendar = canonicalizeCalendar(result.$calendar || "iso8601");
 		matchExactly = false;
-		if (offsetString !== undefined) {
+		if (offsetString) {
 			matchExactly = hasUtcOffsetSubMinuteParts(offsetString);
 		}
 		const resolvedOptions = getOptionsObject(options);
@@ -332,9 +332,9 @@ function toTemporalZonedDateTime(item: unknown, options?: unknown): ZonedDateTim
 	}
 	const offsetBehaviour = hasUtcDesignator
 		? offsetBehaviourExact
-		: offsetString === undefined
-			? offsetBehaviourWall
-			: offsetBehaviourOption;
+		: offsetString
+			? offsetBehaviourOption
+			: offsetBehaviourWall;
 	const offsetNanoseconds =
 		offsetBehaviour === offsetBehaviourOption ? parseDateTimeUtcOffset(offsetString!) : 0;
 	const epoch = interpretISODateTimeOffset(

@@ -1,6 +1,6 @@
 import { isValidIsoDate } from "../PlainDate.ts";
 import { createTimeRecord, type TimeRecord } from "../PlainTime.ts";
-import { assertNotUndefined } from "./assertion.ts";
+import { assert, assertNotUndefined } from "./assertion.ts";
 import { nanosecondsPerMinute } from "./constants.ts";
 import { toNumber } from "./ecmascript.ts";
 import { parseError } from "./errorMessages.ts";
@@ -90,13 +90,10 @@ const ambiguousTemporalTimeStringRegExp = [
 ];
 
 function isAmbiguousTemporalTimeString(isoString: string): boolean {
-	for (const regexp of ambiguousTemporalTimeStringRegExp) {
+	return ambiguousTemporalTimeStringRegExp.some((regexp) => {
 		const result = isoString.match(regexp);
-		if (result && isSemanticallyValid(result.groups!)) {
-			return true;
-		}
-	}
-	return false;
+		return result && isSemanticallyValid(result.groups!);
+	});
 }
 
 const timeZoneIdentifierRegExp = createRegExp(timeZoneIdentifier);
@@ -127,7 +124,7 @@ function parseAnnotationsAndGetCalendar(annotationsString: string): string | und
 	for (const match of annotationsString.matchAll(annotationRegExp)) {
 		const isCritical = !!match[1];
 		if (match[2] === "u-ca") {
-			if (calendar === undefined) {
+			if (!calendar) {
 				calendar = match[3];
 				if (isCritical) {
 					calendarWasCritical = true;
@@ -178,8 +175,6 @@ export function parseIsoDateTime(
 	isoString: string,
 	allowedFormats: RegExp[],
 ): IsoDateTimeParseRecord {
-	let matchedGroups: Record<string, string> | undefined;
-	let calendar: string | undefined;
 	for (const format of allowedFormats) {
 		const result = isoString.match(format);
 		if (
@@ -189,31 +184,27 @@ export function parseIsoDateTime(
 		) {
 			continue;
 		}
-		matchedGroups = result.groups!;
-
-		calendar = parseAnnotationsAndGetCalendar(matchedGroups["k"] || "");
+		const matchedGroups = result.groups!;
+		const calendar = parseAnnotationsAndGetCalendar(matchedGroups["k"] || "");
 		if (matchedGroups["m"]) {
-			if (calendar !== undefined && asciiLowerCase(calendar) !== "iso8601") {
+			if (calendar && asciiLowerCase(calendar) !== "iso8601") {
 				throwRangeError(parseError);
 			}
 		}
-		break;
+		return {
+			$year: mapUnlessUndefined(matchedGroups["a"] || matchedGroups["l"], toNumber),
+			$month: toNumber(matchedGroups["b"] || matchedGroups["m"] || 1),
+			$day: toNumber(matchedGroups["c"] || matchedGroups["n"] || 1),
+			$time: matchedGroups["d"] ? getTimeRecordFromMatchedGroups(matchedGroups) : undefined,
+			$timeZone: {
+				$z: !!matchedGroups["i"],
+				$offsetString: matchedGroups["h"],
+				$timeZoneAnnotation: matchedGroups["j"],
+			},
+			$calendar: calendar,
+		};
 	}
-	if (!matchedGroups) {
-		throwRangeError(parseError);
-	}
-	return {
-		$year: mapUnlessUndefined(matchedGroups["a"] || matchedGroups["l"], toNumber),
-		$month: toNumber(matchedGroups["b"] || matchedGroups["m"] || 1),
-		$day: toNumber(matchedGroups["c"] || matchedGroups["n"] || 1),
-		$time: matchedGroups["d"] ? getTimeRecordFromMatchedGroups(matchedGroups) : undefined,
-		$timeZone: {
-			$z: !!matchedGroups["i"],
-			$offsetString: matchedGroups["h"],
-			$timeZoneAnnotation: matchedGroups["j"],
-		},
-		$calendar: calendar,
-	};
+	throwRangeError(parseError);
 }
 
 const annotationValueRegExp = createRegExp(annotationValue);
@@ -261,5 +252,6 @@ export function parseDateTimeUtcOffset(offset: string): number {
 
 export function hasUtcOffsetSubMinuteParts(offset: string): boolean {
 	const result = offset.match(utcOffsetWithSubMinuteRegExp);
-	return !!(result && result[5]);
+	assert(result !== null);
+	return !!result[5];
 }

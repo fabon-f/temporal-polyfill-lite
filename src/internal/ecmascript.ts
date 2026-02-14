@@ -119,10 +119,9 @@ export function getOption<V extends string | undefined>(
 	return value as V;
 }
 
-export function getRoundToOptionsObject(roundTo: unknown): object {
-	if (roundTo === undefined) {
-		throwTypeError(undefinedArgument);
-	}
+export function getRoundToOptionsObject(
+	roundTo: unknown = throwTypeError(undefinedArgument),
+): object {
 	return typeof roundTo === "string"
 		? createNullPrototypeObject({ smallestUnit: roundTo })
 		: getOptionsObject(roundTo);

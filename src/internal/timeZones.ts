@@ -323,6 +323,7 @@ export function disambiguatePossibleEpochNanoseconds(
 		assertNotUndefined(possibleEpochNs[0]);
 		return possibleEpochNs[0];
 	}
+	assert(possibleEpochNs.length === 0 || possibleEpochNs.length === 2);
 	if (disambiguation === disambiguationReject) {
 		throwRangeError(ambiguousTime);
 	}
@@ -332,15 +333,15 @@ export function disambiguatePossibleEpochNanoseconds(
 	const candidates = getNamedTimeZoneEpochCandidates(timeZone, isoDateTime).map(
 		validateEpochNanoseconds,
 	);
-	assertNotUndefined(candidates[0]);
-	assertNotUndefined(candidates[1]);
-	if (disambiguation === disambiguationCompatible) {
-		return possibleEpochNs.length === 0 ? candidates[1] : candidates[0];
-	}
-	if (disambiguation === disambiguationLater) {
-		return candidates[1];
-	}
-	return candidates[0];
+	assert(candidates.length === 2);
+	const epoch =
+		candidates[
+			disambiguation === disambiguationCompatible
+				? +!possibleEpochNs[0]
+				: +(disambiguation === disambiguationLater)
+		];
+	assertNotUndefined(epoch);
+	return epoch;
 }
 
 /** `GetPossibleEpochNanoseconds` */
@@ -426,12 +427,11 @@ function getNamedTimeZoneEpochNanoseconds(
 	timeZone: string,
 	isoDateTime: IsoDateTimeRecord,
 ): EpochNanoseconds[] {
-	const utcEpoch = getUtcEpochNanoseconds(isoDateTime);
 	return getNamedTimeZoneEpochCandidates(timeZone, isoDateTime).filter(
 		(epoch) =>
 			!compareEpochNanoseconds(
 				addNanosecondsToEpochSeconds(epoch, getOffsetNanosecondsFor(timeZone, epoch)),
-				utcEpoch,
+				getUtcEpochNanoseconds(isoDateTime),
 			),
 	);
 }

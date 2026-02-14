@@ -504,14 +504,12 @@ export class PlainDate {
 			const tzLike = (item as Record<string, unknown>)["timeZone"];
 			if (tzLike === undefined) {
 				timeZone = toTemporalTimeZoneIdentifier(item);
-				temporalTime = undefined;
 			} else {
 				timeZone = toTemporalTimeZoneIdentifier(tzLike);
 				temporalTime = (item as Record<string, unknown>)["plainTime"];
 			}
 		} else {
 			timeZone = toTemporalTimeZoneIdentifier(item);
-			temporalTime = undefined;
 		}
 		if (temporalTime === undefined) {
 			return createTemporalZonedDateTime(

@@ -90,7 +90,7 @@ type TimeRecordTupleWithoutDays = [
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 
-type PlainTimeSlot = TimeRecord & {
+export type PlainTimeSlot = TimeRecord & {
 	[internalSlotBrand]: unknown;
 };
 
@@ -546,7 +546,7 @@ export class PlainTime {
 		return formatDateTime(createDateTimeFormat(locales, options, TIME), this);
 	}
 	toJSON() {
-		return timeRecordToString(getInternalSlotOrThrowForPlainTime(this), undefined);
+		return timeRecordToString(getInternalSlotOrThrowForPlainTime(this));
 	}
 	valueOf() {
 		throwTypeError(forbiddenValueOf);

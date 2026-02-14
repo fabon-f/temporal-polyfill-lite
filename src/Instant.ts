@@ -188,17 +188,16 @@ export function roundTemporalInstant(
 /** `TemporalInstantToString` */
 function temporalInstantToString(
 	epoch: EpochNanoseconds,
-	timeZone: string | undefined,
+	timeZone?: string | undefined,
 	precision?: number | typeof MINUTE,
 ): string {
-	const outputTimeZone = timeZone === undefined ? "UTC" : timeZone;
-	const offsetNanoseconds = getOffsetNanosecondsFor(outputTimeZone, epoch);
+	const offsetNanoseconds = getOffsetNanosecondsFor(timeZone || "UTC", epoch);
 	return `${isoDateTimeToString(
 		getIsoDateTimeFromOffsetNanoseconds(epoch, offsetNanoseconds),
 		"iso8601",
 		precision,
 		showCalendarName.$never,
-	)}${timeZone === undefined ? "Z" : formatDateTimeUtcOffsetRounded(offsetNanoseconds)}`;
+	)}${timeZone ? formatDateTimeUtcOffsetRounded(offsetNanoseconds) : "Z"}`;
 }
 
 /** `DifferenceTemporalInstant` */
@@ -377,10 +376,7 @@ export class Instant {
 		return formatDateTime(createDateTimeFormat(locales, options, DATETIME), this);
 	}
 	toJSON() {
-		return temporalInstantToString(
-			getInternalSlotOrThrowForInstant(this).$epochNanoseconds,
-			undefined,
-		);
+		return temporalInstantToString(getInternalSlotOrThrowForInstant(this).$epochNanoseconds);
 	}
 	valueOf() {
 		throwTypeError(forbiddenValueOf);
