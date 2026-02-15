@@ -529,31 +529,19 @@ function calendarFieldKeysToIgnore(
 	fields: CalendarFieldsRecord,
 ): CalendarFieldKey[] {
 	const ignoredKeys: CalendarFieldKey[] = [];
-	for (const k of calendarFieldKeyList) {
-		if (fields[k] !== undefined) {
-			if (k === calendarFieldKeys.$month) {
-				ignoredKeys.push(calendarFieldKeys.$monthCode);
-			}
-			if (k === calendarFieldKeys.$monthCode) {
-				ignoredKeys.push(calendarFieldKeys.$month);
-			}
-			if (
-				calendarSupportsEra(calendar) &&
-				(
-					[
-						calendarFieldKeys.$era,
-						calendarFieldKeys.$eraYear,
-						calendarFieldKeys.$year,
-					] as CalendarFieldKey[]
-				).includes(k)
-			) {
-				ignoredKeys.push(
-					calendarFieldKeys.$era,
-					calendarFieldKeys.$eraYear,
-					calendarFieldKeys.$year,
-				);
-			}
-		}
+	if (fields[calendarFieldKeys.$month] !== undefined) {
+		ignoredKeys.push(calendarFieldKeys.$monthCode);
+	}
+	if (fields[calendarFieldKeys.$monthCode] !== undefined) {
+		ignoredKeys.push(calendarFieldKeys.$month);
+	}
+	if (
+		calendarSupportsEra(calendar) &&
+		(fields[calendarFieldKeys.$era] !== undefined ||
+			fields[calendarFieldKeys.$eraYear] !== undefined ||
+			fields[calendarFieldKeys.$year] !== undefined)
+	) {
+		ignoredKeys.push(calendarFieldKeys.$era, calendarFieldKeys.$eraYear, calendarFieldKeys.$year);
 	}
 	return ignoredKeys;
 }
