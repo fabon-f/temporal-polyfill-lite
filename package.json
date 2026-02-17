@@ -51,7 +51,12 @@
 		"test262": "LANG=en_GB node script/test262.ts",
 		"typecheck": "tsgo",
 		"lint": "oxfmt --check . && oxlint . --report-unused-disable-directives",
-		"prepack": "clean-pkg-json"
+		"prepack": "clean-pkg-json -r imports"
+	},
+	"imports": {
+		"#calendricalCalculations": {
+			"default": "./src/internal/calendars/isoGregory.ts"
+		}
 	},
 	"pnpm": {
 		"overrides": {
