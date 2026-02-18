@@ -49,12 +49,13 @@
 		"build": "node script/build.ts",
 		"test": "vitest",
 		"test262": "LANG=en_GB node script/test262.ts",
-		"typecheck": "tsgo",
+		"typecheck": "tsgo && tsgo --customConditions nonIsoCalendars",
 		"lint": "oxfmt --check . && oxlint . --report-unused-disable-directives",
 		"prepack": "clean-pkg-json -r imports"
 	},
 	"imports": {
 		"#calendricalCalculations": {
+			"nonIsoCalendars": "./src/internal/calendars/all.ts",
 			"default": "./src/internal/calendars/isoGregory.ts"
 		}
 	},

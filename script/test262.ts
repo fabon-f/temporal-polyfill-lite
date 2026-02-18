@@ -21,14 +21,24 @@ function expectedFailureFiles() {
 const { values, positionals: files } = parseArgs({
 	args: process.argv.slice(2),
 	options: {
+		mode: { type: "string" },
 		update: { type: "boolean", short: "u" },
 	},
 	allowPositionals: true,
 });
 
+values.mode ??= "basic";
+
+if (values.mode !== "basic" && values.mode !== "full") {
+	process.exit(1);
+}
+
 await rm("dist", { recursive: true, force: true });
 await mkdir("dist", {});
-await writeFile("dist/bundle.js", await bundle({ assertion: false, minify: true, beautify: true }));
+await writeFile(
+	"dist/bundle.js",
+	await bundle(values.mode, { assertion: false, minify: true, beautify: true }),
+);
 
 const result = await runTest262({
 	test262Dir: "test262",

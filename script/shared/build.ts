@@ -74,11 +74,14 @@ function plugins({ minify, assertion, beautify }: Options) {
 	};
 }
 
-export async function bundle(options: Options) {
+export async function bundle(mode: "basic" | "full", options: Options) {
 	const { input, output } = plugins(options);
 	await using bundle = await rolldown({
 		input: "src/global.ts",
 		plugins: input,
+		resolve: {
+			conditionNames: mode === "full" ? ["nonIsoCalendars"] : [],
+		},
 	});
 	const result = await bundle.generate({
 		format: "iife",
@@ -89,13 +92,24 @@ export async function bundle(options: Options) {
 
 export async function build() {
 	const { input, output } = plugins({ assertion: false, minify: true, beautify: true });
-	await using bundle = await rolldown({
+	await using bundle1 = await rolldown({
 		input: ["src/index.ts", "src/global.ts", "src/shim.ts"],
 		plugins: [...input, unpluginIsolatedDecl({ include: "src/shim.ts" })],
 	});
-	await bundle.write({
+	await bundle1.write({
 		dir: "dist",
 		cleanDir: true,
+		plugins: output,
+	});
+	await using bundle2 = await rolldown({
+		input: ["src/index.ts", "src/global.ts", "src/shim.ts"],
+		plugins: [...input, unpluginIsolatedDecl({ include: "src/shim.ts" })],
+		resolve: {
+			conditionNames: ["nonIsoCalendars"],
+		},
+	});
+	await bundle2.write({
+		dir: "dist/calendars",
 		plugins: output,
 	});
 	await copyFile("src/types/index.d.ts", "dist/index.d.ts");
