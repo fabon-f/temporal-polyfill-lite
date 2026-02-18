@@ -44,6 +44,8 @@ jobs:
         run: pnpm install
       - name: test262
         run: pnpm run test262
+      - name: test262 (full mode)
+        run: pnpm run test262 --mode full
   test262-bun:
     runs-on: ubuntu-latest
     permissions:

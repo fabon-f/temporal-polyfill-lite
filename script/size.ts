@@ -6,7 +6,12 @@ const gzip = promisify(zlib.gzip);
 const brotli = promisify(zlib.brotliCompress);
 const zstd = promisify(zlib.zstdCompress);
 
-const bundledCode = await bundle({ assertion: false, minify: true, beautify: false });
+const mode = process.argv[2] ?? "basic";
+if (mode !== "basic" && mode !== "full") {
+	process.exit(1);
+}
+
+const bundledCode = await bundle(mode, { assertion: false, minify: true, beautify: false });
 
 const rawText = new TextEncoder().encode(bundledCode);
 const gzipped = await gzip(bundledCode);
