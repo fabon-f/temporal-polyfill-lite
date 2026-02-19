@@ -1,18 +1,26 @@
 import { type DateDurationRecord } from "../../Duration.ts";
-import { type IsoDateRecord } from "../../PlainDate.ts";
+import {
+	addDaysToIsoDate,
+	compareIsoDate,
+	validateIsoDate,
+	type IsoDateRecord,
+} from "../../PlainDate.ts";
 import { isoDateRecordToEpochDays } from "../abstractOperations.ts";
 import { assert, assertNotUndefined } from "../assertion.ts";
 import {
+	calendarFieldKeys,
 	isoCalendarDateAdd,
 	isoCalendarDateToIso,
 	isoCalendarDateUntil,
 	isoCalendarIsoToDate,
 	isoMonthDayToIsoReferenceDate,
+	parseMonthCode,
 	type CalendarDateRecord,
 	type CalendarFieldsRecord,
 } from "../calendars.ts";
 import { type Overflow } from "../enum.ts";
 import { calendarNotSupported, invalidEra } from "../errorMessages.ts";
+import { divFloor, isWithin, modFloor } from "../math.ts";
 import { createNullPrototypeObject } from "../object.ts";
 import { asciiLowerCase } from "../string.ts";
 import { Unit } from "../unit.ts";
@@ -21,6 +29,41 @@ import { notImplementedYet } from "./utils.ts";
 
 /** `EPOCH` -> 1, `OFFSET` -> the offset year, `NEGATIVE` -> false */
 type EraKind = number | false;
+
+export type SupportedNonIsoCalendars =
+	| "buddhist"
+	| "chinese"
+	| "coptic"
+	| "dangi"
+	| "ethioaa"
+	| "ethiopic"
+	| "gregory"
+	| "hebrew"
+	| "indian"
+	| "islamic-civil"
+	| "islamic-tbla"
+	| "islamic-umalqura"
+	| "japanese"
+	| "persian"
+	| "roc";
+export type SupportedCalendars = "iso8601" | SupportedNonIsoCalendars;
+type SupportedNonIsoCalendarsWithEras =
+	| "buddhist"
+	| "coptic"
+	| "ethioaa"
+	| "ethiopic"
+	| "gregory"
+	| "hebrew"
+	| "indian"
+	| "islamic-civil"
+	| "islamic-tbla"
+	| "islamic-umalqura"
+	| "japanese"
+	| "persian"
+	| "roc";
+
+type IsoLikeCalendars = "iso8601" | "buddhist" | "gregory" | "japanese" | "roc";
+type NonIsoLikeCalendars = Exclude<SupportedNonIsoCalendars, IsoLikeCalendars>;
 
 const islamicEras = new Map<string, EraKind>([
 	["ah", 1],
@@ -65,38 +108,6 @@ const erasPerCalendar: Record<SupportedCalendars, Map<string, EraKind>> = create
 	},
 );
 
-export type SupportedNonIsoCalendars =
-	| "buddhist"
-	| "chinese"
-	| "coptic"
-	| "dangi"
-	| "ethioaa"
-	| "ethiopic"
-	| "gregory"
-	| "hebrew"
-	| "indian"
-	| "islamic-civil"
-	| "islamic-tbla"
-	| "islamic-umalqura"
-	| "japanese"
-	| "persian"
-	| "roc";
-export type SupportedCalendars = "iso8601" | SupportedNonIsoCalendars;
-type SupportedNonIsoCalendarsWithEras =
-	| "buddhist"
-	| "coptic"
-	| "ethioaa"
-	| "ethiopic"
-	| "gregory"
-	| "hebrew"
-	| "indian"
-	| "islamic-civil"
-	| "islamic-tbla"
-	| "islamic-umalqura"
-	| "japanese"
-	| "persian"
-	| "roc";
-
 /** `CanonicalizeCalendar` */
 export function canonicalizeCalendar(id: string): SupportedCalendars {
 	id = asciiLowerCase(id);
@@ -118,10 +129,28 @@ export function calendarDateAdd(
 	duration: DateDurationRecord,
 	overflow: Overflow,
 ): IsoDateRecord {
-	if (isIsoLikeCalendar(calendar)) {
+	if (isIsoLikeCalendar(calendar) || !(duration.$years || duration.$months)) {
 		return isoCalendarDateAdd(isoDate, duration, overflow);
 	}
-	notImplementedYet();
+	const parts = nonIsoCalendarIsoToDate(calendar, isoDate);
+	const y0 = parts.$year + duration.$years;
+	const yearMonth = balanceNonIsoYearMonth(
+		calendar,
+		y0,
+		monthCodeToOrdinal(calendar, y0, constrainMonthCode(calendar, y0, parts.$monthCode, overflow)) +
+			duration.$months,
+	);
+	return validateIsoDate(
+		addDaysToIsoDate(
+			calendarIntegersToIso(
+				calendar,
+				yearMonth.$year,
+				yearMonth.$month,
+				constrainDay(calendar, yearMonth.$year, yearMonth.$month, parts.$day, overflow),
+			),
+			duration.$weeks * 7 + duration.$days,
+		),
+	);
 }
 
 /** `CalendarDateUntil` */
@@ -131,7 +160,13 @@ export function calendarDateUntil(
 	two: IsoDateRecord,
 	largestUnit: Unit,
 ): DateDurationRecord {
-	if (isIsoLikeCalendar(calendar)) {
+	const sign = compareIsoDate(two, one);
+	if (
+		isIsoLikeCalendar(calendar) ||
+		largestUnit === Unit.Week ||
+		largestUnit === Unit.Day ||
+		!sign
+	) {
 		return isoCalendarDateUntil(one, two, largestUnit);
 	}
 	notImplementedYet();
@@ -143,17 +178,31 @@ export function calendarDateToIso(
 	fields: CalendarFieldsRecord,
 	overflow: Overflow,
 ): IsoDateRecord {
-	assertNotUndefined(fields.year);
+	const year = fields[calendarFieldKeys.$year];
+	const month = fields[calendarFieldKeys.$month];
+	const monthCode = fields[calendarFieldKeys.$monthCode];
+	const day = fields[calendarFieldKeys.$day];
+	assertNotUndefined(year);
+	assertNotUndefined(month);
+	assertNotUndefined(day);
 	if (isIsoLikeCalendar(calendar)) {
 		return isoCalendarDateToIso(
 			{
 				...fields,
-				year: fields.year + (calendar === "buddhist" ? -543 : calendar === "roc" ? 1911 : 0),
+				year: year + (calendar === "buddhist" ? -543 : calendar === "roc" ? 1911 : 0),
 			},
 			overflow,
 		);
 	}
-	notImplementedYet();
+	if (monthCode !== undefined) {
+		constrainMonthCode(calendar, year, monthCode, overflow);
+	}
+	return calendarIntegersToIso(
+		calendar,
+		year,
+		month,
+		constrainDay(calendar, year, month, day, overflow),
+	);
 }
 
 /** `NonISOCalendarISOToDate` */
@@ -265,6 +314,53 @@ export function calendarHasMidYearEras(calendar: SupportedCalendars): boolean {
 	return calendar === "japanese";
 }
 
+/** `IsValidMonthCodeForCalendar` */
+export function isValidMonthCodeForCalendar(
+	calendar: SupportedNonIsoCalendars,
+	monthCode: string,
+): boolean {
+	const parsedMonthCode = parseMonthCode(monthCode);
+	return (
+		(isWithin(parsedMonthCode[0], 1, 12) && !parsedMonthCode[1]) ||
+		((calendar === "chinese" || calendar === "dangi") && isWithin(parsedMonthCode[0], 1, 12)) ||
+		((calendar === "coptic" || calendar === "ethioaa" || calendar === "ethiopic") &&
+			monthCode === "M13") ||
+		(calendar === "hebrew" && monthCode === "M05L")
+	);
+}
+
+/** `ConstrainMonthCode` */
+export function constrainMonthCode(
+	calendar: SupportedNonIsoCalendars,
+	_arithmeticYear: number,
+	monthCode: string,
+	_overflow: Overflow,
+): string {
+	if (calendar === "hebrew") {
+		notImplementedYet();
+	}
+	if (calendar === "chinese" || calendar === "dangi") {
+		notImplementedYet();
+	}
+	return monthCode;
+}
+
+/** `MonthCodeToOrdinal` */
+export function monthCodeToOrdinal(
+	calendar: SupportedNonIsoCalendars,
+	_arithmeticYear: number,
+	monthCode: string,
+): number {
+	const parsedMonthCode = parseMonthCode(monthCode);
+	if (calendar === "hebrew") {
+		notImplementedYet();
+	}
+	if (calendar === "chinese" || calendar === "dangi") {
+		notImplementedYet();
+	}
+	return parsedMonthCode[0];
+}
+
 /** `CalendarDateArithmeticYearForEraYear` */
 export function calendarDateArithmeticYearForEraYear(
 	calendar: SupportedNonIsoCalendarsWithEras,
@@ -277,15 +373,23 @@ export function calendarDateArithmeticYearForEraYear(
 	return eraKind === false ? 1 - eraYear : eraKind + eraYear - 1;
 }
 
+/** `CalendarIntegersToISO` */
+function calendarIntegersToIso(
+	_calendar: NonIsoLikeCalendars,
+	_arithmeticYear: number,
+	_ordinalMonth: number,
+	_day: number,
+): IsoDateRecord {
+	notImplementedYet();
+}
+
 export function calendarSupportsEraForNonIsoCalendars(
 	calendar: SupportedNonIsoCalendars,
 ): calendar is SupportedNonIsoCalendarsWithEras {
 	return calendarSupportsEra(calendar);
 }
 
-export function isIsoLikeCalendar(
-	calendar: SupportedCalendars,
-): calendar is "iso8601" | "buddhist" | "gregory" | "japanese" | "roc" {
+export function isIsoLikeCalendar(calendar: SupportedCalendars): calendar is IsoLikeCalendars {
 	return (
 		calendar === "iso8601" ||
 		calendar === "buddhist" ||
@@ -293,4 +397,33 @@ export function isIsoLikeCalendar(
 		calendar === "japanese" ||
 		calendar === "roc"
 	);
+}
+
+function constrainDay(
+	_calendar: SupportedNonIsoCalendars,
+	_year: number,
+	_month: number,
+	_day: number,
+	_overflow: Overflow,
+): number {
+	notImplementedYet();
+}
+
+function balanceNonIsoYearMonth(
+	calendar: NonIsoLikeCalendars,
+	arithmeticYear: number,
+	ordinalMonth: number,
+): { $year: number; $month: number } {
+	if (calendar === "hebrew") {
+		notImplementedYet();
+	}
+	if (calendar === "chinese" || calendar === "dangi") {
+		notImplementedYet();
+	}
+	const monthsInYear =
+		calendar === "coptic" || calendar === "ethioaa" || calendar === "ethiopic" ? 13 : 12;
+	return {
+		$year: arithmeticYear + divFloor(ordinalMonth - 1, monthsInYear),
+		$month: modFloor(ordinalMonth - 1, monthsInYear) + 1,
+	};
 }

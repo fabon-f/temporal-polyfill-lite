@@ -6,6 +6,7 @@ import {
 	isoCalendarDateUntil,
 	isoCalendarIsoToDate,
 	isoMonthDayToIsoReferenceDate,
+	parseMonthCode,
 	type CalendarDateRecord,
 	type CalendarFieldsRecord,
 } from "../calendars.ts";
@@ -106,6 +107,36 @@ export function canonicalizeEraInCalendar(
 /** `CalendarHasMidYearEras` */
 export function calendarHasMidYearEras(_calendar: SupportedCalendars): boolean {
 	return false;
+}
+
+/** `IsValidMonthCodeForCalendar` */
+export function isValidMonthCodeForCalendar(
+	_calendar: SupportedNonIsoCalendars,
+	_monthCode: string,
+): boolean {
+	// stub, not called in "basic" build
+	return true;
+}
+
+/** `ConstrainMonthCode` */
+export function constrainMonthCode(
+	_calendar: SupportedNonIsoCalendars,
+	_arithmeticYear: number,
+	monthCode: string,
+	_overflow: Overflow,
+): string {
+	// stub, not called in "basic" build
+	return monthCode;
+}
+
+/** `MonthCodeToOrdinal` */
+export function monthCodeToOrdinal(
+	_calendar: SupportedNonIsoCalendars,
+	_arithmeticYear: number,
+	monthCode: string,
+): number {
+	// stub, not called in "basic" build
+	return parseMonthCode(monthCode)[0];
 }
 
 /** `CalendarDateArithmeticYearForEraYear` */
