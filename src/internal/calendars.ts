@@ -169,7 +169,7 @@ export function parseMonthCode(arg: unknown): [monthNumber: number, isLeapMonth:
 }
 
 /** `CreateMonthCode` */
-function createMonthCode(monthNumber: number, isLeapMonth = false): string {
+export function createMonthCode(monthNumber: number, isLeapMonth = false): string {
 	assert(isLeapMonth || monthNumber > 0);
 	return `M${toZeroPaddedDecimalString(monthNumber, 2)}${isLeapMonth ? "L" : ""}`;
 }
@@ -567,7 +567,7 @@ export function nonIsoResolveFields(
 ): void {
 	const era = fields[calendarFieldKeys.$era];
 	const eraYear = fields[calendarFieldKeys.$eraYear];
-	const year = fields[calendarFieldKeys.$year];
+	let year = fields[calendarFieldKeys.$year];
 	const monthCode = fields[calendarFieldKeys.$monthCode];
 	const month = fields[calendarFieldKeys.$month];
 	const day = fields[calendarFieldKeys.$day];
@@ -614,6 +614,7 @@ export function nonIsoResolveFields(
 		if (!isValidMonthCodeForCalendar(calendar, monthCode)) {
 			throwRangeError(invalidMonthCode(monthCode));
 		}
+		const year = fields[calendarFieldKeys.$year];
 		if (year !== undefined) {
 			const constrainedMonthCode = constrainMonthCode(calendar, year, monthCode, overflowConstrain);
 			const actualMonth = monthCodeToOrdinal(calendar, year, constrainedMonthCode);
