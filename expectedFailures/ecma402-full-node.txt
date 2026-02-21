@@ -27,7 +27,6 @@ intl402/Temporal/PlainDate/from/roundtrip-from-string.js
 intl402/Temporal/PlainDate/prototype/add/basic-chinese.js
 intl402/Temporal/PlainDate/prototype/add/basic-dangi.js
 intl402/Temporal/PlainDate/prototype/add/basic-hebrew.js
-intl402/Temporal/PlainDate/prototype/add/basic-indian.js
 intl402/Temporal/PlainDate/prototype/add/basic-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/add/basic-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/add/basic-islamic-umalqura.js
@@ -35,7 +34,6 @@ intl402/Temporal/PlainDate/prototype/add/basic-persian.js
 intl402/Temporal/PlainDate/prototype/add/constrain-day-chinese.js
 intl402/Temporal/PlainDate/prototype/add/constrain-day-dangi.js
 intl402/Temporal/PlainDate/prototype/add/constrain-day-hebrew.js
-intl402/Temporal/PlainDate/prototype/add/constrain-day-indian.js
 intl402/Temporal/PlainDate/prototype/add/constrain-day-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/add/constrain-day-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/add/constrain-day-islamic-umalqura.js
@@ -47,14 +45,12 @@ intl402/Temporal/PlainDate/prototype/add/leap-months-chinese.js
 intl402/Temporal/PlainDate/prototype/add/leap-months-dangi.js
 intl402/Temporal/PlainDate/prototype/add/leap-months-hebrew.js
 intl402/Temporal/PlainDate/prototype/add/leap-year-hebrew.js
-intl402/Temporal/PlainDate/prototype/add/leap-year-indian.js
 intl402/Temporal/PlainDate/prototype/add/leap-year-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/add/leap-year-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/add/leap-year-persian.js
 intl402/Temporal/PlainDate/prototype/add/month-boundary-chinese.js
 intl402/Temporal/PlainDate/prototype/add/month-boundary-dangi.js
 intl402/Temporal/PlainDate/prototype/add/month-boundary-hebrew.js
-intl402/Temporal/PlainDate/prototype/add/month-boundary-indian.js
 intl402/Temporal/PlainDate/prototype/add/month-boundary-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/add/month-boundary-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/add/month-boundary-islamic-umalqura.js
@@ -63,7 +59,6 @@ intl402/Temporal/PlainDate/prototype/dayOfYear/non-iso-calendar-basic.js
 intl402/Temporal/PlainDate/prototype/daysInMonth/basic-chinese.js
 intl402/Temporal/PlainDate/prototype/daysInMonth/basic-dangi.js
 intl402/Temporal/PlainDate/prototype/daysInMonth/basic-hebrew.js
-intl402/Temporal/PlainDate/prototype/daysInMonth/basic-indian.js
 intl402/Temporal/PlainDate/prototype/daysInMonth/basic-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/daysInMonth/basic-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/daysInMonth/basic-islamic-umalqura.js
@@ -71,7 +66,6 @@ intl402/Temporal/PlainDate/prototype/daysInMonth/basic-persian.js
 intl402/Temporal/PlainDate/prototype/daysInYear/basic-chinese.js
 intl402/Temporal/PlainDate/prototype/daysInYear/basic-dangi.js
 intl402/Temporal/PlainDate/prototype/daysInYear/basic-hebrew.js
-intl402/Temporal/PlainDate/prototype/daysInYear/basic-indian.js
 intl402/Temporal/PlainDate/prototype/daysInYear/basic-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/daysInYear/basic-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/daysInYear/basic-islamic-umalqura.js
@@ -80,7 +74,6 @@ intl402/Temporal/PlainDate/prototype/equals/canonicalize-calendar.js
 intl402/Temporal/PlainDate/prototype/inLeapYear/basic-chinese.js
 intl402/Temporal/PlainDate/prototype/inLeapYear/basic-dangi.js
 intl402/Temporal/PlainDate/prototype/inLeapYear/basic-hebrew.js
-intl402/Temporal/PlainDate/prototype/inLeapYear/basic-indian.js
 intl402/Temporal/PlainDate/prototype/inLeapYear/basic-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/inLeapYear/basic-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/inLeapYear/basic-islamic-umalqura.js
@@ -95,7 +88,6 @@ intl402/Temporal/PlainDate/prototype/monthCode/no-leap-months-persian.js
 intl402/Temporal/PlainDate/prototype/monthsInYear/basic-chinese.js
 intl402/Temporal/PlainDate/prototype/monthsInYear/basic-dangi.js
 intl402/Temporal/PlainDate/prototype/monthsInYear/basic-hebrew.js
-intl402/Temporal/PlainDate/prototype/monthsInYear/basic-indian.js
 intl402/Temporal/PlainDate/prototype/monthsInYear/basic-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/monthsInYear/basic-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/monthsInYear/basic-islamic-umalqura.js
@@ -105,7 +97,6 @@ intl402/Temporal/PlainDate/prototype/monthsInYear/dangi-calendar-leap-days.js
 intl402/Temporal/PlainDate/prototype/since/basic-chinese.js
 intl402/Temporal/PlainDate/prototype/since/basic-dangi.js
 intl402/Temporal/PlainDate/prototype/since/basic-hebrew.js
-intl402/Temporal/PlainDate/prototype/since/basic-indian.js
 intl402/Temporal/PlainDate/prototype/since/basic-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/since/basic-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/since/basic-islamic-umalqura.js
@@ -124,7 +115,6 @@ intl402/Temporal/PlainDate/prototype/since/leap-year-since.js
 intl402/Temporal/PlainDate/prototype/since/wrapping-at-end-of-month-chinese.js
 intl402/Temporal/PlainDate/prototype/since/wrapping-at-end-of-month-dangi.js
 intl402/Temporal/PlainDate/prototype/since/wrapping-at-end-of-month-hebrew.js
-intl402/Temporal/PlainDate/prototype/since/wrapping-at-end-of-month-indian.js
 intl402/Temporal/PlainDate/prototype/since/wrapping-at-end-of-month-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/since/wrapping-at-end-of-month-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/since/wrapping-at-end-of-month-islamic-umalqura.js
@@ -132,7 +122,6 @@ intl402/Temporal/PlainDate/prototype/since/wrapping-at-end-of-month-persian.js
 intl402/Temporal/PlainDate/prototype/subtract/basic-chinese.js
 intl402/Temporal/PlainDate/prototype/subtract/basic-dangi.js
 intl402/Temporal/PlainDate/prototype/subtract/basic-hebrew.js
-intl402/Temporal/PlainDate/prototype/subtract/basic-indian.js
 intl402/Temporal/PlainDate/prototype/subtract/basic-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/subtract/basic-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/subtract/basic-islamic-umalqura.js
@@ -141,7 +130,6 @@ intl402/Temporal/PlainDate/prototype/subtract/chinese-calendar-dates.js
 intl402/Temporal/PlainDate/prototype/subtract/constrain-day-chinese.js
 intl402/Temporal/PlainDate/prototype/subtract/constrain-day-dangi.js
 intl402/Temporal/PlainDate/prototype/subtract/constrain-day-hebrew.js
-intl402/Temporal/PlainDate/prototype/subtract/constrain-day-indian.js
 intl402/Temporal/PlainDate/prototype/subtract/constrain-day-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/subtract/constrain-day-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/subtract/constrain-day-islamic-umalqura.js
@@ -154,14 +142,12 @@ intl402/Temporal/PlainDate/prototype/subtract/leap-months-chinese.js
 intl402/Temporal/PlainDate/prototype/subtract/leap-months-dangi.js
 intl402/Temporal/PlainDate/prototype/subtract/leap-months-hebrew.js
 intl402/Temporal/PlainDate/prototype/subtract/leap-year-hebrew.js
-intl402/Temporal/PlainDate/prototype/subtract/leap-year-indian.js
 intl402/Temporal/PlainDate/prototype/subtract/leap-year-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/subtract/leap-year-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/subtract/leap-year-persian.js
 intl402/Temporal/PlainDate/prototype/subtract/month-boundary-chinese.js
 intl402/Temporal/PlainDate/prototype/subtract/month-boundary-dangi.js
 intl402/Temporal/PlainDate/prototype/subtract/month-boundary-hebrew.js
-intl402/Temporal/PlainDate/prototype/subtract/month-boundary-indian.js
 intl402/Temporal/PlainDate/prototype/subtract/month-boundary-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/subtract/month-boundary-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/subtract/month-boundary-islamic-umalqura.js
@@ -170,7 +156,6 @@ intl402/Temporal/PlainDate/prototype/toString/basic-persian.js
 intl402/Temporal/PlainDate/prototype/until/basic-chinese.js
 intl402/Temporal/PlainDate/prototype/until/basic-dangi.js
 intl402/Temporal/PlainDate/prototype/until/basic-hebrew.js
-intl402/Temporal/PlainDate/prototype/until/basic-indian.js
 intl402/Temporal/PlainDate/prototype/until/basic-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/until/basic-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/until/basic-islamic-umalqura.js
@@ -189,14 +174,12 @@ intl402/Temporal/PlainDate/prototype/until/leap-year-until.js
 intl402/Temporal/PlainDate/prototype/until/wrapping-at-end-of-month-chinese.js
 intl402/Temporal/PlainDate/prototype/until/wrapping-at-end-of-month-dangi.js
 intl402/Temporal/PlainDate/prototype/until/wrapping-at-end-of-month-hebrew.js
-intl402/Temporal/PlainDate/prototype/until/wrapping-at-end-of-month-indian.js
 intl402/Temporal/PlainDate/prototype/until/wrapping-at-end-of-month-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/until/wrapping-at-end-of-month-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/until/wrapping-at-end-of-month-islamic-umalqura.js
 intl402/Temporal/PlainDate/prototype/until/wrapping-at-end-of-month-persian.js
 intl402/Temporal/PlainDate/prototype/weekOfYear/non-iso-week-of-year.js
 intl402/Temporal/PlainDate/prototype/with/basic-hebrew.js
-intl402/Temporal/PlainDate/prototype/with/basic-indian.js
 intl402/Temporal/PlainDate/prototype/with/basic-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/with/basic-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/with/basic-islamic-umalqura.js
@@ -206,7 +189,6 @@ intl402/Temporal/PlainDate/prototype/with/chinese-calendar-leap-dates.js
 intl402/Temporal/PlainDate/prototype/with/constrain-day-chinese.js
 intl402/Temporal/PlainDate/prototype/with/constrain-day-dangi.js
 intl402/Temporal/PlainDate/prototype/with/constrain-day-hebrew.js
-intl402/Temporal/PlainDate/prototype/with/constrain-day-indian.js
 intl402/Temporal/PlainDate/prototype/with/constrain-day-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/with/constrain-day-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/with/constrain-day-islamic-umalqura.js
@@ -217,13 +199,11 @@ intl402/Temporal/PlainDate/prototype/with/leap-months-chinese.js
 intl402/Temporal/PlainDate/prototype/with/leap-months-dangi.js
 intl402/Temporal/PlainDate/prototype/with/leap-months-hebrew.js
 intl402/Temporal/PlainDate/prototype/with/leap-year-hebrew.js
-intl402/Temporal/PlainDate/prototype/with/leap-year-indian.js
 intl402/Temporal/PlainDate/prototype/with/leap-year-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/with/leap-year-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/with/mutually-exclusive-fields-chinese.js
 intl402/Temporal/PlainDate/prototype/with/mutually-exclusive-fields-dangi.js
 intl402/Temporal/PlainDate/prototype/with/mutually-exclusive-fields-hebrew.js
-intl402/Temporal/PlainDate/prototype/with/mutually-exclusive-fields-indian.js
 intl402/Temporal/PlainDate/prototype/with/mutually-exclusive-fields-islamic-civil.js
 intl402/Temporal/PlainDate/prototype/with/mutually-exclusive-fields-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/with/mutually-exclusive-fields-islamic-umalqura.js
@@ -251,7 +231,6 @@ intl402/Temporal/PlainDateTime/from/roundtrip-from-string.js
 intl402/Temporal/PlainDateTime/prototype/add/basic-chinese.js
 intl402/Temporal/PlainDateTime/prototype/add/basic-dangi.js
 intl402/Temporal/PlainDateTime/prototype/add/basic-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/add/basic-indian.js
 intl402/Temporal/PlainDateTime/prototype/add/basic-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/add/basic-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/add/basic-islamic-umalqura.js
@@ -259,7 +238,6 @@ intl402/Temporal/PlainDateTime/prototype/add/basic-persian.js
 intl402/Temporal/PlainDateTime/prototype/add/constrain-day-chinese.js
 intl402/Temporal/PlainDateTime/prototype/add/constrain-day-dangi.js
 intl402/Temporal/PlainDateTime/prototype/add/constrain-day-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/add/constrain-day-indian.js
 intl402/Temporal/PlainDateTime/prototype/add/constrain-day-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/add/constrain-day-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/add/constrain-day-islamic-umalqura.js
@@ -271,14 +249,12 @@ intl402/Temporal/PlainDateTime/prototype/add/leap-months-chinese.js
 intl402/Temporal/PlainDateTime/prototype/add/leap-months-dangi.js
 intl402/Temporal/PlainDateTime/prototype/add/leap-months-hebrew.js
 intl402/Temporal/PlainDateTime/prototype/add/leap-year-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/add/leap-year-indian.js
 intl402/Temporal/PlainDateTime/prototype/add/leap-year-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/add/leap-year-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/add/leap-year-persian.js
 intl402/Temporal/PlainDateTime/prototype/add/month-boundary-chinese.js
 intl402/Temporal/PlainDateTime/prototype/add/month-boundary-dangi.js
 intl402/Temporal/PlainDateTime/prototype/add/month-boundary-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/add/month-boundary-indian.js
 intl402/Temporal/PlainDateTime/prototype/add/month-boundary-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/add/month-boundary-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/add/month-boundary-islamic-umalqura.js
@@ -287,7 +263,6 @@ intl402/Temporal/PlainDateTime/prototype/dayOfYear/non-iso-calendar-basic.js
 intl402/Temporal/PlainDateTime/prototype/daysInMonth/basic-chinese.js
 intl402/Temporal/PlainDateTime/prototype/daysInMonth/basic-dangi.js
 intl402/Temporal/PlainDateTime/prototype/daysInMonth/basic-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/daysInMonth/basic-indian.js
 intl402/Temporal/PlainDateTime/prototype/daysInMonth/basic-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/daysInMonth/basic-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/daysInMonth/basic-islamic-umalqura.js
@@ -295,7 +270,6 @@ intl402/Temporal/PlainDateTime/prototype/daysInMonth/basic-persian.js
 intl402/Temporal/PlainDateTime/prototype/daysInYear/basic-chinese.js
 intl402/Temporal/PlainDateTime/prototype/daysInYear/basic-dangi.js
 intl402/Temporal/PlainDateTime/prototype/daysInYear/basic-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/daysInYear/basic-indian.js
 intl402/Temporal/PlainDateTime/prototype/daysInYear/basic-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/daysInYear/basic-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/daysInYear/basic-islamic-umalqura.js
@@ -304,7 +278,6 @@ intl402/Temporal/PlainDateTime/prototype/equals/canonicalize-calendar.js
 intl402/Temporal/PlainDateTime/prototype/inLeapYear/basic-chinese.js
 intl402/Temporal/PlainDateTime/prototype/inLeapYear/basic-dangi.js
 intl402/Temporal/PlainDateTime/prototype/inLeapYear/basic-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/inLeapYear/basic-indian.js
 intl402/Temporal/PlainDateTime/prototype/inLeapYear/basic-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/inLeapYear/basic-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/inLeapYear/basic-islamic-umalqura.js
@@ -319,7 +292,6 @@ intl402/Temporal/PlainDateTime/prototype/monthCode/no-leap-months-persian.js
 intl402/Temporal/PlainDateTime/prototype/monthsInYear/basic-chinese.js
 intl402/Temporal/PlainDateTime/prototype/monthsInYear/basic-dangi.js
 intl402/Temporal/PlainDateTime/prototype/monthsInYear/basic-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/monthsInYear/basic-indian.js
 intl402/Temporal/PlainDateTime/prototype/monthsInYear/basic-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/monthsInYear/basic-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/monthsInYear/basic-islamic-umalqura.js
@@ -329,7 +301,6 @@ intl402/Temporal/PlainDateTime/prototype/monthsInYear/dangi-calendar-leap-days.j
 intl402/Temporal/PlainDateTime/prototype/since/basic-chinese.js
 intl402/Temporal/PlainDateTime/prototype/since/basic-dangi.js
 intl402/Temporal/PlainDateTime/prototype/since/basic-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/since/basic-indian.js
 intl402/Temporal/PlainDateTime/prototype/since/basic-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/since/basic-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/since/basic-islamic-umalqura.js
@@ -348,7 +319,6 @@ intl402/Temporal/PlainDateTime/prototype/since/leap-year-since.js
 intl402/Temporal/PlainDateTime/prototype/since/wrapping-at-end-of-month-chinese.js
 intl402/Temporal/PlainDateTime/prototype/since/wrapping-at-end-of-month-dangi.js
 intl402/Temporal/PlainDateTime/prototype/since/wrapping-at-end-of-month-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/since/wrapping-at-end-of-month-indian.js
 intl402/Temporal/PlainDateTime/prototype/since/wrapping-at-end-of-month-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/since/wrapping-at-end-of-month-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/since/wrapping-at-end-of-month-islamic-umalqura.js
@@ -356,7 +326,6 @@ intl402/Temporal/PlainDateTime/prototype/since/wrapping-at-end-of-month-persian.
 intl402/Temporal/PlainDateTime/prototype/subtract/basic-chinese.js
 intl402/Temporal/PlainDateTime/prototype/subtract/basic-dangi.js
 intl402/Temporal/PlainDateTime/prototype/subtract/basic-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/subtract/basic-indian.js
 intl402/Temporal/PlainDateTime/prototype/subtract/basic-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/subtract/basic-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/subtract/basic-islamic-umalqura.js
@@ -364,7 +333,6 @@ intl402/Temporal/PlainDateTime/prototype/subtract/basic-persian.js
 intl402/Temporal/PlainDateTime/prototype/subtract/constrain-day-chinese.js
 intl402/Temporal/PlainDateTime/prototype/subtract/constrain-day-dangi.js
 intl402/Temporal/PlainDateTime/prototype/subtract/constrain-day-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/subtract/constrain-day-indian.js
 intl402/Temporal/PlainDateTime/prototype/subtract/constrain-day-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/subtract/constrain-day-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/subtract/constrain-day-islamic-umalqura.js
@@ -376,14 +344,12 @@ intl402/Temporal/PlainDateTime/prototype/subtract/leap-months-chinese.js
 intl402/Temporal/PlainDateTime/prototype/subtract/leap-months-dangi.js
 intl402/Temporal/PlainDateTime/prototype/subtract/leap-months-hebrew.js
 intl402/Temporal/PlainDateTime/prototype/subtract/leap-year-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/subtract/leap-year-indian.js
 intl402/Temporal/PlainDateTime/prototype/subtract/leap-year-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/subtract/leap-year-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/subtract/leap-year-persian.js
 intl402/Temporal/PlainDateTime/prototype/subtract/month-boundary-chinese.js
 intl402/Temporal/PlainDateTime/prototype/subtract/month-boundary-dangi.js
 intl402/Temporal/PlainDateTime/prototype/subtract/month-boundary-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/subtract/month-boundary-indian.js
 intl402/Temporal/PlainDateTime/prototype/subtract/month-boundary-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/subtract/month-boundary-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/subtract/month-boundary-islamic-umalqura.js
@@ -391,7 +357,6 @@ intl402/Temporal/PlainDateTime/prototype/subtract/month-boundary-persian.js
 intl402/Temporal/PlainDateTime/prototype/until/basic-chinese.js
 intl402/Temporal/PlainDateTime/prototype/until/basic-dangi.js
 intl402/Temporal/PlainDateTime/prototype/until/basic-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/until/basic-indian.js
 intl402/Temporal/PlainDateTime/prototype/until/basic-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/until/basic-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/until/basic-islamic-umalqura.js
@@ -410,14 +375,12 @@ intl402/Temporal/PlainDateTime/prototype/until/leap-year-until.js
 intl402/Temporal/PlainDateTime/prototype/until/wrapping-at-end-of-month-chinese.js
 intl402/Temporal/PlainDateTime/prototype/until/wrapping-at-end-of-month-dangi.js
 intl402/Temporal/PlainDateTime/prototype/until/wrapping-at-end-of-month-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/until/wrapping-at-end-of-month-indian.js
 intl402/Temporal/PlainDateTime/prototype/until/wrapping-at-end-of-month-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/until/wrapping-at-end-of-month-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/until/wrapping-at-end-of-month-islamic-umalqura.js
 intl402/Temporal/PlainDateTime/prototype/until/wrapping-at-end-of-month-persian.js
 intl402/Temporal/PlainDateTime/prototype/weekOfYear/non-iso-week-of-year.js
 intl402/Temporal/PlainDateTime/prototype/with/basic-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/with/basic-indian.js
 intl402/Temporal/PlainDateTime/prototype/with/basic-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/with/basic-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/with/basic-islamic-umalqura.js
@@ -427,7 +390,6 @@ intl402/Temporal/PlainDateTime/prototype/with/chinese-calendar-leap-dates.js
 intl402/Temporal/PlainDateTime/prototype/with/constrain-day-chinese.js
 intl402/Temporal/PlainDateTime/prototype/with/constrain-day-dangi.js
 intl402/Temporal/PlainDateTime/prototype/with/constrain-day-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/with/constrain-day-indian.js
 intl402/Temporal/PlainDateTime/prototype/with/constrain-day-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/with/constrain-day-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/with/constrain-day-islamic-umalqura.js
@@ -438,13 +400,11 @@ intl402/Temporal/PlainDateTime/prototype/with/leap-months-chinese.js
 intl402/Temporal/PlainDateTime/prototype/with/leap-months-dangi.js
 intl402/Temporal/PlainDateTime/prototype/with/leap-months-hebrew.js
 intl402/Temporal/PlainDateTime/prototype/with/leap-year-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/with/leap-year-indian.js
 intl402/Temporal/PlainDateTime/prototype/with/leap-year-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/with/leap-year-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/with/mutually-exclusive-fields-chinese.js
 intl402/Temporal/PlainDateTime/prototype/with/mutually-exclusive-fields-dangi.js
 intl402/Temporal/PlainDateTime/prototype/with/mutually-exclusive-fields-hebrew.js
-intl402/Temporal/PlainDateTime/prototype/with/mutually-exclusive-fields-indian.js
 intl402/Temporal/PlainDateTime/prototype/with/mutually-exclusive-fields-islamic-civil.js
 intl402/Temporal/PlainDateTime/prototype/with/mutually-exclusive-fields-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/with/mutually-exclusive-fields-islamic-umalqura.js
@@ -470,7 +430,6 @@ intl402/Temporal/PlainMonthDay/from/dangi-leap-month-codes-common.js
 intl402/Temporal/PlainMonthDay/from/dangi-month-codes.js
 intl402/Temporal/PlainMonthDay/from/fields-object.js
 intl402/Temporal/PlainMonthDay/from/hebrew-month-codes.js
-intl402/Temporal/PlainMonthDay/from/indian-month-codes.js
 intl402/Temporal/PlainMonthDay/from/islamic-civil-month-codes.js
 intl402/Temporal/PlainMonthDay/from/islamic-tbla-month-codes.js
 intl402/Temporal/PlainMonthDay/from/islamic-umalqura-month-codes.js
@@ -499,7 +458,6 @@ intl402/Temporal/PlainYearMonth/from/roundtrip-from-property-bag.js
 intl402/Temporal/PlainYearMonth/prototype/add/basic-chinese.js
 intl402/Temporal/PlainYearMonth/prototype/add/basic-dangi.js
 intl402/Temporal/PlainYearMonth/prototype/add/basic-hebrew.js
-intl402/Temporal/PlainYearMonth/prototype/add/basic-indian.js
 intl402/Temporal/PlainYearMonth/prototype/add/basic-islamic-civil.js
 intl402/Temporal/PlainYearMonth/prototype/add/basic-islamic-tbla.js
 intl402/Temporal/PlainYearMonth/prototype/add/basic-islamic-umalqura.js
@@ -511,7 +469,6 @@ intl402/Temporal/PlainYearMonth/prototype/add/leap-months-chinese.js
 intl402/Temporal/PlainYearMonth/prototype/add/leap-months-dangi.js
 intl402/Temporal/PlainYearMonth/prototype/add/leap-months-hebrew.js
 intl402/Temporal/PlainYearMonth/prototype/add/leap-year-hebrew.js
-intl402/Temporal/PlainYearMonth/prototype/add/leap-year-indian.js
 intl402/Temporal/PlainYearMonth/prototype/add/leap-year-islamic-civil.js
 intl402/Temporal/PlainYearMonth/prototype/add/leap-year-islamic-tbla.js
 intl402/Temporal/PlainYearMonth/prototype/add/leap-year-persian.js
@@ -519,7 +476,6 @@ intl402/Temporal/PlainYearMonth/prototype/add/options-undefined.js
 intl402/Temporal/PlainYearMonth/prototype/daysInMonth/basic-chinese.js
 intl402/Temporal/PlainYearMonth/prototype/daysInMonth/basic-dangi.js
 intl402/Temporal/PlainYearMonth/prototype/daysInMonth/basic-hebrew.js
-intl402/Temporal/PlainYearMonth/prototype/daysInMonth/basic-indian.js
 intl402/Temporal/PlainYearMonth/prototype/daysInMonth/basic-islamic-civil.js
 intl402/Temporal/PlainYearMonth/prototype/daysInMonth/basic-islamic-tbla.js
 intl402/Temporal/PlainYearMonth/prototype/daysInMonth/basic-islamic-umalqura.js
@@ -527,7 +483,6 @@ intl402/Temporal/PlainYearMonth/prototype/daysInMonth/basic-persian.js
 intl402/Temporal/PlainYearMonth/prototype/daysInYear/basic-chinese.js
 intl402/Temporal/PlainYearMonth/prototype/daysInYear/basic-dangi.js
 intl402/Temporal/PlainYearMonth/prototype/daysInYear/basic-hebrew.js
-intl402/Temporal/PlainYearMonth/prototype/daysInYear/basic-indian.js
 intl402/Temporal/PlainYearMonth/prototype/daysInYear/basic-islamic-civil.js
 intl402/Temporal/PlainYearMonth/prototype/daysInYear/basic-islamic-tbla.js
 intl402/Temporal/PlainYearMonth/prototype/daysInYear/basic-islamic-umalqura.js
@@ -536,7 +491,6 @@ intl402/Temporal/PlainYearMonth/prototype/equals/canonicalize-calendar.js
 intl402/Temporal/PlainYearMonth/prototype/inLeapYear/basic-chinese.js
 intl402/Temporal/PlainYearMonth/prototype/inLeapYear/basic-dangi.js
 intl402/Temporal/PlainYearMonth/prototype/inLeapYear/basic-hebrew.js
-intl402/Temporal/PlainYearMonth/prototype/inLeapYear/basic-indian.js
 intl402/Temporal/PlainYearMonth/prototype/inLeapYear/basic-islamic-civil.js
 intl402/Temporal/PlainYearMonth/prototype/inLeapYear/basic-islamic-tbla.js
 intl402/Temporal/PlainYearMonth/prototype/inLeapYear/basic-islamic-umalqura.js
@@ -551,7 +505,6 @@ intl402/Temporal/PlainYearMonth/prototype/monthCode/no-leap-months-persian.js
 intl402/Temporal/PlainYearMonth/prototype/monthsInYear/basic-chinese.js
 intl402/Temporal/PlainYearMonth/prototype/monthsInYear/basic-dangi.js
 intl402/Temporal/PlainYearMonth/prototype/monthsInYear/basic-hebrew.js
-intl402/Temporal/PlainYearMonth/prototype/monthsInYear/basic-indian.js
 intl402/Temporal/PlainYearMonth/prototype/monthsInYear/basic-islamic-civil.js
 intl402/Temporal/PlainYearMonth/prototype/monthsInYear/basic-islamic-tbla.js
 intl402/Temporal/PlainYearMonth/prototype/monthsInYear/basic-islamic-umalqura.js
@@ -561,7 +514,6 @@ intl402/Temporal/PlainYearMonth/prototype/monthsInYear/dangi-calendar-leap-days.
 intl402/Temporal/PlainYearMonth/prototype/since/basic-chinese.js
 intl402/Temporal/PlainYearMonth/prototype/since/basic-dangi.js
 intl402/Temporal/PlainYearMonth/prototype/since/basic-hebrew.js
-intl402/Temporal/PlainYearMonth/prototype/since/basic-indian.js
 intl402/Temporal/PlainYearMonth/prototype/since/basic-islamic-civil.js
 intl402/Temporal/PlainYearMonth/prototype/since/basic-islamic-tbla.js
 intl402/Temporal/PlainYearMonth/prototype/since/basic-islamic-umalqura.js
@@ -578,7 +530,6 @@ intl402/Temporal/PlainYearMonth/prototype/since/leap-months-hebrew.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/basic-chinese.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/basic-dangi.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/basic-hebrew.js
-intl402/Temporal/PlainYearMonth/prototype/subtract/basic-indian.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/basic-islamic-civil.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/basic-islamic-tbla.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/basic-islamic-umalqura.js
@@ -590,7 +541,6 @@ intl402/Temporal/PlainYearMonth/prototype/subtract/leap-months-chinese.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/leap-months-dangi.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/leap-months-hebrew.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/leap-year-hebrew.js
-intl402/Temporal/PlainYearMonth/prototype/subtract/leap-year-indian.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/leap-year-islamic-civil.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/leap-year-islamic-tbla.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/leap-year-persian.js
@@ -598,7 +548,6 @@ intl402/Temporal/PlainYearMonth/prototype/subtract/options-undefined.js
 intl402/Temporal/PlainYearMonth/prototype/until/basic-chinese.js
 intl402/Temporal/PlainYearMonth/prototype/until/basic-dangi.js
 intl402/Temporal/PlainYearMonth/prototype/until/basic-hebrew.js
-intl402/Temporal/PlainYearMonth/prototype/until/basic-indian.js
 intl402/Temporal/PlainYearMonth/prototype/until/basic-islamic-civil.js
 intl402/Temporal/PlainYearMonth/prototype/until/basic-islamic-tbla.js
 intl402/Temporal/PlainYearMonth/prototype/until/basic-islamic-umalqura.js
@@ -613,7 +562,6 @@ intl402/Temporal/PlainYearMonth/prototype/until/leap-months-chinese.js
 intl402/Temporal/PlainYearMonth/prototype/until/leap-months-dangi.js
 intl402/Temporal/PlainYearMonth/prototype/until/leap-months-hebrew.js
 intl402/Temporal/PlainYearMonth/prototype/with/basic-hebrew.js
-intl402/Temporal/PlainYearMonth/prototype/with/basic-indian.js
 intl402/Temporal/PlainYearMonth/prototype/with/basic-islamic-civil.js
 intl402/Temporal/PlainYearMonth/prototype/with/basic-islamic-tbla.js
 intl402/Temporal/PlainYearMonth/prototype/with/basic-islamic-umalqura.js
@@ -628,7 +576,6 @@ intl402/Temporal/PlainYearMonth/prototype/with/leap-months-hebrew.js
 intl402/Temporal/PlainYearMonth/prototype/with/mutually-exclusive-fields-chinese.js
 intl402/Temporal/PlainYearMonth/prototype/with/mutually-exclusive-fields-dangi.js
 intl402/Temporal/PlainYearMonth/prototype/with/mutually-exclusive-fields-hebrew.js
-intl402/Temporal/PlainYearMonth/prototype/with/mutually-exclusive-fields-indian.js
 intl402/Temporal/PlainYearMonth/prototype/with/mutually-exclusive-fields-islamic-civil.js
 intl402/Temporal/PlainYearMonth/prototype/with/mutually-exclusive-fields-islamic-tbla.js
 intl402/Temporal/PlainYearMonth/prototype/with/mutually-exclusive-fields-islamic-umalqura.js
@@ -654,7 +601,6 @@ intl402/Temporal/ZonedDateTime/from/roundtrip-from-string.js
 intl402/Temporal/ZonedDateTime/prototype/add/basic-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/add/basic-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/add/basic-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/add/basic-indian.js
 intl402/Temporal/ZonedDateTime/prototype/add/basic-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/add/basic-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/add/basic-islamic-umalqura.js
@@ -662,7 +608,6 @@ intl402/Temporal/ZonedDateTime/prototype/add/basic-persian.js
 intl402/Temporal/ZonedDateTime/prototype/add/constrain-day-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/add/constrain-day-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/add/constrain-day-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/add/constrain-day-indian.js
 intl402/Temporal/ZonedDateTime/prototype/add/constrain-day-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/add/constrain-day-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/add/constrain-day-islamic-umalqura.js
@@ -674,14 +619,12 @@ intl402/Temporal/ZonedDateTime/prototype/add/leap-months-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/add/leap-months-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/add/leap-months-hebrew.js
 intl402/Temporal/ZonedDateTime/prototype/add/leap-year-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/add/leap-year-indian.js
 intl402/Temporal/ZonedDateTime/prototype/add/leap-year-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/add/leap-year-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/add/leap-year-persian.js
 intl402/Temporal/ZonedDateTime/prototype/add/month-boundary-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/add/month-boundary-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/add/month-boundary-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/add/month-boundary-indian.js
 intl402/Temporal/ZonedDateTime/prototype/add/month-boundary-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/add/month-boundary-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/add/month-boundary-islamic-umalqura.js
@@ -690,7 +633,6 @@ intl402/Temporal/ZonedDateTime/prototype/dayOfYear/non-iso-calendar-basic.js
 intl402/Temporal/ZonedDateTime/prototype/daysInMonth/basic-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/daysInMonth/basic-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/daysInMonth/basic-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/daysInMonth/basic-indian.js
 intl402/Temporal/ZonedDateTime/prototype/daysInMonth/basic-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/daysInMonth/basic-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/daysInMonth/basic-islamic-umalqura.js
@@ -698,7 +640,6 @@ intl402/Temporal/ZonedDateTime/prototype/daysInMonth/basic-persian.js
 intl402/Temporal/ZonedDateTime/prototype/daysInYear/basic-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/daysInYear/basic-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/daysInYear/basic-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/daysInYear/basic-indian.js
 intl402/Temporal/ZonedDateTime/prototype/daysInYear/basic-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/daysInYear/basic-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/daysInYear/basic-islamic-umalqura.js
@@ -707,7 +648,6 @@ intl402/Temporal/ZonedDateTime/prototype/equals/canonicalize-calendar.js
 intl402/Temporal/ZonedDateTime/prototype/inLeapYear/basic-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/inLeapYear/basic-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/inLeapYear/basic-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/inLeapYear/basic-indian.js
 intl402/Temporal/ZonedDateTime/prototype/inLeapYear/basic-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/inLeapYear/basic-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/inLeapYear/basic-islamic-umalqura.js
@@ -722,7 +662,6 @@ intl402/Temporal/ZonedDateTime/prototype/monthCode/no-leap-months-persian.js
 intl402/Temporal/ZonedDateTime/prototype/monthsInYear/basic-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/monthsInYear/basic-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/monthsInYear/basic-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/monthsInYear/basic-indian.js
 intl402/Temporal/ZonedDateTime/prototype/monthsInYear/basic-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/monthsInYear/basic-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/monthsInYear/basic-islamic-umalqura.js
@@ -732,7 +671,6 @@ intl402/Temporal/ZonedDateTime/prototype/monthsInYear/dangi-calendar-leap-days.j
 intl402/Temporal/ZonedDateTime/prototype/since/basic-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/since/basic-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/since/basic-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/since/basic-indian.js
 intl402/Temporal/ZonedDateTime/prototype/since/basic-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/since/basic-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/since/basic-islamic-umalqura.js
@@ -751,7 +689,6 @@ intl402/Temporal/ZonedDateTime/prototype/since/leap-year-since.js
 intl402/Temporal/ZonedDateTime/prototype/since/wrapping-at-end-of-month-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/since/wrapping-at-end-of-month-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/since/wrapping-at-end-of-month-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/since/wrapping-at-end-of-month-indian.js
 intl402/Temporal/ZonedDateTime/prototype/since/wrapping-at-end-of-month-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/since/wrapping-at-end-of-month-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/since/wrapping-at-end-of-month-islamic-umalqura.js
@@ -759,7 +696,6 @@ intl402/Temporal/ZonedDateTime/prototype/since/wrapping-at-end-of-month-persian.
 intl402/Temporal/ZonedDateTime/prototype/subtract/basic-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/basic-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/basic-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/subtract/basic-indian.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/basic-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/basic-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/basic-islamic-umalqura.js
@@ -767,7 +703,6 @@ intl402/Temporal/ZonedDateTime/prototype/subtract/basic-persian.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/constrain-day-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/constrain-day-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/constrain-day-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/subtract/constrain-day-indian.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/constrain-day-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/constrain-day-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/constrain-day-islamic-umalqura.js
@@ -779,14 +714,12 @@ intl402/Temporal/ZonedDateTime/prototype/subtract/leap-months-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/leap-months-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/leap-months-hebrew.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/leap-year-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/subtract/leap-year-indian.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/leap-year-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/leap-year-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/leap-year-persian.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/month-boundary-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/month-boundary-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/month-boundary-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/subtract/month-boundary-indian.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/month-boundary-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/month-boundary-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/month-boundary-islamic-umalqura.js
@@ -794,7 +727,6 @@ intl402/Temporal/ZonedDateTime/prototype/subtract/month-boundary-persian.js
 intl402/Temporal/ZonedDateTime/prototype/until/basic-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/until/basic-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/until/basic-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/until/basic-indian.js
 intl402/Temporal/ZonedDateTime/prototype/until/basic-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/until/basic-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/until/basic-islamic-umalqura.js
@@ -813,14 +745,12 @@ intl402/Temporal/ZonedDateTime/prototype/until/leap-year-until.js
 intl402/Temporal/ZonedDateTime/prototype/until/wrapping-at-end-of-month-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/until/wrapping-at-end-of-month-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/until/wrapping-at-end-of-month-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/until/wrapping-at-end-of-month-indian.js
 intl402/Temporal/ZonedDateTime/prototype/until/wrapping-at-end-of-month-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/until/wrapping-at-end-of-month-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/until/wrapping-at-end-of-month-islamic-umalqura.js
 intl402/Temporal/ZonedDateTime/prototype/until/wrapping-at-end-of-month-persian.js
 intl402/Temporal/ZonedDateTime/prototype/weekOfYear/non-iso-week-of-year.js
 intl402/Temporal/ZonedDateTime/prototype/with/basic-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/with/basic-indian.js
 intl402/Temporal/ZonedDateTime/prototype/with/basic-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/with/basic-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/with/basic-islamic-umalqura.js
@@ -830,7 +760,6 @@ intl402/Temporal/ZonedDateTime/prototype/with/chinese-calendar-leap-dates.js
 intl402/Temporal/ZonedDateTime/prototype/with/constrain-day-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/with/constrain-day-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/with/constrain-day-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/with/constrain-day-indian.js
 intl402/Temporal/ZonedDateTime/prototype/with/constrain-day-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/with/constrain-day-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/with/constrain-day-islamic-umalqura.js
@@ -841,13 +770,11 @@ intl402/Temporal/ZonedDateTime/prototype/with/leap-months-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/with/leap-months-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/with/leap-months-hebrew.js
 intl402/Temporal/ZonedDateTime/prototype/with/leap-year-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/with/leap-year-indian.js
 intl402/Temporal/ZonedDateTime/prototype/with/leap-year-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/with/leap-year-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/with/mutually-exclusive-fields-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/with/mutually-exclusive-fields-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/with/mutually-exclusive-fields-hebrew.js
-intl402/Temporal/ZonedDateTime/prototype/with/mutually-exclusive-fields-indian.js
 intl402/Temporal/ZonedDateTime/prototype/with/mutually-exclusive-fields-islamic-civil.js
 intl402/Temporal/ZonedDateTime/prototype/with/mutually-exclusive-fields-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/with/mutually-exclusive-fields-islamic-umalqura.js

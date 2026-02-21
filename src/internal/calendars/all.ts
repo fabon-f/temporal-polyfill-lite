@@ -31,6 +31,12 @@ import {
 	epochDaysToDate as epochDaysToDateCopticOrEthiopic,
 	monthDayToEpochDays as monthDayToEpochDaysCopticOrEthiopic,
 } from "./copticEthiopic.ts";
+import {
+	calendarIntegersToEpochDays as calendarIntegersToEpochDaysIndian,
+	daysInMonth as daysInMonthIndian,
+	epochDaysToDate as epochDaysToDateIndian,
+	monthDayToEpochDays as monthDayToEpochDaysIndian,
+} from "./indian.ts";
 import { notImplementedYet } from "./utils.ts";
 
 /** `EPOCH` -> 1, `OFFSET` -> the offset year, `NEGATIVE` -> false */
@@ -318,6 +324,9 @@ export function nonIsoCalendarIsoToDate(
 	if (isCopticOrEthiopic(calendar)) {
 		return epochDaysToDateCopticOrEthiopic(calendar, epochDays);
 	}
+	if (calendar === "indian") {
+		return epochDaysToDateIndian(epochDays);
+	}
 	notImplementedYet();
 }
 
@@ -363,10 +372,12 @@ export function calendarMonthDayToIsoReferenceDate(
 			calendarIntegersToIso(calendar, year, month, day),
 		).$monthCode;
 	}
+	const parsedMonthCode = parseMonthCode(monthCode);
 	if (isCopticOrEthiopic(calendar)) {
-		return epochDaysToIsoDate(
-			monthDayToEpochDaysCopticOrEthiopic(parseMonthCode(monthCode)[0], day),
-		);
+		return epochDaysToIsoDate(monthDayToEpochDaysCopticOrEthiopic(parsedMonthCode[0], day));
+	}
+	if (calendar === "indian") {
+		return epochDaysToIsoDate(monthDayToEpochDaysIndian(parsedMonthCode[0], day));
 	}
 	notImplementedYet();
 }
@@ -464,6 +475,9 @@ function calendarIntegersToIso(
 			calendarIntegersToEpochDaysCopticOrEthiopic(calendar, arithmeticYear, ordinalMonth, day),
 		);
 	}
+	if (calendar === "indian") {
+		return epochDaysToIsoDate(calendarIntegersToEpochDaysIndian(arithmeticYear, ordinalMonth, day));
+	}
 	notImplementedYet();
 }
 
@@ -498,7 +512,9 @@ function constrainDay(
 ): number {
 	const daysInMonth = isCopticOrEthiopic(calendar)
 		? daysInMonthCopticOrEthiopic(year, month)
-		: notImplementedYet();
+		: calendar === "indian"
+			? daysInMonthIndian(year, month)
+			: notImplementedYet();
 	return day > daysInMonth && overflow === overflowReject
 		? throwRangeError(outOfBoundsDate)
 		: clamp(day, 1, daysInMonth);
@@ -519,6 +535,9 @@ function constrainDayForMonthCode(
 	}
 	if (isCopticOrEthiopic(calendar)) {
 		return constrainDay(calendar, 3, parsedMonthCode[0], day, overflow);
+	}
+	if (calendar === "indian") {
+		return constrainDay(calendar, 2, parsedMonthCode[0], day, overflow);
 	}
 	notImplementedYet();
 }
