@@ -346,9 +346,9 @@ export function calendarMonthDayToIsoReferenceDate(
 	const month = fields[calendarFieldKeys.$month];
 	let monthCode = fields[calendarFieldKeys.$monthCode];
 	let day = fields[calendarFieldKeys.$day];
-	assertNotUndefined(month);
 	assertNotUndefined(day);
 	if (year !== undefined) {
+		assertNotUndefined(month);
 		validateIsoDate(calendarIntegersToIso(calendar, year, month, day));
 		day = constrainDay(calendar, year, month, day, overflow);
 	} else {
@@ -356,6 +356,7 @@ export function calendarMonthDayToIsoReferenceDate(
 		day = constrainDayForMonthCode(calendar, monthCode, day, overflow);
 	}
 	if (!monthCode) {
+		assertNotUndefined(month);
 		assertNotUndefined(year);
 		monthCode = nonIsoCalendarIsoToDate(
 			calendar,
