@@ -7,7 +7,10 @@ import {
 	calendarSupportsEraForNonIsoCalendars,
 	canonicalizeCalendar,
 	canonicalizeEraInCalendar,
+	constrainMonthCode,
 	isIsoLikeCalendar,
+	isValidMonthCodeForCalendar,
+	monthCodeToOrdinal,
 	nonIsoCalendarIsoToDate,
 	type SupportedCalendars,
 	type SupportedNonIsoCalendars,
@@ -75,7 +78,7 @@ import { toTemporalTimeZoneIdentifier } from "./timeZones.ts";
 import { Unit } from "./unit.ts";
 import { mapUnlessUndefined, throwRangeError, throwTypeError } from "./utils.ts";
 
-type YearWeekRecord =
+export type YearWeekRecord =
 	| {
 			$year: number;
 			$week: number;
@@ -154,7 +157,7 @@ export interface CalendarFieldsRecord {
 }
 
 /** `ParseMonthCode` */
-function parseMonthCode(arg: unknown): [monthNumber: number, isLeapMonth: boolean] {
+export function parseMonthCode(arg: unknown): [monthNumber: number, isLeapMonth: boolean] {
 	const monthCode = toPrimitive(arg);
 	validateString(monthCode);
 	const result = monthCode.match(/M(\d\d)(L?)/);
@@ -166,7 +169,7 @@ function parseMonthCode(arg: unknown): [monthNumber: number, isLeapMonth: boolea
 }
 
 /** `CreateMonthCode` */
-function createMonthCode(monthNumber: number, isLeapMonth = false): string {
+export function createMonthCode(monthNumber: number, isLeapMonth = false): string {
 	assert(isLeapMonth || monthNumber > 0);
 	return `M${toZeroPaddedDecimalString(monthNumber, 2)}${isLeapMonth ? "L" : ""}`;
 }
@@ -564,7 +567,7 @@ export function nonIsoResolveFields(
 ): void {
 	const era = fields[calendarFieldKeys.$era];
 	const eraYear = fields[calendarFieldKeys.$eraYear];
-	const year = fields[calendarFieldKeys.$year];
+	let year = fields[calendarFieldKeys.$year];
 	const monthCode = fields[calendarFieldKeys.$monthCode];
 	const month = fields[calendarFieldKeys.$month];
 	const day = fields[calendarFieldKeys.$day];
@@ -607,8 +610,20 @@ export function nonIsoResolveFields(
 	fields[calendarFieldKeys.$era] = fields[calendarFieldKeys.$eraYear] = undefined;
 	if (isIsoLikeCalendar(calendar)) {
 		isoResolveFields(fields, type);
+	} else if (monthCode !== undefined) {
+		if (!isValidMonthCodeForCalendar(calendar, monthCode)) {
+			throwRangeError(invalidMonthCode(monthCode));
+		}
+		const year = fields[calendarFieldKeys.$year];
+		if (year !== undefined) {
+			const constrainedMonthCode = constrainMonthCode(calendar, year, monthCode, overflowConstrain);
+			const actualMonth = monthCodeToOrdinal(calendar, year, constrainedMonthCode);
+			if (month !== undefined && month !== actualMonth) {
+				throwRangeError(monthMismatch);
+			}
+			fields[calendarFieldKeys.$month] = actualMonth;
+		}
 	}
-	// TODO
 }
 
 /** `CalendarResolveFields` */
