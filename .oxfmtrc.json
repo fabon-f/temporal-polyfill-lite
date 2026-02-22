@@ -9,7 +9,7 @@
 	],
 	"experimentalSortImports": {
 		"groups": [
-			["side-effect"],
+			["side_effect"],
 			["builtin"],
 			["external"],
 			["parent"],
