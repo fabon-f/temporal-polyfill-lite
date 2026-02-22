@@ -37,6 +37,12 @@ import {
 	epochDaysToDate as epochDaysToDateIndian,
 	monthDayToEpochDays as monthDayToEpochDaysIndian,
 } from "./indian.ts";
+import {
+	calendarIntegersToEpochDays as calendarIntegersToEpochDaysPersian,
+	constrainDay as constrainDayPersian,
+	epochDaysToDate as epochDaysToDatePersian,
+	monthDayToEpochDays as monthDayToEpochDaysPersian,
+} from "./persian.ts";
 import { notImplementedYet } from "./utils.ts";
 
 /** `EPOCH` -> 1, `OFFSET` -> the offset year, `NEGATIVE` -> false */
@@ -327,6 +333,9 @@ export function nonIsoCalendarIsoToDate(
 	if (calendar === "indian") {
 		return epochDaysToDateIndian(epochDays);
 	}
+	if (calendar === "persian") {
+		return epochDaysToDatePersian(epochDays);
+	}
 	notImplementedYet();
 }
 
@@ -378,6 +387,9 @@ export function calendarMonthDayToIsoReferenceDate(
 	}
 	if (calendar === "indian") {
 		return epochDaysToIsoDate(monthDayToEpochDaysIndian(parsedMonthCode[0], day));
+	}
+	if (calendar === "persian") {
+		return epochDaysToIsoDate(monthDayToEpochDaysPersian(parsedMonthCode[0], day));
 	}
 	notImplementedYet();
 }
@@ -478,6 +490,11 @@ function calendarIntegersToIso(
 	if (calendar === "indian") {
 		return epochDaysToIsoDate(calendarIntegersToEpochDaysIndian(arithmeticYear, ordinalMonth, day));
 	}
+	if (calendar === "persian") {
+		return epochDaysToIsoDate(
+			calendarIntegersToEpochDaysPersian(arithmeticYear, ordinalMonth, day),
+		);
+	}
 	notImplementedYet();
 }
 
@@ -510,14 +527,21 @@ function constrainDay(
 	day: number,
 	overflow: Overflow,
 ): number {
-	const daysInMonth = isCopticOrEthiopic(calendar)
-		? daysInMonthCopticOrEthiopic(year, month)
-		: calendar === "indian"
-			? daysInMonthIndian(year, month)
-			: notImplementedYet();
-	return day > daysInMonth && overflow === overflowReject
+	const constrainedDay =
+		calendar === "persian"
+			? constrainDayPersian(year, month, day)
+			: clamp(
+					day,
+					1,
+					isCopticOrEthiopic(calendar)
+						? daysInMonthCopticOrEthiopic(year, month)
+						: calendar === "indian"
+							? daysInMonthIndian(year, month)
+							: notImplementedYet(),
+				);
+	return day !== constrainedDay && overflow === overflowReject
 		? throwRangeError(outOfBoundsDate)
-		: clamp(day, 1, daysInMonth);
+		: constrainedDay;
 }
 
 function constrainDayForMonthCode(
@@ -538,6 +562,12 @@ function constrainDayForMonthCode(
 	}
 	if (calendar === "indian") {
 		return constrainDay(calendar, 2, parsedMonthCode[0], day, overflow);
+	}
+	if (calendar === "persian") {
+		const constrainedDay = clamp(day, 1, parsedMonthCode[0] <= 6 ? 31 : 30);
+		return day !== constrainedDay && overflow === overflowReject
+			? throwRangeError(outOfBoundsDate)
+			: constrainedDay;
 	}
 	notImplementedYet();
 }
