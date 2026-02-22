@@ -1,0 +1,56 @@
+import { expect, test } from "vitest";
+import { dayOfYearFromMonthDay, monthDayFromDayOfYear } from "./persian.ts";
+
+test("dayOfYearFromMonthDay", () => {
+	expect(dayOfYearFromMonthDay(1, 1)).toEqual(1);
+	expect(dayOfYearFromMonthDay(1, 31)).toEqual(31);
+	expect(dayOfYearFromMonthDay(2, 1)).toEqual(32);
+	expect(dayOfYearFromMonthDay(2, 31)).toEqual(62);
+	expect(dayOfYearFromMonthDay(3, 1)).toEqual(63);
+	expect(dayOfYearFromMonthDay(3, 31)).toEqual(93);
+	expect(dayOfYearFromMonthDay(4, 1)).toEqual(94);
+	expect(dayOfYearFromMonthDay(4, 31)).toEqual(124);
+	expect(dayOfYearFromMonthDay(5, 1)).toEqual(125);
+	expect(dayOfYearFromMonthDay(5, 31)).toEqual(155);
+	expect(dayOfYearFromMonthDay(6, 1)).toEqual(156);
+	expect(dayOfYearFromMonthDay(6, 31)).toEqual(186);
+	expect(dayOfYearFromMonthDay(7, 1)).toEqual(187);
+	expect(dayOfYearFromMonthDay(7, 30)).toEqual(216);
+	expect(dayOfYearFromMonthDay(8, 1)).toEqual(217);
+	expect(dayOfYearFromMonthDay(8, 30)).toEqual(246);
+	expect(dayOfYearFromMonthDay(9, 1)).toEqual(247);
+	expect(dayOfYearFromMonthDay(9, 30)).toEqual(276);
+	expect(dayOfYearFromMonthDay(10, 1)).toEqual(277);
+	expect(dayOfYearFromMonthDay(10, 30)).toEqual(306);
+	expect(dayOfYearFromMonthDay(11, 1)).toEqual(307);
+	expect(dayOfYearFromMonthDay(11, 30)).toEqual(336);
+	expect(dayOfYearFromMonthDay(12, 1)).toEqual(337);
+	expect(dayOfYearFromMonthDay(12, 30)).toEqual(366);
+});
+
+test("monthDayFromDayOfYear", () => {
+	expect(monthDayFromDayOfYear(1)).toEqual([1, 1]);
+	expect(monthDayFromDayOfYear(31)).toEqual([1, 31]);
+	expect(monthDayFromDayOfYear(32)).toEqual([2, 1]);
+	expect(monthDayFromDayOfYear(62)).toEqual([2, 31]);
+	expect(monthDayFromDayOfYear(63)).toEqual([3, 1]);
+	expect(monthDayFromDayOfYear(93)).toEqual([3, 31]);
+	expect(monthDayFromDayOfYear(94)).toEqual([4, 1]);
+	expect(monthDayFromDayOfYear(124)).toEqual([4, 31]);
+	expect(monthDayFromDayOfYear(125)).toEqual([5, 1]);
+	expect(monthDayFromDayOfYear(155)).toEqual([5, 31]);
+	expect(monthDayFromDayOfYear(156)).toEqual([6, 1]);
+	expect(monthDayFromDayOfYear(186)).toEqual([6, 31]);
+	expect(monthDayFromDayOfYear(187)).toEqual([7, 1]);
+	expect(monthDayFromDayOfYear(216)).toEqual([7, 30]);
+	expect(monthDayFromDayOfYear(217)).toEqual([8, 1]);
+	expect(monthDayFromDayOfYear(246)).toEqual([8, 30]);
+	expect(monthDayFromDayOfYear(247)).toEqual([9, 1]);
+	expect(monthDayFromDayOfYear(276)).toEqual([9, 30]);
+	expect(monthDayFromDayOfYear(277)).toEqual([10, 1]);
+	expect(monthDayFromDayOfYear(306)).toEqual([10, 30]);
+	expect(monthDayFromDayOfYear(307)).toEqual([11, 1]);
+	expect(monthDayFromDayOfYear(336)).toEqual([11, 30]);
+	expect(monthDayFromDayOfYear(337)).toEqual([12, 1]);
+	expect(monthDayFromDayOfYear(366)).toEqual([12, 30]);
+});
