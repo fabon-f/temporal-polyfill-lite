@@ -249,7 +249,6 @@ export function calendarDateToIso(
 	fields: CalendarFieldsRecord,
 	overflow: Overflow,
 ): IsoDateRecord {
-	console.log("calendarDateToIso", fields);
 	const year = fields[calendarFieldKeys.$year];
 	const month = fields[calendarFieldKeys.$month];
 	const monthCode = fields[calendarFieldKeys.$monthCode];
