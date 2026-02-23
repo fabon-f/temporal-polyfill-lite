@@ -2,12 +2,15 @@ import { millisecondsPerDay } from "../constants.ts";
 import { toIntegerIfIntegral } from "../ecmascript.ts";
 import { createNullPrototypeObject } from "../object.ts";
 
+export interface YearMonthDayNumber {
+	$year: number;
+	$month: number;
+	$day: number;
+}
+
 const calendarFormatterCache: Record<string, Intl.DateTimeFormat> = createNullPrototypeObject({});
 
-export function extractYearMonthDay(
-	calendar: string,
-	epochDays: number,
-): { $month: number; $day: number } {
+export function extractYearMonthDay(calendar: string, epochDays: number): YearMonthDayNumber {
 	const parts = (calendarFormatterCache[calendar] ||= new Intl.DateTimeFormat("en", {
 		year: "numeric",
 		month: "numeric",
@@ -15,11 +18,12 @@ export function extractYearMonthDay(
 		calendar: calendar,
 		timeZone: "UTC",
 	})).formatToParts(epochDays * millisecondsPerDay);
-	const calendarIntegers = ["month", "day"].map((field) =>
+	const calendarIntegers = ["year", "month", "day"].map((field) =>
 		toIntegerIfIntegral(parts.find((p) => p.type === field)!.value),
-	) as [number, number];
+	) as [number, number, number];
 	return {
-		$month: calendarIntegers[0],
-		$day: calendarIntegers[1],
+		$year: calendarIntegers[0],
+		$month: calendarIntegers[1],
+		$day: calendarIntegers[2],
 	};
 }

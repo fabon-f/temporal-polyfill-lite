@@ -38,6 +38,18 @@ import {
 	monthDayToEpochDays as monthDayToEpochDaysIndian,
 } from "./indian.ts";
 import {
+	calendarIntegersToEpochDays as calendarIntegersToEpochDaysIslamicTabular,
+	daysInMonth as daysInMonthIslamicTabular,
+	epochDaysToDate as epochDaysToDateIslamicTabular,
+	monthDayToEpochDays as monthDayToEpochDaysIslamicTabular,
+} from "./islamicTabular.ts";
+import {
+	epochDaysToDate as epochDaysToDateIslamicUmalqura,
+	constrainDay as constrainDayIslamicUmalqura,
+	calendarIntegersToEpochDays as calendarIntegersToEpochDaysIslamicUmalqura,
+	monthDayToEpochDays as monthDayToEpochDaysIslamicUmalqura,
+} from "./islamicUmalqura.ts";
+import {
 	calendarIntegersToEpochDays as calendarIntegersToEpochDaysPersian,
 	constrainDay as constrainDayPersian,
 	epochDaysToDate as epochDaysToDatePersian,
@@ -336,6 +348,12 @@ export function nonIsoCalendarIsoToDate(
 	if (calendar === "persian") {
 		return epochDaysToDatePersian(epochDays);
 	}
+	if (calendar === "islamic-civil" || calendar === "islamic-tbla") {
+		return epochDaysToDateIslamicTabular(calendar, epochDays);
+	}
+	if (calendar === "islamic-umalqura") {
+		return epochDaysToDateIslamicUmalqura(epochDays);
+	}
 	notImplementedYet();
 }
 
@@ -390,6 +408,12 @@ export function calendarMonthDayToIsoReferenceDate(
 	}
 	if (calendar === "persian") {
 		return epochDaysToIsoDate(monthDayToEpochDaysPersian(parsedMonthCode[0], day));
+	}
+	if (calendar === "islamic-civil" || calendar === "islamic-tbla") {
+		return epochDaysToIsoDate(monthDayToEpochDaysIslamicTabular(calendar, parsedMonthCode[0], day));
+	}
+	if (calendar === "islamic-umalqura") {
+		return epochDaysToIsoDate(monthDayToEpochDaysIslamicUmalqura(parsedMonthCode[0], day));
 	}
 	notImplementedYet();
 }
@@ -495,6 +519,16 @@ function calendarIntegersToIso(
 			calendarIntegersToEpochDaysPersian(arithmeticYear, ordinalMonth, day),
 		);
 	}
+	if (calendar === "islamic-civil" || calendar === "islamic-tbla") {
+		return epochDaysToIsoDate(
+			calendarIntegersToEpochDaysIslamicTabular(calendar, arithmeticYear, ordinalMonth, day),
+		);
+	}
+	if (calendar === "islamic-umalqura") {
+		return epochDaysToIsoDate(
+			calendarIntegersToEpochDaysIslamicUmalqura(arithmeticYear, ordinalMonth, day),
+		);
+	}
 	notImplementedYet();
 }
 
@@ -530,15 +564,19 @@ function constrainDay(
 	const constrainedDay =
 		calendar === "persian"
 			? constrainDayPersian(year, month, day)
-			: clamp(
-					day,
-					1,
-					isCopticOrEthiopic(calendar)
-						? daysInMonthCopticOrEthiopic(year, month)
-						: calendar === "indian"
-							? daysInMonthIndian(year, month)
-							: notImplementedYet(),
-				);
+			: calendar === "islamic-umalqura"
+				? constrainDayIslamicUmalqura(year, month, day)
+				: clamp(
+						day,
+						1,
+						isCopticOrEthiopic(calendar)
+							? daysInMonthCopticOrEthiopic(year, month)
+							: calendar === "indian"
+								? daysInMonthIndian(year, month)
+								: calendar === "islamic-civil" || calendar === "islamic-tbla"
+									? daysInMonthIslamicTabular(year, month)
+									: notImplementedYet(),
+					);
 	return day !== constrainedDay && overflow === overflowReject
 		? throwRangeError(outOfBoundsDate)
 		: constrainedDay;
@@ -562,6 +600,15 @@ function constrainDayForMonthCode(
 	}
 	if (calendar === "indian") {
 		return constrainDay(calendar, 2, parsedMonthCode[0], day, overflow);
+	}
+	if (calendar === "islamic-civil" || calendar === "islamic-tbla") {
+		return constrainDay(calendar, 2, parsedMonthCode[0], day, overflow);
+	}
+	if (calendar === "islamic-umalqura") {
+		const constrainedDay = clamp(day, 1, 30);
+		return day !== constrainedDay && overflow === overflowReject
+			? throwRangeError(outOfBoundsDate)
+			: constrainedDay;
 	}
 	if (calendar === "persian") {
 		const constrainedDay = clamp(day, 1, parsedMonthCode[0] <= 6 ? 31 : 30);
