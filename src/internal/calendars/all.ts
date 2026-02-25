@@ -32,6 +32,16 @@ import {
 	monthDayToEpochDays as monthDayToEpochDaysCopticOrEthiopic,
 } from "./copticEthiopic.ts";
 import {
+	balanceYearMonth as balanceYearMonthHebrew,
+	calendarIntegersToEpochDays as calendarIntegersToEpochDaysHebrew,
+	daysInMonth as daysInMonthHebrew,
+	epochDaysToDate as epochDaysToDateHebrew,
+	isLeapYear as isLeapYearHebrew,
+	monthCodeToOrdinal as monthCodeToOrdinalHebrew,
+	monthDayToEpochDays as monthDayToEpochDaysHebrew,
+	untilInMonths as untilInMonthsHebrew,
+} from "./hebrew.ts";
+import {
 	calendarIntegersToEpochDays as calendarIntegersToEpochDaysIndian,
 	daysInMonth as daysInMonthIndian,
 	epochDaysToDate as epochDaysToDateIndian,
@@ -183,6 +193,73 @@ export function calendarDateAdd(
 	);
 }
 
+interface PartialCalendarDate {
+	$year: number;
+	$month: number;
+	$monthCode: string;
+	$day: number;
+}
+
+/** `CompareSurpasses` */
+function compareSurpasses(
+	sign: 1 | -1,
+	year: number,
+	monthOrCode: number | string,
+	day: number,
+	target: PartialCalendarDate,
+) {
+	if (year !== target.$year) {
+		return sign * (year - target.$year) > 0;
+	}
+	if (monthOrCode !== target.$month && monthOrCode !== target.$monthCode) {
+		return (
+			sign *
+				(typeof monthOrCode === "string"
+					? monthOrCode > target.$monthCode
+						? 1
+						: monthOrCode < target.$monthCode
+							? -1
+							: 0
+					: monthOrCode - target.$month) >
+			0
+		);
+	}
+	return sign * (day - target.$day) > 0;
+}
+
+type DateSurpassesResult =
+	| { $surpasses: true }
+	| { $surpasses: false; $year: number; $month: number };
+
+/** `NonISODateSurpasses` */
+function nonIsoDateSurpasses(
+	calendar: NonIsoLikeCalendars,
+	sign: 1 | -1,
+	fromDate: PartialCalendarDate,
+	toDate: PartialCalendarDate,
+	years: number,
+	months: number,
+): DateSurpassesResult {
+	if (compareSurpasses(sign, fromDate.$year + years, fromDate.$monthCode, fromDate.$day, toDate)) {
+		return { $surpasses: true };
+	}
+	const balancedYearMonth = balanceNonIsoYearMonth(
+		calendar,
+		fromDate.$year + years,
+		monthCodeToOrdinal(
+			calendar,
+			fromDate.$year + years,
+			constrainMonthCode(calendar, fromDate.$year + years, fromDate.$monthCode, overflowConstrain),
+		) + months,
+	);
+	if (
+		compareSurpasses(sign, balancedYearMonth.$year, balancedYearMonth.$month, fromDate.$day, toDate)
+	) {
+		return { $surpasses: true };
+	}
+	return { $surpasses: false, ...balancedYearMonth };
+}
+
 /** `CalendarDateUntil` */
 export function calendarDateUntil(
 	calendar: SupportedCalendars,
@@ -200,7 +277,49 @@ export function calendarDateUntil(
 		return isoCalendarDateUntil(one, two, largestUnit);
 	}
 	if (calendar === "hebrew" || calendar === "chinese" || calendar === "dangi") {
-		notImplementedYet();
+		const startDate = nonIsoCalendarIsoToDate(calendar, one);
+		const endDate = nonIsoCalendarIsoToDate(calendar, two);
+		let years = 0;
+		let surpassesResult: DateSurpassesResult | undefined = undefined;
+		if (largestUnit === Unit.Year) {
+			for (
+				years = endDate.$year - startDate.$year;
+				(surpassesResult = nonIsoDateSurpasses(calendar, sign, startDate, endDate, years, 0))
+					.$surpasses;
+				years -= sign
+			) {}
+		}
+		const months =
+			calendar === "hebrew"
+				? untilInMonthsHebrew(
+						(surpassesResult || startDate).$year,
+						(surpassesResult || startDate).$month,
+						endDate.$year,
+						endDate.$month,
+					) - (sign * (startDate.$day - endDate.$day) > 0 ? sign : 0)
+				: notImplementedYet();
+		const surpassesResult2 = nonIsoDateSurpasses(calendar, sign, startDate, endDate, years, months);
+		assert(!surpassesResult2.$surpasses);
+		return createDateDurationRecord(
+			years,
+			months,
+			0,
+			isoDateRecordToEpochDays(two) -
+				isoDateRecordToEpochDays(
+					calendarIntegersToIso(
+						calendar,
+						surpassesResult2.$year,
+						surpassesResult2.$month,
+						constrainDay(
+							calendar,
+							surpassesResult2.$year,
+							surpassesResult2.$month,
+							startDate.$day,
+							overflowConstrain,
+						),
+					),
+				),
+		);
 	}
 	// `monthsInYear` is constant for a calendar here
 	const startDate = nonIsoCalendarIsoToDate(calendar, one);
@@ -353,6 +472,9 @@ export function nonIsoCalendarIsoToDate(
 	if (calendar === "islamic-umalqura") {
 		return epochDaysToDateIslamicUmalqura(epochDays);
 	}
+	if (calendar === "hebrew") {
+		return epochDaysToDateHebrew(epochDays);
+	}
 	notImplementedYet();
 }
 
@@ -414,6 +536,9 @@ export function calendarMonthDayToIsoReferenceDate(
 	if (calendar === "islamic-umalqura") {
 		return epochDaysToIsoDate(monthDayToEpochDaysIslamicUmalqura(parsedMonthCode[0], day));
 	}
+	if (calendar === "hebrew") {
+		return epochDaysToIsoDate(monthDayToEpochDaysHebrew(monthCode, day));
+	}
 	notImplementedYet();
 }
 
@@ -457,12 +582,16 @@ export function isValidMonthCodeForCalendar(
 /** `ConstrainMonthCode` */
 export function constrainMonthCode(
 	calendar: SupportedNonIsoCalendars,
-	_arithmeticYear: number,
+	arithmeticYear: number,
 	monthCode: string,
-	_overflow: Overflow,
+	overflow: Overflow,
 ): string {
 	if (calendar === "hebrew") {
-		notImplementedYet();
+		return monthCode === "M05L" && !isLeapYearHebrew(arithmeticYear)
+			? overflow === overflowReject
+				? throwRangeError(outOfBoundsDate)
+				: "M06"
+			: monthCode;
 	}
 	if (calendar === "chinese" || calendar === "dangi") {
 		notImplementedYet();
@@ -473,12 +602,12 @@ export function constrainMonthCode(
 /** `MonthCodeToOrdinal` */
 export function monthCodeToOrdinal(
 	calendar: SupportedNonIsoCalendars,
-	_arithmeticYear: number,
+	arithmeticYear: number,
 	monthCode: string,
 ): number {
 	const parsedMonthCode = parseMonthCode(monthCode);
 	if (calendar === "hebrew") {
-		notImplementedYet();
+		return monthCodeToOrdinalHebrew(arithmeticYear, monthCode);
 	}
 	if (calendar === "chinese" || calendar === "dangi") {
 		notImplementedYet();
@@ -528,6 +657,9 @@ function calendarIntegersToIso(
 			calendarIntegersToEpochDaysIslamicUmalqura(arithmeticYear, ordinalMonth, day),
 		);
 	}
+	if (calendar === "hebrew") {
+		return epochDaysToIsoDate(calendarIntegersToEpochDaysHebrew(arithmeticYear, ordinalMonth, day));
+	}
 	notImplementedYet();
 }
 
@@ -574,7 +706,9 @@ function constrainDay(
 								? daysInMonthIndian(year, month)
 								: calendar === "islamic-civil" || calendar === "islamic-tbla"
 									? daysInMonthIslamicTabular(year, month)
-									: notImplementedYet(),
+									: calendar === "hebrew"
+										? daysInMonthHebrew(year, month)
+										: notImplementedYet(),
 					);
 	return day !== constrainedDay && overflow === overflowReject
 		? throwRangeError(outOfBoundsDate)
@@ -582,7 +716,7 @@ function constrainDay(
 }
 
 function constrainDayForMonthCode(
-	calendar: SupportedNonIsoCalendars,
+	calendar: NonIsoLikeCalendars,
 	monthCode: string,
 	day: number,
 	overflow: Overflow,
@@ -592,7 +726,9 @@ function constrainDayForMonthCode(
 		notImplementedYet();
 	}
 	if (calendar === "hebrew") {
-		notImplementedYet();
+		return monthCode === "M05L"
+			? constrainDay(calendar, 3, 6, day, overflow)
+			: constrainDay(calendar, 1, parsedMonthCode[0], day, overflow);
 	}
 	if (isCopticOrEthiopic(calendar)) {
 		return constrainDay(calendar, 3, parsedMonthCode[0], day, overflow);
@@ -624,7 +760,7 @@ function balanceNonIsoYearMonth(
 	ordinalMonth: number,
 ): { $year: number; $month: number } {
 	if (calendar === "hebrew") {
-		notImplementedYet();
+		return balanceYearMonthHebrew(arithmeticYear, ordinalMonth);
 	}
 	if (calendar === "chinese" || calendar === "dangi") {
 		notImplementedYet();
