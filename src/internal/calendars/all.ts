@@ -20,7 +20,7 @@ import {
 } from "../calendars.ts";
 import { overflowConstrain, overflowReject, type Overflow } from "../enum.ts";
 import { calendarNotSupported, invalidEra, outOfBoundsDate } from "../errorMessages.ts";
-import { clamp, divFloor, divTrunc, isWithin, modFloor } from "../math.ts";
+import { clamp, divFloor, isWithin, modFloor } from "../math.ts";
 import { createNullPrototypeObject } from "../object.ts";
 import { asciiLowerCase } from "../string.ts";
 import { Unit } from "../unit.ts";
@@ -276,90 +276,56 @@ export function calendarDateUntil(
 	) {
 		return isoCalendarDateUntil(one, two, largestUnit);
 	}
-	if (calendar === "hebrew" || calendar === "chinese" || calendar === "dangi") {
-		const startDate = nonIsoCalendarIsoToDate(calendar, one);
-		const endDate = nonIsoCalendarIsoToDate(calendar, two);
-		let years = 0;
-		let surpassesResult: DateSurpassesResult | undefined = undefined;
-		if (largestUnit === Unit.Year) {
-			for (
-				years = endDate.$year - startDate.$year;
-				(surpassesResult = nonIsoDateSurpasses(calendar, sign, startDate, endDate, years, 0))
-					.$surpasses;
-				years -= sign
-			) {}
-		}
-		const months =
-			calendar === "hebrew"
-				? untilInMonthsHebrew(
-						(surpassesResult || startDate).$year,
-						(surpassesResult || startDate).$month,
-						endDate.$year,
-						endDate.$month,
-					) - (sign * (startDate.$day - endDate.$day) > 0 ? sign : 0)
-				: notImplementedYet();
-		const surpassesResult2 = nonIsoDateSurpasses(calendar, sign, startDate, endDate, years, months);
-		assert(!surpassesResult2.$surpasses);
-		return createDateDurationRecord(
-			years,
-			months,
-			0,
-			isoDateRecordToEpochDays(two) -
-				isoDateRecordToEpochDays(
-					calendarIntegersToIso(
+
+	const startDate = nonIsoCalendarIsoToDate(calendar, one);
+	const endDate = nonIsoCalendarIsoToDate(calendar, two);
+	let years = 0;
+	let surpassesResult: DateSurpassesResult | undefined = undefined;
+	if (largestUnit === Unit.Year) {
+		for (
+			years = endDate.$year - startDate.$year;
+			(surpassesResult = nonIsoDateSurpasses(calendar, sign, startDate, endDate, years, 0))
+				.$surpasses;
+			years -= sign
+		) {}
+	}
+	const months =
+		(calendar === "hebrew"
+			? untilInMonthsHebrew(
+					(surpassesResult || startDate).$year,
+					(surpassesResult || startDate).$month,
+					endDate.$year,
+					endDate.$month,
+				)
+			: calendar === "chinese" || calendar === "dangi"
+				? notImplementedYet()
+				: // `monthsInYear` is constant for the calendar here
+					(endDate.$year - (surpassesResult || startDate).$year) * startDate.$monthsInYear +
+					endDate.$month -
+					(surpassesResult || startDate).$month) -
+		(sign * (startDate.$day - endDate.$day) > 0 ? sign : 0);
+	const surpassesResult2 = nonIsoDateSurpasses(calendar, sign, startDate, endDate, years, months);
+	assert(!surpassesResult2.$surpasses);
+	return createDateDurationRecord(
+		years,
+		months,
+		0,
+		isoDateRecordToEpochDays(two) -
+			isoDateRecordToEpochDays(
+				calendarIntegersToIso(
+					calendar,
+					surpassesResult2.$year,
+					surpassesResult2.$month,
+					constrainDay(
 						calendar,
 						surpassesResult2.$year,
 						surpassesResult2.$month,
-						constrainDay(
-							calendar,
-							surpassesResult2.$year,
-							surpassesResult2.$month,
-							startDate.$day,
-							overflowConstrain,
-						),
+						startDate.$day,
+						overflowConstrain,
 					),
 				),
-		);
-	}
-	// `monthsInYear` is constant for a calendar here
-	const startDate = nonIsoCalendarIsoToDate(calendar, one);
-	const endDate = nonIsoCalendarIsoToDate(calendar, two);
-	const months =
-		(endDate.$year - startDate.$year) * startDate.$monthsInYear +
-		endDate.$month -
-		startDate.$month -
-		// subtract 1 if adding months to `one` surpasses `two`
-		(sign * (startDate.$day - endDate.$day) > 0 ? sign : 0);
-	const balancedYearMonth = balanceNonIsoYearMonth(
-		calendar,
-		startDate.$year,
-		startDate.$month + months,
-	);
-	const days =
-		isoDateRecordToEpochDays(two) -
-		isoDateRecordToEpochDays(
-			calendarIntegersToIso(
-				calendar,
-				balancedYearMonth.$year,
-				balancedYearMonth.$month,
-				constrainDay(
-					calendar,
-					balancedYearMonth.$year,
-					balancedYearMonth.$month,
-					startDate.$day,
-					overflowConstrain,
-				),
 			),
-		);
-	if (largestUnit === Unit.Year) {
-		return createDateDurationRecord(
-			divTrunc(months, startDate.$monthsInYear),
-			(months % startDate.$monthsInYear) + 0,
-			0,
-			days,
-		);
-	}
-	return createDateDurationRecord(0, months, 0, days);
+	);
 }
 
 /** `CalendarDateToISO` */
