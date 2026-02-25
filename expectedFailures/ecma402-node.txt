@@ -1,5 +1,7 @@
 # $262 not supported in the test runner
 intl402/DateTimeFormat/proto-from-ctor-realm.js
+# impossible to format extreme dates in `Intl.DateTimeFormat` from JS
+intl402/DateTimeFormat/prototype/format/temporal-objects-no-time-clip.js
 # This polyfill makes `Intl.DateTimeFormat` accept Temporal types, but besides that
 # it doesn't modify behavior of `Intl.DateTimeFormat` by design.
 # Therefore V8 bugs related to `Intl.DateTimeFormat` are left as-is.

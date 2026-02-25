@@ -1,5 +1,7 @@
 # $262 not supported in the test runner
 intl402/DateTimeFormat/proto-from-ctor-realm.js
+# impossible to format extreme dates in `Intl.DateTimeFormat` from JS
+intl402/DateTimeFormat/prototype/format/temporal-objects-no-time-clip.js
 # not implemented yet in JSC
 intl402/DateTimeFormat/constructor-options-calendar-islamic-fallback.js
 intl402/DateTimeFormat/prototype/formatToParts/era.js
