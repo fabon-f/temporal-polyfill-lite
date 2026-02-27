@@ -147,6 +147,7 @@ intl402/Temporal/PlainMonthDay/from/calendar-not-supporting-eras.js
 intl402/Temporal/PlainMonthDay/from/calendarresolvefields-error-ordering-chinese.js
 intl402/Temporal/PlainMonthDay/from/chinese-30-day-leap-months.js
 intl402/Temporal/PlainMonthDay/from/chinese-calendar-dates.js
+intl402/Temporal/PlainMonthDay/from/chinese-dangi-constrain-rare-leap-months.js
 intl402/Temporal/PlainMonthDay/from/chinese-leap-month-codes-common.js
 intl402/Temporal/PlainMonthDay/from/chinese-month-codes.js
 intl402/Temporal/PlainMonthDay/from/constrain-to-leap-day.js

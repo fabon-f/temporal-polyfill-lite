@@ -36,6 +36,7 @@ intl402/Temporal/PlainDate/from/hebrew-keviah.js
 intl402/Temporal/PlainDate/from/leap-months-hebrew.js
 intl402/Temporal/PlainDate/from/leap-year-hebrew.js
 intl402/Temporal/PlainDate/from/non-positive-single-era-year.js
+intl402/Temporal/PlainDate/from/persian-new-year-dates.js
 intl402/Temporal/PlainDate/from/remapping-era.js
 intl402/Temporal/PlainDate/from/roundtrip-from-iso.js
 intl402/Temporal/PlainDate/from/roundtrip-from-property-bag.js
@@ -151,6 +152,7 @@ intl402/Temporal/PlainDate/prototype/inLeapYear/basic-persian.js
 intl402/Temporal/PlainDate/prototype/inLeapYear/basic-roc.js
 intl402/Temporal/PlainDate/prototype/inLeapYear/chinese-calendar-dates.js
 intl402/Temporal/PlainDate/prototype/inLeapYear/dangi-calendar-dates.js
+intl402/Temporal/PlainDate/prototype/inLeapYear/persian-calendar-authority.js
 intl402/Temporal/PlainDate/prototype/monthCode/chinese-calendar-dates.js
 intl402/Temporal/PlainDate/prototype/monthCode/dangi-calendar-dates.js
 intl402/Temporal/PlainDate/prototype/monthCode/leap-months-hebrew.js
@@ -819,6 +821,7 @@ intl402/Temporal/PlainMonthDay/from/calendarresolvefields-error-ordering-islamic
 intl402/Temporal/PlainMonthDay/from/canonicalize-calendar.js
 intl402/Temporal/PlainMonthDay/from/chinese-30-day-leap-months.js
 intl402/Temporal/PlainMonthDay/from/chinese-calendar-dates.js
+intl402/Temporal/PlainMonthDay/from/chinese-dangi-constrain-rare-leap-months.js
 intl402/Temporal/PlainMonthDay/from/chinese-leap-month-codes-common.js
 intl402/Temporal/PlainMonthDay/from/chinese-month-codes.js
 intl402/Temporal/PlainMonthDay/from/constrain-to-leap-day.js
