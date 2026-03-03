@@ -1,9 +1,11 @@
 import { expect, test } from "vitest";
-import { nanosecondsPerDay } from "./constants.ts";
+import { nanosecondsPerDay, nanosecondsPerHour } from "./constants.ts";
+import { roundingModeHalfEven } from "./enum.ts";
 import {
 	createTimeDurationFromMicroseconds,
 	createTimeDurationFromNanoseconds,
 	normalize,
+	roundTimeDuration,
 } from "./timeDuration.ts";
 
 function fromNanosecondsBigInt(n: bigint) {
@@ -39,4 +41,14 @@ test("createTimeDurationFromMicroseconds and unsafe integers", () => {
 	for (const n of microsecondsList) {
 		expect(createTimeDurationFromMicroseconds(n)).toEqual(fromNanosecondsBigInt(BigInt(n) * 1000n));
 	}
+});
+
+test("roundTimeDuration", () => {
+	expect(
+		roundTimeDuration(
+			createTimeDurationFromNanoseconds(28 * nanosecondsPerHour),
+			8 * nanosecondsPerHour,
+			roundingModeHalfEven,
+		),
+	).toEqual(createTimeDurationFromNanoseconds(32 * nanosecondsPerHour));
 });
