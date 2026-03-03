@@ -126,9 +126,16 @@ export function roundTimeDuration(
 	roundingIncrementNanoseconds: number,
 	roundingMode: RoundingMode,
 ): TimeDuration {
+	// Handle edge cases when the increment is 8 hours and the rounding mode is "half even" and and `timeDuration[0]` is an odd number.
+	// For example, when the duration is 28 hours, the result should be 32 hours, but it would return 24 hours incorrectly
+	// if we round `timeDuration[1]` and then add to `timeDuration[0]`.
 	return normalize(
-		timeDuration[0],
-		roundNumberToIncrement(timeDuration[1], roundingIncrementNanoseconds, roundingMode),
+		divTrunc(timeDuration[0], 2) * 2,
+		roundNumberToIncrement(
+			timeDuration[1] + (timeDuration[0] % 2) * nanosecondsPerDay,
+			roundingIncrementNanoseconds,
+			roundingMode,
+		),
 	);
 }
 
