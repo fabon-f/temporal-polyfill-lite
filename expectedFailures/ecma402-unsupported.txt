@@ -24,6 +24,7 @@ intl402/Temporal/PlainDate/from/calendarresolvefields-error-ordering-japanese.js
 intl402/Temporal/PlainDate/from/canonicalize-calendar.js
 intl402/Temporal/PlainDate/from/canonicalize-era-codes-non-gregorian.js
 intl402/Temporal/PlainDate/from/constrain-day-hebrew.js
+intl402/Temporal/PlainDate/from/chinese-month-list-early-new-year.js
 intl402/Temporal/PlainDate/from/era-boundary-ethiopic.js
 intl402/Temporal/PlainDate/from/era-boundary-islamic-civil.js
 intl402/Temporal/PlainDate/from/era-boundary-islamic-tbla.js
@@ -33,6 +34,7 @@ intl402/Temporal/PlainDate/from/era-boundary-roc.js
 intl402/Temporal/PlainDate/from/era-japanese.js
 intl402/Temporal/PlainDate/from/extreme-dates.js
 intl402/Temporal/PlainDate/from/hebrew-keviah.js
+intl402/Temporal/PlainDate/from/japanese-pre-meiji.js
 intl402/Temporal/PlainDate/from/leap-months-hebrew.js
 intl402/Temporal/PlainDate/from/leap-year-hebrew.js
 intl402/Temporal/PlainDate/from/non-positive-single-era-year.js

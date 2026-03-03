@@ -2,9 +2,14 @@
 intl402/DateTimeFormat/proto-from-ctor-realm.js
 # impossible to format extreme dates in `Intl.DateTimeFormat` from JS
 intl402/DateTimeFormat/prototype/format/temporal-objects-no-time-clip.js
+intl402/DateTimeFormat/prototype/format/temporal-objects-no-time-clip-non-latin-numerals.js
+intl402/DateTimeFormat/prototype/format/temporal-objects-no-time-clip-weekday.js
 intl402/DateTimeFormat/prototype/formatRange/temporal-objects-no-time-clip.js
+intl402/DateTimeFormat/prototype/formatRange/temporal-objects-no-time-clip-weekday.js
 intl402/DateTimeFormat/prototype/formatRangeToParts/temporal-objects-no-time-clip.js
+intl402/DateTimeFormat/prototype/formatRangeToParts/temporal-objects-no-time-clip-weekday.js
 intl402/DateTimeFormat/prototype/formatToParts/temporal-objects-no-time-clip.js
+intl402/DateTimeFormat/prototype/formatToParts/temporal-objects-no-time-clip-weekday.js
 # not implemented yet in JSC
 intl402/DateTimeFormat/constructor-options-calendar-islamic-fallback.js
 intl402/DateTimeFormat/prototype/formatToParts/era.js
