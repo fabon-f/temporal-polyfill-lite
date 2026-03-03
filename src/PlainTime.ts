@@ -18,7 +18,6 @@ import {
 	getTemporalFractionalSecondDigitsOption,
 	getTemporalOverflowOption,
 	getTemporalUnitValuedOption,
-	isCalendarUnit,
 	maximumTemporalDurationRoundingIncrement,
 	roundNumberToIncrement,
 	toSecondsStringPrecisionRecord,
@@ -60,7 +59,12 @@ import {
 	timeDurationDaysAndRemainderNanoseconds,
 	type TimeDuration,
 } from "./internal/timeDuration.ts";
-import { nanosecondsForTimeUnit, Unit } from "./internal/unit.ts";
+import {
+	getIndexFromUnit,
+	getUnitFromIndex,
+	nanosecondsForTimeUnit,
+	Unit,
+} from "./internal/unit.ts";
 import { throwRangeError, throwTypeError, withArray } from "./internal/utils.ts";
 import { getInternalSlotOrThrowForPlainDateTime, isPlainDateTime } from "./PlainDateTime.ts";
 import {
@@ -343,23 +347,30 @@ export function roundTime(
 	unit: Unit.Day | Unit.Time,
 	roundingMode: RoundingMode,
 ): TimeRecord {
-	assert(!isCalendarUnit(unit));
+	const nanosecondsPerLargerUnit = nanosecondsForTimeUnit(
+		getUnitFromIndex(clamp(getIndexFromUnit(unit) - 1, 3, 8) as 3 | 4 | 5 | 6 | 7 | 8) as
+			| Unit.Day
+			| Unit.Time,
+	);
+	const nanosecondsSinceMidnight =
+		time.$hour * nanosecondsPerHour +
+		time.$minute * nanosecondsPerMinute +
+		time.$second * 1e9 +
+		time.$millisecond * 1e6 +
+		time.$microsecond * 1e3 +
+		time.$nanosecond;
 	return balanceTime(
 		0,
 		0,
 		0,
 		0,
 		0,
-		roundNumberToIncrement(
-			time.$hour * nanosecondsPerHour +
-				time.$minute * nanosecondsPerMinute +
-				time.$second * 1e9 +
-				time.$millisecond * 1e6 +
-				time.$microsecond * 1e3 +
-				time.$nanosecond,
-			increment * nanosecondsForTimeUnit(unit),
-			roundingMode,
-		),
+		divFloor(nanosecondsSinceMidnight, nanosecondsPerLargerUnit) * nanosecondsPerLargerUnit +
+			roundNumberToIncrement(
+				modFloor(nanosecondsSinceMidnight, nanosecondsPerLargerUnit),
+				increment * nanosecondsForTimeUnit(unit),
+				roundingMode,
+			),
 	);
 }
 
