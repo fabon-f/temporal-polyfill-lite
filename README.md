@@ -4,6 +4,9 @@
 
 Lightweight Temporal polyfill supporting all time zones and basic (`iso8601` and `gregory`) calendars.
 
+- **Small**: The bundle size is nearly 10% smaller than [temporal-polyfill](https://www.npmjs.com/package/temporal-polyfill), 60% smaller than [@js-temporal/polyfill](https://www.npmjs.com/package/@js-temporal/polyfill) if you need only basic calendars (see [comparison](https://github.com/fabon-f/temporal-polyfill-comparison) for details).
+- **Spec-compliant**: It supports the latest spec, while other polyfills are based on the outdated spec (at least as of February 2026).
+
 # Usage
 
 ```sh
@@ -33,4 +36,4 @@ This polyfill doesn't internally rely on `bigint`, thus you can support older br
 
 ## Spec compliance
 
-It supports the latest spec (January 2026) with few intentional deviations (see `/expectedFailures` directory for details).
+It supports the latest spec with few intentional deviations (see `/expectedFailures` directory for details).
