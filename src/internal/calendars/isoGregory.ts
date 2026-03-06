@@ -6,9 +6,9 @@ import {
 	isoCalendarDateUntil,
 	isoCalendarIsoToDate,
 	isoMonthDayToIsoReferenceDate,
-	parseMonthCode,
 	type CalendarDateRecord,
 	type CalendarFieldsRecord,
+	type MonthCode,
 } from "../calendars.ts";
 import { type Overflow } from "../enum.ts";
 import { calendarNotSupported, invalidEra } from "../errorMessages.ts";
@@ -112,7 +112,7 @@ export function calendarHasMidYearEras(_calendar: SupportedCalendars): boolean {
 /** `IsValidMonthCodeForCalendar` */
 export function isValidMonthCodeForCalendar(
 	_calendar: SupportedNonIsoCalendars,
-	_monthCode: string,
+	_monthCode: MonthCode,
 ): boolean {
 	// stub, not called in "basic" build
 	return true;
@@ -122,9 +122,9 @@ export function isValidMonthCodeForCalendar(
 export function constrainMonthCode(
 	_calendar: SupportedNonIsoCalendars,
 	_arithmeticYear: number,
-	monthCode: string,
+	monthCode: MonthCode,
 	_overflow: Overflow,
-): string {
+): MonthCode {
 	// stub, not called in "basic" build
 	return monthCode;
 }
@@ -133,10 +133,10 @@ export function constrainMonthCode(
 export function monthCodeToOrdinal(
 	_calendar: SupportedNonIsoCalendars,
 	_arithmeticYear: number,
-	monthCode: string,
+	monthCode: MonthCode,
 ): number {
 	// stub, not called in "basic" build
-	return parseMonthCode(monthCode)[0];
+	return monthCode[0];
 }
 
 /** `CalendarDateArithmeticYearForEraYear` */

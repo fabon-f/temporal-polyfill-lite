@@ -3,8 +3,8 @@ import { createLruCache } from "../cacheMap.ts";
 import {
 	createMonthCode,
 	isoDayOfWeek,
-	parseMonthCode,
 	type CalendarDateRecord,
+	type MonthCode,
 } from "../calendars.ts";
 import { clamp, isWithin, modFloor, sign } from "../math.ts";
 import {
@@ -69,16 +69,16 @@ function ordinalMonthToMonthCode(
 export function monthCodeToOrdinal(
 	calendar: "chinese" | "dangi",
 	arithmeticYear: number,
-	monthCode: string,
+	monthCode: MonthCode,
 ) {
-	const [monthNumber, isLeapMonth] = parseMonthCode(monthCode);
 	if (
-		!isLeapMonth &&
-		ordinalMonthToMonthCode(calendar, arithmeticYear, monthNumber) === monthCode
+		!monthCode[1] &&
+		ordinalMonthToMonthCode(calendar, arithmeticYear, monthCode[0]) ===
+			createMonthCode(...monthCode)
 	) {
-		return monthNumber;
+		return monthCode[0];
 	}
-	return monthNumber + 1;
+	return monthCode[0] + 1;
 }
 
 export function calendarIntegersToEpochDays(
@@ -102,11 +102,15 @@ function monthsInYear(calendar: "chinese" | "dangi", year: number) {
 	return getNewYear(calendar, year + 1) - getNewYear(calendar, year) > 360 ? 13 : 12;
 }
 
-export function constrainMonthCode(calendar: "chinese" | "dangi", year: number, monthCode: string) {
-	const [monthNumber, inLeapYear] = parseMonthCode(monthCode);
-	return !inLeapYear || ordinalMonthToMonthCode(calendar, year, monthNumber + 1) === monthCode
+export function constrainMonthCode(
+	calendar: "chinese" | "dangi",
+	year: number,
+	monthCode: MonthCode,
+): MonthCode {
+	return !monthCode[1] ||
+		ordinalMonthToMonthCode(calendar, year, monthCode[0] + 1) === createMonthCode(...monthCode)
 		? monthCode
-		: createMonthCode(monthNumber);
+		: [monthCode[0], false];
 }
 
 export function constrainDay(
@@ -227,10 +231,10 @@ export function untilInMonths(
 
 function getReferenceYearFromTable(
 	calendar: "chinese" | "dangi",
-	monthCode: string,
+	monthNum: number,
+	isLeapMonth: boolean,
 	day: number,
 ): number {
-	const [monthNum, isLeapMonth] = parseMonthCode(monthCode);
 	if (monthNum === 12) {
 		return 1971;
 	}
@@ -289,15 +293,15 @@ function getReferenceYearFromTable(
 
 export function monthDayToEpochDays(
 	calendar: "chinese" | "dangi",
-	monthCode: string,
+	monthNumber: number,
+	isLeapMonth: boolean,
 	day: number,
 ): number {
-	const [monthNum, isLeapMonth] = parseMonthCode(monthCode);
 	const ordinalMonth =
-		isLeapMonth || (day === 30 && (monthNum === 6 || monthNum === 8)) || monthNum === 12
-			? monthNum + 1
-			: monthNum;
-	if (monthCode === "M11") {
+		isLeapMonth || (day === 30 && (monthNumber === 6 || monthNumber === 8)) || monthNumber === 12
+			? monthNumber + 1
+			: monthNumber;
+	if (monthNumber === 11 && !isLeapMonth) {
 		const firstCandidate = calendarIntegersToEpochDays(calendar, day === 30 ? 1969 : 1972, 11, day);
 		if (firstCandidate <= 1095) {
 			return firstCandidate;
@@ -306,7 +310,7 @@ export function monthDayToEpochDays(
 	}
 	return calendarIntegersToEpochDays(
 		calendar,
-		getReferenceYearFromTable(calendar, monthCode, day),
+		getReferenceYearFromTable(calendar, monthNumber, isLeapMonth, day),
 		ordinalMonth,
 		day,
 	);

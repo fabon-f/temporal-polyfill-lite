@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { parseMonthCode } from "../calendars.ts";
 import { daysInMonth, isLeapYear, monthCodeToOrdinal } from "./hebrew.ts";
 
 test("isLeapYear", () => {
@@ -15,31 +16,31 @@ test("isLeapYear", () => {
 });
 
 test("monthCodeToOrdinal", () => {
-	expect(monthCodeToOrdinal(1, "M01")).toEqual(1);
-	expect(monthCodeToOrdinal(1, "M02")).toEqual(2);
-	expect(monthCodeToOrdinal(1, "M03")).toEqual(3);
-	expect(monthCodeToOrdinal(1, "M04")).toEqual(4);
-	expect(monthCodeToOrdinal(1, "M05")).toEqual(5);
-	expect(monthCodeToOrdinal(1, "M06")).toEqual(6);
-	expect(monthCodeToOrdinal(1, "M07")).toEqual(7);
-	expect(monthCodeToOrdinal(1, "M08")).toEqual(8);
-	expect(monthCodeToOrdinal(1, "M09")).toEqual(9);
-	expect(monthCodeToOrdinal(1, "M10")).toEqual(10);
-	expect(monthCodeToOrdinal(1, "M11")).toEqual(11);
-	expect(monthCodeToOrdinal(1, "M12")).toEqual(12);
-	expect(monthCodeToOrdinal(3, "M01")).toEqual(1);
-	expect(monthCodeToOrdinal(3, "M02")).toEqual(2);
-	expect(monthCodeToOrdinal(3, "M03")).toEqual(3);
-	expect(monthCodeToOrdinal(3, "M04")).toEqual(4);
-	expect(monthCodeToOrdinal(3, "M05")).toEqual(5);
-	expect(monthCodeToOrdinal(3, "M05L")).toEqual(6);
-	expect(monthCodeToOrdinal(3, "M06")).toEqual(7);
-	expect(monthCodeToOrdinal(3, "M07")).toEqual(8);
-	expect(monthCodeToOrdinal(3, "M08")).toEqual(9);
-	expect(monthCodeToOrdinal(3, "M09")).toEqual(10);
-	expect(monthCodeToOrdinal(3, "M10")).toEqual(11);
-	expect(monthCodeToOrdinal(3, "M11")).toEqual(12);
-	expect(monthCodeToOrdinal(3, "M12")).toEqual(13);
+	expect(monthCodeToOrdinal(1, parseMonthCode("M01"))).toEqual(1);
+	expect(monthCodeToOrdinal(1, parseMonthCode("M02"))).toEqual(2);
+	expect(monthCodeToOrdinal(1, parseMonthCode("M03"))).toEqual(3);
+	expect(monthCodeToOrdinal(1, parseMonthCode("M04"))).toEqual(4);
+	expect(monthCodeToOrdinal(1, parseMonthCode("M05"))).toEqual(5);
+	expect(monthCodeToOrdinal(1, parseMonthCode("M06"))).toEqual(6);
+	expect(monthCodeToOrdinal(1, parseMonthCode("M07"))).toEqual(7);
+	expect(monthCodeToOrdinal(1, parseMonthCode("M08"))).toEqual(8);
+	expect(monthCodeToOrdinal(1, parseMonthCode("M09"))).toEqual(9);
+	expect(monthCodeToOrdinal(1, parseMonthCode("M10"))).toEqual(10);
+	expect(monthCodeToOrdinal(1, parseMonthCode("M11"))).toEqual(11);
+	expect(monthCodeToOrdinal(1, parseMonthCode("M12"))).toEqual(12);
+	expect(monthCodeToOrdinal(3, parseMonthCode("M01"))).toEqual(1);
+	expect(monthCodeToOrdinal(3, parseMonthCode("M02"))).toEqual(2);
+	expect(monthCodeToOrdinal(3, parseMonthCode("M03"))).toEqual(3);
+	expect(monthCodeToOrdinal(3, parseMonthCode("M04"))).toEqual(4);
+	expect(monthCodeToOrdinal(3, parseMonthCode("M05"))).toEqual(5);
+	expect(monthCodeToOrdinal(3, parseMonthCode("M05L"))).toEqual(6);
+	expect(monthCodeToOrdinal(3, parseMonthCode("M06"))).toEqual(7);
+	expect(monthCodeToOrdinal(3, parseMonthCode("M07"))).toEqual(8);
+	expect(monthCodeToOrdinal(3, parseMonthCode("M08"))).toEqual(9);
+	expect(monthCodeToOrdinal(3, parseMonthCode("M09"))).toEqual(10);
+	expect(monthCodeToOrdinal(3, parseMonthCode("M10"))).toEqual(11);
+	expect(monthCodeToOrdinal(3, parseMonthCode("M11"))).toEqual(12);
+	expect(monthCodeToOrdinal(3, parseMonthCode("M12"))).toEqual(13);
 });
 
 test("daysInMonth", () => {

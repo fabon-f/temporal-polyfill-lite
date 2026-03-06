@@ -2,8 +2,8 @@ import { epochDaysToIsoDate } from "../abstractOperations.ts";
 import {
 	createMonthCode,
 	isoDayOfWeek,
-	parseMonthCode,
 	type CalendarDateRecord,
+	type MonthCode,
 } from "../calendars.ts";
 import { divFloor, modFloor } from "../math.ts";
 
@@ -107,22 +107,19 @@ export function untilInMonths(
 	return monthNumber(targetYear, targetMonth) - monthNumber(startYear, startMonth);
 }
 
-export function monthCodeToOrdinal(year: number, monthCode: string) {
-	const parsedMonthCode = parseMonthCode(monthCode);
-	return parsedMonthCode[0] + +(isLeapYear(year) && parsedMonthCode[0] + +parsedMonthCode[1] >= 6);
+export function monthCodeToOrdinal(year: number, monthCode: MonthCode) {
+	return monthCode[0] + +(isLeapYear(year) && monthCode[0] + +monthCode[1] >= 6);
 }
 
-export function monthDayToEpochDays(monthCode: string, day: number) {
-	const parsedMonthCode = parseMonthCode(monthCode);
-	if (monthCode === "M05L") {
+export function monthDayToEpochDays(monthNumber: number, isLeapMonth: boolean, day: number) {
+	if (isLeapMonth) {
+		// M05L
 		return calendarIntegersToEpochDays(5730, 6, day);
 	}
-	if ((monthCode === "M02" || monthCode === "M03") && day === 30) {
-		return calendarIntegersToEpochDays(5732, parsedMonthCode[0], day);
+	if ((monthNumber === 2 || monthNumber === 3) && day === 30) {
+		return calendarIntegersToEpochDays(5732, monthNumber, day);
 	}
 	// M05L doesn't appear here, so ordinal month equals to the number in a month code
-	const epochDays1 = calendarIntegersToEpochDays(5733, parsedMonthCode[0], day);
-	return epochDays1 <= 1095
-		? epochDays1
-		: calendarIntegersToEpochDays(5732, parsedMonthCode[0], day);
+	const epochDays1 = calendarIntegersToEpochDays(5733, monthNumber, day);
+	return epochDays1 <= 1095 ? epochDays1 : calendarIntegersToEpochDays(5732, monthNumber, day);
 }

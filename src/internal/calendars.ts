@@ -156,8 +156,10 @@ export interface CalendarFieldsRecord {
 	timeZone?: string | undefined;
 }
 
+export type MonthCode = [monthNumber: number, isLeapMonth: boolean];
+
 /** `ParseMonthCode` */
-export function parseMonthCode(arg: unknown): [monthNumber: number, isLeapMonth: boolean] {
+export function parseMonthCode(arg: unknown): MonthCode {
 	const monthCode = toPrimitive(arg);
 	validateString(monthCode);
 	const result = monthCode.match(/M(\d\d)(L?)/);
@@ -610,13 +612,19 @@ export function nonIsoResolveFields(
 	fields[calendarFieldKeys.$era] = fields[calendarFieldKeys.$eraYear] = undefined;
 	if (isIsoLikeCalendar(calendar)) {
 		isoResolveFields(fields, type);
-	} else if (monthCode !== undefined) {
-		if (!isValidMonthCodeForCalendar(calendar, monthCode)) {
+	} else if (monthCode) {
+		const parsedMonthCode = parseMonthCode(monthCode);
+		if (!isValidMonthCodeForCalendar(calendar, parsedMonthCode)) {
 			throwRangeError(invalidMonthCode(monthCode));
 		}
 		const year = fields[calendarFieldKeys.$year];
 		if (year !== undefined) {
-			const constrainedMonthCode = constrainMonthCode(calendar, year, monthCode, overflowConstrain);
+			const constrainedMonthCode = constrainMonthCode(
+				calendar,
+				year,
+				parsedMonthCode,
+				overflowConstrain,
+			);
 			const actualMonth = monthCodeToOrdinal(calendar, year, constrainedMonthCode);
 			if (month !== undefined && month !== actualMonth) {
 				throwRangeError(monthMismatch);
