@@ -2,9 +2,9 @@
 
 [![pkg.pr.new](https://pkg.pr.new/badge/fabon-f/temporal-polyfill-lite)](https://pkg.pr.new/~/fabon-f/temporal-polyfill-lite)
 
-Lightweight Temporal polyfill supporting all time zones and basic (`iso8601` and `gregory`) calendars.
+Lightweight Temporal polyfill.
 
-- **Small**: The bundle size is nearly 10% smaller than [temporal-polyfill](https://www.npmjs.com/package/temporal-polyfill), 60% smaller than [@js-temporal/polyfill](https://www.npmjs.com/package/@js-temporal/polyfill) if you need only basic calendars (see [comparison](https://github.com/fabon-f/temporal-polyfill-comparison) for details).
+- **Small**: The bundle size is nearly 10% smaller than [temporal-polyfill](https://www.npmjs.com/package/temporal-polyfill), 60% smaller than [@js-temporal/polyfill](https://www.npmjs.com/package/@js-temporal/polyfill) if you need only Gregorian calendar (see [comparison](https://github.com/fabon-f/temporal-polyfill-comparison) for details).
 - **Spec-compliant**: It supports the latest spec, while other polyfills are based on the outdated spec (at least as of February 2026).
 
 # Usage
@@ -13,12 +13,16 @@ Lightweight Temporal polyfill supporting all time zones and basic (`iso8601` and
 npm install temporal-polyfill-lite
 ```
 
+For users who need only Gregorian calendar (`iso8601` and `gregory`), you can use a smaller "basic" bundle:
+
 ```typescript
 // as a ponyfill (without patching global variables)
 import { Intl, Temporal } from "temporal-polyfill-lite";
 
-// loading the polyfill to global
+// load the polyfill to global
 import "temporal-polyfill-lite/global";
+// load types to global if you need (optional)
+import "temporal-polyfill-lite/types/global";
 
 // or you can manually install the polyfill
 import { install } from "temporal-polyfill-lite/shim";
@@ -26,6 +30,14 @@ import { install } from "temporal-polyfill-lite/shim";
 install(true);
 // don't overwrite native Temporal implementation
 install(false);
+```
+
+If you need other calendars (such as `hebrew`, `chinese`, or `indian`), you have to load a "full" bundle from `temporal-polyfill-lite/calendars-full` module instead of `temporal-polyfill-lite`.
+
+```typescript
+import { Intl, Temporal } from "temporal-polyfill-lite/calendars-full";
+import "temporal-polyfill-lite/calendars-full/global";
+import { install } from "temporal-polyfill-lite/calendars-full/shim";
 ```
 
 ## Browser support
