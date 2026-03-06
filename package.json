@@ -12,7 +12,10 @@
 		".": "./dist/index.js",
 		"./global": "./dist/global.js",
 		"./shim": "./dist/shim.js",
-		"./types/global": "./dist/types/global.js"
+		"./types/global": "./dist/types/global.js",
+		"./calendars-full": "./dist/calendars/index.js",
+		"./calendars-full/global": "./dist/calendars/global.js",
+		"./calendars-full/shim": "./dist/calendars/shim.js"
 	},
 	"files": [
 		"CHANGELOG.md",
