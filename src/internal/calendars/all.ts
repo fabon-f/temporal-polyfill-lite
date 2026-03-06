@@ -370,23 +370,7 @@ export function calendarDateToIso(
 	if (monthCode !== undefined) {
 		constrainMonthCode(calendar, year, monthCode, overflow);
 	}
-	const clampedMonth =
-		calendar === "chinese" || calendar === "dangi"
-			? constrainMonthChineseDangi(calendar, year, month)
-			: clamp(
-					month,
-					1,
-					calendar === "hebrew"
-						? isLeapYearHebrew(year)
-							? 13
-							: 12
-						: isCopticOrEthiopic(calendar)
-							? 13
-							: 12,
-				);
-	if (clampedMonth !== month && overflow === overflowReject) {
-		throwRangeError(outOfBoundsDate);
-	}
+	const clampedMonth = constrainMonth(calendar, year, month, overflow);
 	return calendarIntegersToIso(
 		calendar,
 		year,
@@ -497,61 +481,41 @@ export function calendarMonthDayToIsoReferenceDate(
 		);
 	}
 	const year = fields[calendarFieldKeys.$year];
-	const month = fields[calendarFieldKeys.$month];
+	let month = fields[calendarFieldKeys.$month];
 	let monthCode = fields[calendarFieldKeys.$monthCode];
 	let day = fields[calendarFieldKeys.$day];
 	assertNotUndefined(day);
-	if (calendar === "chinese" || calendar === "dangi") {
-		if (day > 30 && overflow === overflowReject) {
-			throwRangeError(outOfBoundsDate);
+	if (year !== undefined) {
+		assertNotUndefined(month);
+		// TODO: validate `year` correctly
+		// https://github.com/tc39/proposal-intl-era-monthcode/issues/125
+		if (!monthCode) {
+			month = constrainMonth(calendar, year, month, overflow);
 		}
-		day = clamp(day, 1, 30);
-		if (year !== undefined) {
-			assertNotUndefined(month);
-			// TODO: validate `year` correctly
-			if (!monthCode) {
-				monthCode = nonIsoCalendarIsoToDate(
-					calendar,
-					calendarIntegersToIso(calendar, year, month, 1),
-				).$monthCode;
-			}
-		}
+		monthCode = monthCode
+			? constrainMonthCode(calendar, year, monthCode, overflow)
+			: nonIsoCalendarIsoToDate(calendar, calendarIntegersToIso(calendar, year, month, 1))
+					.$monthCode;
+		day = constrainDay(calendar, year, month, day, overflow);
+	} else {
 		assertNotUndefined(monthCode);
-		if (
-			monthCode === "M01L" ||
+		day = constrainDayForMonthCode(calendar, monthCode, day, overflow);
+	}
+	if (
+		(calendar === "chinese" || calendar === "dangi") &&
+		(monthCode === "M01L" ||
 			monthCode === "M12L" ||
 			((monthCode === "M02L" ||
 				monthCode === "M08L" ||
 				monthCode === "M09L" ||
 				monthCode === "M10L" ||
 				monthCode === "M11L") &&
-				day === 30)
-		) {
-			if (overflow === overflowReject) {
-				throwRangeError(outOfBoundsDate);
-			}
-			monthCode = createMonthCode(parseMonthCode(monthCode)[0]);
+				day === 30))
+	) {
+		if (overflow === overflowReject) {
+			throwRangeError(outOfBoundsDate);
 		}
-	} else {
-		if (year !== undefined) {
-			assertNotUndefined(month);
-			// TODO: validate `year` correctly
-			if (monthCode) {
-				monthCode = constrainMonthCode(calendar, year, monthCode, overflow);
-			}
-			day = constrainDay(calendar, year, month, day, overflow);
-		} else {
-			assertNotUndefined(monthCode);
-			day = constrainDayForMonthCode(calendar, monthCode, day, overflow);
-		}
-		if (!monthCode) {
-			assertNotUndefined(month);
-			assertNotUndefined(year);
-			monthCode = nonIsoCalendarIsoToDate(
-				calendar,
-				calendarIntegersToIso(calendar, year, month, day),
-			).$monthCode;
-		}
+		monthCode = createMonthCode(parseMonthCode(monthCode)[0]);
 	}
 	const parsedMonthCode = parseMonthCode(monthCode);
 	if (isCopticOrEthiopic(calendar)) {
@@ -799,6 +763,32 @@ function constrainDayForMonthCode(
 			: constrainedDay;
 	}
 	assertUnreachable(calendar);
+}
+
+function constrainMonth(
+	calendar: NonIsoLikeCalendars,
+	year: number,
+	month: number,
+	overflow: Overflow,
+) {
+	const clampedMonth =
+		calendar === "chinese" || calendar === "dangi"
+			? constrainMonthChineseDangi(calendar, year, month)
+			: clamp(
+					month,
+					1,
+					calendar === "hebrew"
+						? isLeapYearHebrew(year)
+							? 13
+							: 12
+						: isCopticOrEthiopic(calendar)
+							? 13
+							: 12,
+				);
+	if (clampedMonth !== month && overflow === overflowReject) {
+		throwRangeError(outOfBoundsDate);
+	}
+	return clampedMonth;
 }
 
 function balanceNonIsoYearMonth(
