@@ -1,4 +1,4 @@
-import { copyFile } from "node:fs/promises";
+import { copyFile, mkdir, writeFile } from "node:fs/promises";
 import strip from "@rollup/plugin-strip";
 import terser from "@rollup/plugin-terser";
 import { format } from "oxfmt";
@@ -92,9 +92,10 @@ export async function bundle(mode: "basic" | "full", options: Options) {
 
 export async function build() {
 	const { input, output } = plugins({ assertion: false, minify: true, beautify: true });
+	const declarationPluginOptions = { include: ["src/shim.ts", "src/global.ts"] };
 	await using bundle1 = await rolldown({
 		input: ["src/index.ts", "src/global.ts", "src/shim.ts"],
-		plugins: [...input, unpluginIsolatedDecl({ include: "src/shim.ts" })],
+		plugins: [...input, unpluginIsolatedDecl(declarationPluginOptions)],
 	});
 	await bundle1.write({
 		dir: "dist",
@@ -103,7 +104,7 @@ export async function build() {
 	});
 	await using bundle2 = await rolldown({
 		input: ["src/index.ts", "src/global.ts", "src/shim.ts"],
-		plugins: [...input, unpluginIsolatedDecl({ include: "src/shim.ts" })],
+		plugins: [...input, unpluginIsolatedDecl(declarationPluginOptions)],
 		resolve: {
 			conditionNames: ["nonIsoCalendars"],
 		},
@@ -112,6 +113,9 @@ export async function build() {
 		dir: "dist/calendars",
 		plugins: output,
 	});
+	await mkdir("dist/types");
 	await copyFile("src/types/index.d.ts", "dist/index.d.ts");
-	await copyFile("src/types/global.d.ts", "dist/global.d.ts");
+	await copyFile("src/types/index.d.ts", "dist/calendars/index.d.ts");
+	await writeFile("dist/types/global.js", "");
+	await copyFile("src/types/global.d.ts", "dist/types/global.d.ts");
 }

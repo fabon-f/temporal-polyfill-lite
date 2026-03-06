@@ -11,7 +11,8 @@
 	"exports": {
 		".": "./dist/index.js",
 		"./global": "./dist/global.js",
-		"./shim": "./dist/shim.js"
+		"./shim": "./dist/shim.js",
+		"./types/global": "./dist/types/global.js"
 	},
 	"files": [
 		"CHANGELOG.md",
