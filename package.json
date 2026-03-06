@@ -2,7 +2,7 @@
 	"type": "module",
 	"name": "temporal-polyfill-lite",
 	"version": "0.2.3",
-	"description": "Lightweight Temporal polyfill supporting all time zones and basic calendars",
+	"description": "Lightweight Temporal polyfill",
 	"keywords": [
 		"Temporal"
 	],
@@ -12,7 +12,10 @@
 		".": "./dist/index.js",
 		"./global": "./dist/global.js",
 		"./shim": "./dist/shim.js",
-		"./types/global": "./dist/types/global.js"
+		"./types/global": "./dist/types/global.js",
+		"./calendars-full": "./dist/calendars/index.js",
+		"./calendars-full/global": "./dist/calendars/global.js",
+		"./calendars-full/shim": "./dist/calendars/shim.js"
 	},
 	"files": [
 		"CHANGELOG.md",
