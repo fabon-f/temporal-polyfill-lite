@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Add support for non-ISO calendars ([#6](https://github.com/fabon-f/temporal-polyfill-lite/issues/6))
+
+### Changed
+
+- **BREAKING**: Make a type definition compatible with TypeScript 6.0, stop importing types to the global namespace when importing `temporal-polyfill-lite/global` ([#17](https://github.com/fabon-f/temporal-polyfill-lite/pull/17))
+
 ## 0.2.3 (2026-03-04)
 
 ### Fixed
