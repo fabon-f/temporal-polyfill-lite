@@ -77,6 +77,9 @@ intl402/Temporal/PlainDate/prototype/add/era-boundary-islamic-tbla.js
 intl402/Temporal/PlainDate/prototype/add/era-boundary-islamic-umalqura.js
 intl402/Temporal/PlainDate/prototype/add/era-boundary-japanese.js
 intl402/Temporal/PlainDate/prototype/add/era-boundary-roc.js
+intl402/Temporal/PlainDate/prototype/add/leap-month-chinese-numerical-months.js
+intl402/Temporal/PlainDate/prototype/add/leap-month-dangi-numerical-months.js
+intl402/Temporal/PlainDate/prototype/add/leap-month-hebrew-numerical-months.js
 intl402/Temporal/PlainDate/prototype/add/leap-months-chinese.js
 intl402/Temporal/PlainDate/prototype/add/leap-months-dangi.js
 intl402/Temporal/PlainDate/prototype/add/leap-months-hebrew.js
@@ -265,6 +268,9 @@ intl402/Temporal/PlainDate/prototype/subtract/era-boundary-islamic-umalqura.js
 intl402/Temporal/PlainDate/prototype/subtract/era-boundary-japanese.js
 intl402/Temporal/PlainDate/prototype/subtract/era-boundary-roc.js
 intl402/Temporal/PlainDate/prototype/subtract/leap-months-chinese.js
+intl402/Temporal/PlainDate/prototype/subtract/leap-month-chinese-numerical-months.js
+intl402/Temporal/PlainDate/prototype/subtract/leap-month-dangi-numerical-months.js
+intl402/Temporal/PlainDate/prototype/subtract/leap-month-hebrew-numerical-months.js
 intl402/Temporal/PlainDate/prototype/subtract/leap-months-dangi.js
 intl402/Temporal/PlainDate/prototype/subtract/leap-months-hebrew.js
 intl402/Temporal/PlainDate/prototype/subtract/leap-year-buddhist.js
@@ -477,6 +483,9 @@ intl402/Temporal/PlainDateTime/prototype/add/era-boundary-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/add/era-boundary-islamic-umalqura.js
 intl402/Temporal/PlainDateTime/prototype/add/era-boundary-japanese.js
 intl402/Temporal/PlainDateTime/prototype/add/era-boundary-roc.js
+intl402/Temporal/PlainDateTime/prototype/add/leap-month-chinese-numerical-months.js
+intl402/Temporal/PlainDateTime/prototype/add/leap-month-dangi-numerical-months.js
+intl402/Temporal/PlainDateTime/prototype/add/leap-month-hebrew-numerical-months.js
 intl402/Temporal/PlainDateTime/prototype/add/leap-months-chinese.js
 intl402/Temporal/PlainDateTime/prototype/add/leap-months-dangi.js
 intl402/Temporal/PlainDateTime/prototype/add/leap-months-hebrew.js
@@ -660,6 +669,9 @@ intl402/Temporal/PlainDateTime/prototype/subtract/era-boundary-islamic-tbla.js
 intl402/Temporal/PlainDateTime/prototype/subtract/era-boundary-islamic-umalqura.js
 intl402/Temporal/PlainDateTime/prototype/subtract/era-boundary-japanese.js
 intl402/Temporal/PlainDateTime/prototype/subtract/era-boundary-roc.js
+intl402/Temporal/PlainDateTime/prototype/subtract/leap-month-chinese-numerical-months.js
+intl402/Temporal/PlainDateTime/prototype/subtract/leap-month-dangi-numerical-months.js
+intl402/Temporal/PlainDateTime/prototype/subtract/leap-month-hebrew-numerical-months.js
 intl402/Temporal/PlainDateTime/prototype/subtract/leap-months-chinese.js
 intl402/Temporal/PlainDateTime/prototype/subtract/leap-months-dangi.js
 intl402/Temporal/PlainDateTime/prototype/subtract/leap-months-hebrew.js
@@ -893,6 +905,9 @@ intl402/Temporal/PlainYearMonth/prototype/add/era-boundary-islamic-tbla.js
 intl402/Temporal/PlainYearMonth/prototype/add/era-boundary-islamic-umalqura.js
 intl402/Temporal/PlainYearMonth/prototype/add/era-boundary-japanese.js
 intl402/Temporal/PlainYearMonth/prototype/add/era-boundary-roc.js
+intl402/Temporal/PlainYearMonth/prototype/add/leap-month-chinese-numerical-months.js
+intl402/Temporal/PlainYearMonth/prototype/add/leap-month-dangi-numerical-months.js
+intl402/Temporal/PlainYearMonth/prototype/add/leap-month-hebrew-numerical-months.js
 intl402/Temporal/PlainYearMonth/prototype/add/leap-months-chinese.js
 intl402/Temporal/PlainYearMonth/prototype/add/leap-months-dangi.js
 intl402/Temporal/PlainYearMonth/prototype/add/leap-months-hebrew.js
@@ -1024,6 +1039,9 @@ intl402/Temporal/PlainYearMonth/prototype/subtract/era-boundary-islamic-tbla.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/era-boundary-islamic-umalqura.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/era-boundary-japanese.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/era-boundary-roc.js
+intl402/Temporal/PlainYearMonth/prototype/subtract/leap-month-chinese-numerical-months.js
+intl402/Temporal/PlainYearMonth/prototype/subtract/leap-month-dangi-numerical-months.js
+intl402/Temporal/PlainYearMonth/prototype/subtract/leap-month-hebrew-numerical-months.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/leap-months-chinese.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/leap-months-dangi.js
 intl402/Temporal/PlainYearMonth/prototype/subtract/leap-months-hebrew.js
@@ -1163,6 +1181,9 @@ intl402/Temporal/ZonedDateTime/prototype/add/era-boundary-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/add/era-boundary-islamic-umalqura.js
 intl402/Temporal/ZonedDateTime/prototype/add/era-boundary-japanese.js
 intl402/Temporal/ZonedDateTime/prototype/add/era-boundary-roc.js
+intl402/Temporal/ZonedDateTime/prototype/add/leap-month-chinese-numerical-months.js
+intl402/Temporal/ZonedDateTime/prototype/add/leap-month-dangi-numerical-months.js
+intl402/Temporal/ZonedDateTime/prototype/add/leap-month-hebrew-numerical-months.js
 intl402/Temporal/ZonedDateTime/prototype/add/leap-months-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/add/leap-months-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/add/leap-months-hebrew.js
@@ -1347,6 +1368,9 @@ intl402/Temporal/ZonedDateTime/prototype/subtract/era-boundary-islamic-tbla.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/era-boundary-islamic-umalqura.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/era-boundary-japanese.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/era-boundary-roc.js
+intl402/Temporal/ZonedDateTime/prototype/subtract/leap-month-chinese-numerical-months.js
+intl402/Temporal/ZonedDateTime/prototype/subtract/leap-month-dangi-numerical-months.js
+intl402/Temporal/ZonedDateTime/prototype/subtract/leap-month-hebrew-numerical-months.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/leap-months-chinese.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/leap-months-dangi.js
 intl402/Temporal/ZonedDateTime/prototype/subtract/leap-months-hebrew.js
