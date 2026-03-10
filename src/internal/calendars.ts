@@ -388,7 +388,9 @@ export function calendarEquals(one: SupportedCalendars, two: SupportedCalendars)
 
 /** `ISODaysInMonth` */
 export function isoDaysInMonth(year: number, month: number): number {
-	return isoDateToEpochDays(year, month, 1) - isoDateToEpochDays(year, month - 1, 1);
+	// Gregorian calendar has 400 years cycle
+	// Avoid errors when `year` is near `Infinity`
+	return isoDateToEpochDays(year % 400, month, 1) - isoDateToEpochDays(year % 400, month - 1, 1);
 }
 
 function isoWeeksInYear(year: number): number {
