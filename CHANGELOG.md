@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Implement out-of-bounds check in `Temporal.PlainMonthDay` construction for non-ISO calendars ([#21](https://github.com/fabon-f/temporal-polyfill-lite/pull/21))
+
+### Fixed
+
+- Fix a bug caused by extreme `year` field during `Temporal.PlainMonthDay` construction ([#20](https://github.com/fabon-f/temporal-polyfill-lite/pull/20))
+
 ## 0.3.1 (2026-03-07)
 
 ### Fixed
