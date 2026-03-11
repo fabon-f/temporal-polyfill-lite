@@ -7,9 +7,6 @@ intl402/Temporal/PlainYearMonth/from/extreme-dates.js
 intl402/Temporal/ZonedDateTime/from/extreme-dates.js
 intl402/Temporal/ZonedDateTime/prototype/withCalendar/extreme-dates.js
 
-# https://github.com/tc39/proposal-intl-era-monthcode/issues/125
-intl402/Temporal/PlainMonthDay/from/dont-calculate-month-info-for-out-of-range-year.js
-
 # incorrect calendrical calculation in ICU4C
 # https://unicode-org.atlassian.net/browse/ICU-13195
 intl402/Temporal/PlainDate/prototype/daysInYear/basic-chinese.js

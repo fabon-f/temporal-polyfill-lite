@@ -13,7 +13,7 @@ import {
 	isoCalendarDateToIso,
 	isoCalendarDateUntil,
 	isoCalendarIsoToDate,
-	isoMonthDayToIsoReferenceDate,
+	isoLikeMonthDayToIsoReferenceDate,
 	parseMonthCode,
 	type CalendarDateRecord,
 	type CalendarFieldsRecord,
@@ -477,15 +477,16 @@ export function calendarMonthDayToIsoReferenceDate(
 	overflow: Overflow,
 ): IsoDateRecord {
 	if (isIsoLikeCalendar(calendar)) {
-		return isoMonthDayToIsoReferenceDate(
+		return isoLikeMonthDayToIsoReferenceDate(
 			{
 				...fields,
 				year: mapUnlessUndefined(
 					fields.year,
-					(y) => y - (calendar === "buddhist" ? -543 : calendar === "roc" ? 1911 : 0),
+					(y) => y + (calendar === "buddhist" ? -543 : calendar === "roc" ? 1911 : 0),
 				),
 			},
 			overflow,
+			calendar === "iso8601",
 		);
 	}
 	const year = fields[calendarFieldKeys.$year];
@@ -495,8 +496,6 @@ export function calendarMonthDayToIsoReferenceDate(
 	assertNotUndefined(day);
 	if (year !== undefined) {
 		assertNotUndefined(month);
-		// TODO: validate `year` correctly
-		// https://github.com/tc39/proposal-intl-era-monthcode/issues/125
 		if (!monthCode) {
 			month = constrainMonth(calendar, year, month, overflow);
 		}
@@ -507,6 +506,7 @@ export function calendarMonthDayToIsoReferenceDate(
 						.$monthCode,
 				);
 		day = constrainDay(calendar, year, month, day, overflow);
+		validateIsoDate(calendarIntegersToIso(calendar, year, month, day));
 	} else {
 		assertNotUndefined(monthCode);
 		day = constrainDayForMonthCode(calendar, monthCode, day, overflow);
