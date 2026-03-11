@@ -466,9 +466,11 @@ export function isoCalendarIsoToDate(isoDate: IsoDateRecord): CalendarDateRecord
 	};
 }
 
-export function isoMonthDayToIsoReferenceDate(
+/** `year` is supposed to be converted to Gregorian year in advance */
+export function isoLikeMonthDayToIsoReferenceDate(
 	fields: CalendarFieldsRecord,
 	overflow: Overflow,
+	isIso8601: boolean,
 ): IsoDateRecord {
 	const result = regulateIsoDate(
 		fields[calendarFieldKeys.$year] ?? 1972,
@@ -476,6 +478,9 @@ export function isoMonthDayToIsoReferenceDate(
 		fields[calendarFieldKeys.$day]!,
 		overflow,
 	);
+	if (!isIso8601) {
+		validateIsoDate(result);
+	}
 	return createIsoDateRecord(1972, result.$month, result.$day);
 }
 

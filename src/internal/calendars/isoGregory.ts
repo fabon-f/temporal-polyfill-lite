@@ -5,7 +5,7 @@ import {
 	isoCalendarDateToIso,
 	isoCalendarDateUntil,
 	isoCalendarIsoToDate,
-	isoMonthDayToIsoReferenceDate,
+	isoLikeMonthDayToIsoReferenceDate,
 	type CalendarDateRecord,
 	type CalendarFieldsRecord,
 	type MonthCode,
@@ -76,11 +76,11 @@ export function nonIsoCalendarIsoToDate(
 
 /** `CalendarMonthDayToISOReferenceDate` */
 export function calendarMonthDayToIsoReferenceDate(
-	_calendar: SupportedCalendars,
+	calendar: SupportedCalendars,
 	fields: CalendarFieldsRecord,
 	overflow: Overflow,
 ): IsoDateRecord {
-	return isoMonthDayToIsoReferenceDate(fields, overflow);
+	return isoLikeMonthDayToIsoReferenceDate(fields, overflow, calendar === "iso8601");
 }
 
 /** `CalendarSupportsEra` */
