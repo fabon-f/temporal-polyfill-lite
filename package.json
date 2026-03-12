@@ -40,15 +40,15 @@
 		"@rollup/plugin-strip": "^3.0.4",
 		"@rollup/plugin-terser": "^1.0.0",
 		"@tsconfig/strictest": "^2.0.8",
-		"@types/node": "^25.4.0",
-		"@typescript/native-preview": "7.0.0-dev.20260309.1",
+		"@types/node": "^25.5.0",
+		"@typescript/native-preview": "7.0.0-dev.20260312.1",
 		"clean-pkg-json": "^1.3.0",
-		"oxfmt": "0.37.0",
-		"oxlint": "^1.52.0",
-		"rolldown": "1.0.0-rc.8",
+		"oxfmt": "0.40.0",
+		"oxlint": "^1.55.0",
+		"rolldown": "1.0.0-rc.9",
 		"tzdata": "^1.0.48",
 		"unplugin-isolated-decl": "^0.15.7",
-		"vitest": "^4.0.18"
+		"vitest": "^4.1.0"
 	},
 	"scripts": {
 		"build": "node script/build.ts",
@@ -64,10 +64,5 @@
 			"default": "./src/internal/calendars/isoGregory.ts"
 		}
 	},
-	"pnpm": {
-		"overrides": {
-			"vite": "beta"
-		}
-	},
-	"packageManager": "pnpm@10.32.0"
+	"packageManager": "pnpm@10.32.1"
 }
