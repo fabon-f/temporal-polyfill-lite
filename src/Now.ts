@@ -15,13 +15,38 @@ import {
 	getIsoDateTimeForZonedDateTimeSlot,
 } from "./ZonedDateTime.ts";
 
+let ttlMilliseconds = 0;
+let cachedSystemTimeZoneId: string | undefined;
+let timeZoneIdAccessTimestamp = -1 / 0;
+
 /** `SystemTimeZoneIdentifier` */
-function systemTimeZoneIdentifier(): string {
+export function systemTimeZoneIdentifier(): string {
 	// Creating `Intl.DateTimeFormat` is a CPU-heavy operation in many JS engines,
 	// but caching it can cause an unexpected behavior for polyfill users, because the polyfill can return an outdated value.
 	// Unfortunately there's no way to observe a system time zone change effectively.
 	// cf. https://github.com/fullcalendar/temporal-polyfill/issues/63
-	return new OriginalDateTimeFormat().resolvedOptions().timeZone;
+	// Therefore we implement opt-in caching which is disabled by default.
+
+	// Time-based cache doesn't work in runtimes which disallow timers (e.g. Cloudflare Workers),
+	// but it won't be a problem since system time zone don't change in such special runtimes.
+	if (
+		ttlMilliseconds &&
+		timeZoneIdAccessTimestamp + ttlMilliseconds > Date.now() &&
+		cachedSystemTimeZoneId
+	) {
+		// cache is not expired yet
+		return cachedSystemTimeZoneId;
+	}
+	timeZoneIdAccessTimestamp = /*#__PURE__*/ Date.now();
+	return (cachedSystemTimeZoneId = new OriginalDateTimeFormat().resolvedOptions().timeZone);
+}
+
+export function setSystemTimeZoneIdCacheTtl(ttl: number) {
+	ttlMilliseconds = ttl;
+	if (!ttl) {
+		cachedSystemTimeZoneId = undefined;
+		timeZoneIdAccessTimestamp = -1 / 0;
+	}
 }
 
 /** `SystemUTCEpochNanoseconds` */
