@@ -1,6 +1,12 @@
+import { Calendar, CalendarKind, Date as IcuDate } from "icu";
 import { expect, test } from "vitest";
 import { parseMonthCode } from "../calendars.ts";
-import { daysInMonth, isLeapYear, monthCodeToOrdinal } from "./hebrew.ts";
+import {
+	calendarIntegersToEpochDays,
+	daysInMonth,
+	isLeapYear,
+	monthCodeToOrdinal,
+} from "./hebrew.ts";
 
 test("isLeapYear", () => {
 	for (const yearMod19 of [0, 3, 6, 8, 11, 14, 17]) {
@@ -125,4 +131,17 @@ test("daysInMonth", () => {
 	expect(daysInMonth(6, 11)).toEqual(29);
 	expect(daysInMonth(6, 12)).toEqual(30);
 	expect(daysInMonth(6, 13)).toEqual(29);
+});
+
+test("calendarIntegersToEpochDays should match to ICU4X", () => {
+	for (let year = -268058; year <= 279518; year++) {
+		const icuDate = IcuDate.fromRataDie(
+			BigInt(calendarIntegersToEpochDays(year, 1, 1) + 719163),
+			new Calendar(CalendarKind.Hebrew),
+		);
+		// manual assertion for best performance
+		if (icuDate.extendedYear !== year || icuDate.ordinalMonth !== 1 || icuDate.dayOfMonth !== 1) {
+			throw new Error(`mismatch in year ${year}`);
+		}
+	}
 });
