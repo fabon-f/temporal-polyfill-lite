@@ -86,6 +86,7 @@ export async function bundle(mode: "basic" | "full", options: Options) {
 	const result = await bundle.generate({
 		format: "iife",
 		plugins: output,
+		minify: options.minify && !options.beautify,
 	});
 	return result.output[0].code;
 }
