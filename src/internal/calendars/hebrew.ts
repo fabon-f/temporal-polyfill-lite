@@ -18,21 +18,21 @@ function monthNumber(year: number, month: number) {
 
 function newYearEpochDays(year: number) {
 	const monthsUntilNewYear = monthNumber(year, 1) - 1;
-	const originalHalakim = modFloor(13753 * monthsUntilNewYear + 5604, 25920);
+	const originalHeleks = modFloor(13753 * monthsUntilNewYear + 5604, 25920);
 	let epochDays =
 		-2092590 + 29 * monthsUntilNewYear + divFloor(13753 * monthsUntilNewYear + 5604, 25920);
+	// deḥiyyat molad zaken: if the molad occurs at or later than noon
+	// deḥiyyat GaTaRaD: if the year is a common year and the molad falls on a Tuesday, at or later than 9 hours and 204 heleks
+	// deḥiyyat BeTUTeKaPoT: if the previous year is a leap year and the molad falls on a Monday, at or later than 15 hours and 589 heleks
 	if (
-		originalHalakim >= 19440 ||
-		(!isLeapYear(year) && modFloor(epochDays, 7) === 5 && originalHalakim >= 9924) ||
-		(isLeapYear(year - 1) && modFloor(epochDays, 7) === 4 && originalHalakim >= 16789)
+		originalHeleks >= 19440 ||
+		(!isLeapYear(year) && modFloor(epochDays, 7) === 5 && originalHeleks >= 9924) ||
+		(isLeapYear(year - 1) && modFloor(epochDays, 7) === 4 && originalHeleks >= 16789)
 	) {
 		epochDays++;
 	}
-	const mod7 = modFloor(epochDays, 7);
-	if (mod7 === 1 || mod7 === 3 || mod7 === 6) {
-		epochDays++;
-	}
-	return epochDays;
+	// deḥiyyat lo ADU: if it is Sunday, Wednesday, or Friday
+	return epochDays + +(modFloor(epochDays * 3 + 5, 7) < 3);
 }
 
 export function calendarIntegersToEpochDays(

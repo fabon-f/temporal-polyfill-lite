@@ -39,12 +39,8 @@ export function epochDaysToDate(epochDays: number): CalendarDateRecord {
 		firstDayOfYear(isoDate.$year - 78) <= epochDays ? isoDate.$year - 78 : isoDate.$year - 79;
 	const mathematicalInLeapYearForYear = mathematicalInLeapYear(arithmeticYear);
 	const dayOfYear = epochDays - firstDayOfYear(arithmeticYear) + 1;
-	let month = 0;
-	for (
-		;
-		month < 12 && calendarIntegersToEpochDays(arithmeticYear, month + 1, 1) <= epochDays;
-		month++
-	) {}
+	let month = 12;
+	for (; calendarIntegersToEpochDays(arithmeticYear, month, 1) > epochDays; month--) {}
 	return {
 		$era: "shaka",
 		$eraYear: arithmeticYear,
