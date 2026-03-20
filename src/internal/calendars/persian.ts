@@ -1,7 +1,7 @@
 import { epochDaysToIsoDate, isoDateToEpochDays } from "../abstractOperations.ts";
 import { createLruCache } from "../cacheMap.ts";
 import { createMonthCode, isoDayOfWeek, type CalendarDateRecord } from "../calendars.ts";
-import { clamp, divFloor } from "../math.ts";
+import { clamp, divFloor, isWithin } from "../math.ts";
 import { extractYearMonthDay } from "./dateTimeFormatter.ts";
 
 const newYearCache = createLruCache<number, number>(1000);
@@ -12,12 +12,11 @@ function startOfYear(arithmeticYear: number): number {
 	if (newYearEpochDays) {
 		return newYearEpochDays;
 	}
-	// 1st April should be after a vernal equinox
-	const epochDaysFewDaysAfterNewYear = isoDateToEpochDays(arithmeticYear + 621, 3, 1);
+	// 1st May is within the valid range (between -271821-04-20 and +275760-09-13) for all valid ISO years (between -271821 and 275760)
+	const epochDaysAfterNewYear = isoDateToEpochDays(arithmeticYear + 621, 4, 1);
+	const ymd = extractYearMonthDay("persian", epochDaysAfterNewYear);
 	const startOfYearEpochDays =
-		epochDaysFewDaysAfterNewYear -
-		extractYearMonthDay("persian", epochDaysFewDaysAfterNewYear).$day +
-		1;
+		epochDaysAfterNewYear - dayOfYearFromMonthDay(ymd.$month, ymd.$day) + 1;
 	newYearCache.$set(arithmeticYear, startOfYearEpochDays);
 	return startOfYearEpochDays;
 }
@@ -48,7 +47,13 @@ function isLeapYear(arithmeticYear: number) {
 
 function getDate(epochDays: number) {
 	const isoYear = epochDaysToIsoDate(epochDays).$year;
-	let year = isoYear - 622 + +(isoDateToEpochDays(isoYear, 2, 15) < epochDays);
+	// a vernal equinox always be 20th, 21st, or 22nd March in well-defined ranges (from 1827 to 2120 in ISO calendar),
+	// but implementation-defined outside that range.
+	// It can be even 28th Feb or 11th April for extreme years in existing implementations.
+	let year =
+		isoYear -
+		622 +
+		+(isoDateToEpochDays(isoYear, 2, isWithin(isoYear, 1827, 2120) ? 19 : -5) < epochDays);
 	let firstDay = startOfYear(year);
 	if (firstDay > epochDays) {
 		year--;
