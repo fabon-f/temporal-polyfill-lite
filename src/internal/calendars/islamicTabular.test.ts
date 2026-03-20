@@ -3,6 +3,7 @@ import { expect, test } from "vitest";
 import type { CalendarDateRecord } from "../calendars.ts";
 import {
 	calendarIntegersToEpochDays,
+	daysInMonth,
 	epochDaysToDate,
 	monthDayToEpochDays,
 } from "./islamicTabular.ts";
@@ -10,6 +11,33 @@ import {
 function ymd(date: CalendarDateRecord) {
 	return [date.$year, date.$month, date.$day];
 }
+
+test("daysInMonth", () => {
+	expect(daysInMonth(1, 1)).toEqual(30);
+	expect(daysInMonth(1, 2)).toEqual(29);
+	expect(daysInMonth(1, 3)).toEqual(30);
+	expect(daysInMonth(1, 4)).toEqual(29);
+	expect(daysInMonth(1, 5)).toEqual(30);
+	expect(daysInMonth(1, 6)).toEqual(29);
+	expect(daysInMonth(1, 7)).toEqual(30);
+	expect(daysInMonth(1, 8)).toEqual(29);
+	expect(daysInMonth(1, 9)).toEqual(30);
+	expect(daysInMonth(1, 10)).toEqual(29);
+	expect(daysInMonth(1, 11)).toEqual(30);
+	expect(daysInMonth(1, 12)).toEqual(29);
+	expect(daysInMonth(2, 1)).toEqual(30);
+	expect(daysInMonth(2, 2)).toEqual(29);
+	expect(daysInMonth(2, 3)).toEqual(30);
+	expect(daysInMonth(2, 4)).toEqual(29);
+	expect(daysInMonth(2, 5)).toEqual(30);
+	expect(daysInMonth(2, 6)).toEqual(29);
+	expect(daysInMonth(2, 7)).toEqual(30);
+	expect(daysInMonth(2, 8)).toEqual(29);
+	expect(daysInMonth(2, 9)).toEqual(30);
+	expect(daysInMonth(2, 10)).toEqual(29);
+	expect(daysInMonth(2, 11)).toEqual(30);
+	expect(daysInMonth(2, 12)).toEqual(30);
+});
 
 test("calendarIntegersToEpochDays - islamic-civil", () => {
 	expect(calendarIntegersToEpochDays("islamic-civil", 1, 1, 1)).toEqual(-492148);
@@ -236,6 +264,20 @@ describe("epochDaysToDate - islamic-tbla", () => {
 		expect(ymd(epochDaysToDate("islamic-tbla", -482227))).toEqual([29, 1, 1]);
 		expect(ymd(epochDaysToDate("islamic-tbla", -481872))).toEqual([30, 1, 1]);
 	});
+});
+
+test.for(["islamic-tbla", "islamic-civil"] as const)("roundtrip - %s", (calendar) => {
+	for (let year = -30; year <= 30; year++) {
+		for (let month = 1; month <= 12; month++) {
+			const maxDays = daysInMonth(year, month);
+			expect(
+				ymd(epochDaysToDate(calendar, calendarIntegersToEpochDays(calendar, year, month, 1))),
+			).toEqual([year, month, 1]);
+			expect(
+				ymd(epochDaysToDate(calendar, calendarIntegersToEpochDays(calendar, year, month, maxDays))),
+			).toEqual([year, month, maxDays]);
+		}
+	}
 });
 
 test("monthDayToEpochDays - islamic-civil", () => {
