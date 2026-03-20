@@ -1,5 +1,12 @@
 import { expect, test } from "vitest";
-import { dayOfYearFromMonthDay, monthDayFromDayOfYear } from "./persian.ts";
+import { isoDateToEpochDays } from "../abstractOperations.ts";
+import { extractYearMonthDay } from "./dateTimeFormatter.ts";
+import {
+	calendarIntegersToEpochDays,
+	dayOfYearFromMonthDay,
+	epochDaysToDate,
+	monthDayFromDayOfYear,
+} from "./persian.ts";
 
 test("dayOfYearFromMonthDay", () => {
 	expect(dayOfYearFromMonthDay(1, 1)).toEqual(1);
@@ -53,4 +60,59 @@ test("monthDayFromDayOfYear", () => {
 	expect(monthDayFromDayOfYear(336)).toEqual([11, 30]);
 	expect(monthDayFromDayOfYear(337)).toEqual([12, 1]);
 	expect(monthDayFromDayOfYear(366)).toEqual([12, 30]);
+});
+
+test.for<[number, number, number]>([
+	[1200, 1, 1],
+	[1500, 1, 1],
+	[275139, 1, 1],
+	[-272441, 1, 1],
+	[-272442, 12, 1],
+])(
+	"calendarIntegersToEpochDays should match to Intl.DateTimeFormat: %i, %i, %i",
+	([year, month, day]) => {
+		const newYear = calendarIntegersToEpochDays(year, month, day);
+		expect({
+			$year: year,
+			$month: month,
+			$day: day,
+		}).toEqual(extractYearMonthDay("persian", newYear));
+	},
+);
+
+test("epochDaysToDate should match to Intl.DateTimeFormat", () => {
+	const epochDaysList = [];
+	for (const year of [270000, 1970, -270000]) {
+		// vernal equinox should be within this range even for extreme years in existing JavaScript engines
+		const min = isoDateToEpochDays(year, 1, 25);
+		const max = isoDateToEpochDays(year, 3, 15);
+		for (let d = min; d <= max; d++) {
+			epochDaysList.push(d);
+		}
+	}
+	epochDaysList.push(
+		0,
+		-1e8,
+		1e8,
+		isoDateToEpochDays(2024, 2, 19),
+		isoDateToEpochDays(2024, 2, 20),
+		isoDateToEpochDays(1959, 2, 21),
+		isoDateToEpochDays(1959, 2, 22),
+	);
+	for (const epochDays of epochDaysList) {
+		const expected = extractYearMonthDay("persian", epochDays);
+		const actual = epochDaysToDate(epochDays);
+		expect([actual.$year, actual.$month, actual.$day]).toEqual([
+			expected.$year,
+			expected.$month,
+			expected.$day,
+		]);
+	}
+});
+
+test("roundtrip in extreme days", () => {
+	for (const epochDays of [-1e8 - 1, 1e8]) {
+		const date = epochDaysToDate(epochDays);
+		expect(calendarIntegersToEpochDays(date.$year, date.$month, date.$day)).toEqual(epochDays);
+	}
 });
