@@ -51,7 +51,6 @@ export function calendarIntegersToEpochDays(
 
 export function epochDaysToDate(epochDays: number): CalendarDateRecord {
 	const civilDate = epochDaysToDateIslamicTabular("islamic-civil", epochDays);
-	const isoDate = epochDaysToIsoDate(epochDays);
 	if (epochDays < -33600 || epochDays > 76200) {
 		return civilDate;
 	}
@@ -72,7 +71,7 @@ export function epochDaysToDate(epochDays: number): CalendarDateRecord {
 		get $day() {
 			return getYearMonthDay(epochDays).$day;
 		},
-		$dayOfWeek: isoDayOfWeek(isoDate),
+		$dayOfWeek: isoDayOfWeek(epochDaysToIsoDate(epochDays)),
 		get $dayOfYear() {
 			return epochDays - getFirstDayOfMonth(getYearMonthDay(epochDays).$year, 1) + 1;
 		},

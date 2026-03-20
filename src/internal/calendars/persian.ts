@@ -1,9 +1,4 @@
-import type { IsoDateRecord } from "../../PlainDate.ts";
-import {
-	epochDaysToIsoDate,
-	isoDateRecordToEpochDays,
-	isoDateToEpochDays,
-} from "../abstractOperations.ts";
+import { epochDaysToIsoDate, isoDateToEpochDays } from "../abstractOperations.ts";
 import { createLruCache } from "../cacheMap.ts";
 import { createMonthCode, isoDayOfWeek, type CalendarDateRecord } from "../calendars.ts";
 import { clamp, divFloor } from "../math.ts";
@@ -51,9 +46,9 @@ function isLeapYear(arithmeticYear: number) {
 	return startOfYear(arithmeticYear + 1) - startOfYear(arithmeticYear) > 365;
 }
 
-function getDate(isoDate: IsoDateRecord) {
-	const epochDays = isoDateRecordToEpochDays(isoDate);
-	let year = isoDate.$month * 30 + isoDate.$day <= 105 ? isoDate.$year - 622 : isoDate.$year - 621;
+function getDate(epochDays: number) {
+	const isoYear = epochDaysToIsoDate(epochDays).$year;
+	let year = isoYear - 622 + +(isoDateToEpochDays(isoYear, 2, 15) < epochDays);
 	let firstDay = startOfYear(year);
 	if (firstDay > epochDays) {
 		year--;
@@ -69,40 +64,39 @@ function getDate(isoDate: IsoDateRecord) {
 }
 
 export function epochDaysToDate(epochDays: number): CalendarDateRecord {
-	const isoDate = epochDaysToIsoDate(epochDays);
 	return {
 		$era: "ap",
 		get $eraYear() {
-			return getDate(isoDate).$year;
+			return getDate(epochDays).$year;
 		},
 		get $year() {
-			return getDate(isoDate).$year;
+			return getDate(epochDays).$year;
 		},
 		get $month() {
-			return getDate(isoDate).$month;
+			return getDate(epochDays).$month;
 		},
 		get $monthCode() {
-			return createMonthCode(getDate(isoDate).$month);
+			return createMonthCode(getDate(epochDays).$month);
 		},
 		get $day() {
-			return getDate(isoDate).$day;
+			return getDate(epochDays).$day;
 		},
-		$dayOfWeek: isoDayOfWeek(isoDate),
+		$dayOfWeek: isoDayOfWeek(epochDaysToIsoDate(epochDays)),
 		get $dayOfYear() {
-			return getDate(isoDate).$dayOfYear;
+			return getDate(epochDays).$dayOfYear;
 		},
 		$weekOfYear: { $week: undefined, $year: undefined },
 		$daysInWeek: 7,
 		get $daysInMonth() {
-			const date = getDate(isoDate);
+			const date = getDate(epochDays);
 			return date.$month <= 6 ? 31 : date.$month !== 12 ? 30 : isLeapYear(date.$year) ? 30 : 29;
 		},
 		get $daysInYear() {
-			return isLeapYear(getDate(isoDate).$year) ? 366 : 365;
+			return isLeapYear(getDate(epochDays).$year) ? 366 : 365;
 		},
 		$monthsInYear: 12,
 		get $inLeapYear() {
-			return isLeapYear(getDate(isoDate).$year);
+			return isLeapYear(getDate(epochDays).$year);
 		},
 	};
 }
