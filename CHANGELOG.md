@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Introduce opt-in cache for system time zone ID ([#22](https://github.com/fabon-f/temporal-polyfill-lite/pull/22))
 
+### Fixed
+
+- Fix bugs related to extreme dates in `persian` calendar ([#23](https://github.com/fabon-f/temporal-polyfill-lite/pull/23))
+
 ## 0.3.2 (2026-03-12)
 
 ### Changed
