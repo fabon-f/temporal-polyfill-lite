@@ -62,7 +62,7 @@
 	"imports": {
 		"#calendricalCalculations": {
 			"nonIsoCalendars": "./src/internal/calendars/all.ts",
-			"default": "./src/internal/calendars/isoGregory.ts"
+			"default": "./src/internal/calendars/basic.ts"
 		}
 	},
 	"packageManager": "pnpm@10.32.1"
