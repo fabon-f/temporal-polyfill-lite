@@ -1,4 +1,4 @@
-import { getInternalSlotOrThrowForInstant, isInstant } from "./Instant.ts";
+import { getInternalSlotOrThrowForInstant, Instant, isInstant } from "./Instant.ts";
 import { getUtcEpochNanoseconds } from "./internal/abstractOperations.ts";
 import { toBoolean, toNumber, toString } from "./internal/ecmascript.ts";
 import { DATE, DATETIME, TIME } from "./internal/enum.ts";
@@ -14,19 +14,34 @@ import {
 import { createNullPrototypeObject, isObject, pickObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
 import { mapUnlessUndefined, throwRangeError, throwTypeError } from "./internal/utils.ts";
-import { createIsoDateRecord, getInternalSlotForPlainDate, isPlainDate } from "./PlainDate.ts";
+import {
+	createIsoDateRecord,
+	getInternalSlotForPlainDate,
+	isPlainDate,
+	PlainDate,
+} from "./PlainDate.ts";
 import {
 	combineIsoDateAndTimeRecord,
 	getInternalSlotForPlainDateTime,
 	isPlainDateTime,
+	PlainDateTime,
 } from "./PlainDateTime.ts";
-import { getInternalSlotForPlainMonthDay, isPlainMonthDay } from "./PlainMonthDay.ts";
+import {
+	getInternalSlotForPlainMonthDay,
+	isPlainMonthDay,
+	PlainMonthDay,
+} from "./PlainMonthDay.ts";
 import {
 	getInternalSlotOrThrowForPlainTime,
 	isPlainTime,
 	midnightTimeRecord,
+	PlainTime,
 } from "./PlainTime.ts";
-import { getInternalSlotForPlainYearMonth, isPlainYearMonth } from "./PlainYearMonth.ts";
+import {
+	getInternalSlotForPlainYearMonth,
+	isPlainYearMonth,
+	PlainYearMonth,
+} from "./PlainYearMonth.ts";
 import { isZonedDateTime } from "./ZonedDateTime.ts";
 
 export const OriginalDateTimeFormat = globalThis.Intl.DateTimeFormat;
@@ -347,7 +362,12 @@ function toDateTimeFormattable(x: unknown) {
 }
 
 /** `HandleDateTimeValue` */
-function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [RawDTF, number] {
+function handleDateTimeValue(
+	dateTimeFormat: DateTimeFormatSlot,
+	x: Instant | PlainDate | PlainDateTime | PlainMonthDay | PlainTime | PlainYearMonth,
+): [RawDTF, number];
+function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [RawDTF, unknown];
+function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [RawDTF, unknown] {
 	const plainDateSlot = getInternalSlotForPlainDate(x);
 	const plainDateTimeSlot = getInternalSlotForPlainDateTime(x);
 	const plainYearMonthSlot = getInternalSlotForPlainYearMonth(x);
