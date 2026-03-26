@@ -477,7 +477,7 @@ export function getInternalSlotOrThrowForPlainDateTime(plainDateTime: unknown): 
 	return slot;
 }
 
-export function isPlainDateTime(item: unknown): boolean {
+export function isPlainDateTime(item: unknown): item is PlainDateTime {
 	return !!getInternalSlotForPlainDateTime(item);
 }
 

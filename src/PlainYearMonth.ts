@@ -304,7 +304,7 @@ function getInternalSlotOrThrowForPlainYearMonth(plainDateTime: unknown): PlainY
 	return slot;
 }
 
-export function isPlainYearMonth(item: unknown): boolean {
+export function isPlainYearMonth(item: unknown): item is PlainYearMonth {
 	return !!getInternalSlotForPlainYearMonth(item);
 }
 

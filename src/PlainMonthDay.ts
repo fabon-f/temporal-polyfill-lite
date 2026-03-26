@@ -148,7 +148,7 @@ function getInternalSlotOrThrowForPlainMonthDay(plainDateTime: unknown): PlainMo
 	return slot;
 }
 
-export function isPlainMonthDay(item: unknown): boolean {
+export function isPlainMonthDay(item: unknown): item is PlainMonthDay {
 	return !!getInternalSlotForPlainMonthDay(item);
 }
 

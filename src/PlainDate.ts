@@ -314,7 +314,7 @@ export function getInternalSlotOrThrowForPlainDate(plainDate: unknown): PlainDat
 	return slot;
 }
 
-export function isPlainDate(item: unknown): boolean {
+export function isPlainDate(item: unknown): item is PlainDate {
 	return !!getInternalSlotForPlainDate(item);
 }
 

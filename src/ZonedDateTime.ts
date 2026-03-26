@@ -679,7 +679,7 @@ export function getInternalSlotOrThrowForZonedDateTime(zonedDateTime: unknown): 
 	return slot;
 }
 
-export function isZonedDateTime(item: unknown): boolean {
+export function isZonedDateTime(item: unknown): item is ZonedDateTime {
 	return !!getInternalSlotForZonedDateTime(item);
 }
 

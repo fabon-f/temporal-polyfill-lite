@@ -42,10 +42,19 @@ import {
 	isPlainYearMonth,
 	PlainYearMonth,
 } from "./PlainYearMonth.ts";
-import { isZonedDateTime } from "./ZonedDateTime.ts";
+import { isZonedDateTime, ZonedDateTime } from "./ZonedDateTime.ts";
 
 export const OriginalDateTimeFormat = globalThis.Intl.DateTimeFormat;
 type RawDTF = InstanceType<typeof OriginalDateTimeFormat>;
+type Formattable =
+	| Instant
+	| PlainDate
+	| PlainTime
+	| PlainDateTime
+	| PlainYearMonth
+	| PlainMonthDay
+	| ZonedDateTime
+	| number;
 
 const internalSlotBrand = /*#__PURE__*/ Symbol();
 
@@ -343,7 +352,16 @@ function validateSameTemporalType(x: unknown, y: unknown) {
 }
 
 /** `IsTemporalObject` */
-function isTemporalObject(x: unknown) {
+function isTemporalObject(
+	x: unknown,
+): x is
+	| PlainDate
+	| PlainTime
+	| PlainDateTime
+	| ZonedDateTime
+	| PlainYearMonth
+	| PlainMonthDay
+	| Instant {
 	return (
 		isObject(x) &&
 		(isPlainDate(x) ||
@@ -357,7 +375,7 @@ function isTemporalObject(x: unknown) {
 }
 
 /** `ToDateTimeFormattable` */
-function toDateTimeFormattable(x: unknown) {
+function toDateTimeFormattable(x: unknown): Formattable {
 	return isTemporalObject(x) ? x : toNumber(x);
 }
 
@@ -466,7 +484,7 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 	if (isZonedDateTime(x)) {
 		throwTypeError(notFormattable);
 	}
-	return [dateTimeFormat.$rawDtf, x as any];
+	return [dateTimeFormat.$rawDtf, x];
 }
 
 class TmpClass {

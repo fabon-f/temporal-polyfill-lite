@@ -267,7 +267,7 @@ export function getInternalSlotOrThrowForInstant(instant: unknown): InstantSlot 
 	return slot;
 }
 
-export function isInstant(value: unknown) {
+export function isInstant(value: unknown): value is Instant {
 	return slots.has(value);
 }
 
