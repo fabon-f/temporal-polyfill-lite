@@ -49,3 +49,7 @@ This polyfill doesn't internally rely on `bigint`, thus you can support older br
 ## Spec compliance
 
 It supports the latest spec with few intentional deviations (see `/expectedFailures` directory for details).
+
+## Docs
+
+- `docs/restrictions.md`: caveats and restrictions of this polyfill
