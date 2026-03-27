@@ -51,7 +51,7 @@ This polyfill adds `Temporal` support to `Intl.DateTimeFormat` without modifying
 
 ## calendars
 
-## calendrical calculations
+### calendrical calculations
 
 Because this polyfill independently implements most calendrical calculations defined in the latest specification, `Temporal`'s behavior for certain calendars may diverge from `Intl.DateTimeFormat` in specific browsers and runtimes. Known discrepancies include:
 
@@ -60,7 +60,7 @@ Because this polyfill independently implements most calendrical calculations def
 
 Conversely, for calendars that are not rule-based and require astronomical calculations (i.e. `islamic-umalqura`, `persian`, `chinese`, and `dangi`), the polyfill follows the results of the native `Intl.DateTimeFormat`, even in cases where those results are incorrect.
 
-## extreme dates in `chinese` and `dangi` calendars
+### extreme dates in `chinese` and `dangi` calendars
 
 The polyfill may throw an error for extreme dates in these calendars due to the following reasons:
 
