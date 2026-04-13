@@ -6,17 +6,17 @@ import { bundle } from "./shared/build.ts";
 const isBun = process.versions["bun"] !== undefined;
 
 function expectedFailureFiles(mode: "basic" | "full") {
-	const files = ["expectedFailures/ecma262.txt"];
-	files.push(isBun ? "expectedFailures/ecma402-bun.txt" : "expectedFailures/ecma402-node.txt");
+	const files = ["ecma262.txt"];
+	files.push(isBun ? "ecma402-bun.txt" : "ecma402-node.txt");
 	if (mode === "basic") {
-		files.push("expectedFailures/ecma402-unsupported.txt");
+		files.push("ecma402-unsupported.txt");
 	} else if (!isBun) {
-		files.push("expectedFailures/ecma402-full-node.txt");
+		files.push("ecma402-full-node.txt");
 	} else {
 		console.log("testing full mode in Bun is not supported for now");
 		process.exit(0);
 	}
-	return files;
+	return files.map((file) => `tests/expectedFailures/${file}`);
 }
 
 const { values, positionals: files } = parseArgs({
@@ -42,15 +42,15 @@ await writeFile(
 );
 
 const result = await runTest262({
-	test262Dir: "test262",
+	test262Dir: "tests/test262",
 	polyfillCodeFile: "dist/bundle.js",
 	testGlobs:
 		files.length === 0
 			? [
-					"test262/test/built-ins/Temporal/**/*.js",
-					"test262/test/built-ins/Date/prototype/toTemporalInstant/*.js",
-					"test262/test/intl402/DateTimeFormat/**/*.js",
-					"test262/test/intl402/Temporal/**/*.js",
+					"tests/test262/test/built-ins/Temporal/**/*.js",
+					"tests/test262/test/built-ins/Date/prototype/toTemporalInstant/*.js",
+					"tests/test262/test/intl402/DateTimeFormat/**/*.js",
+					"tests/test262/test/intl402/Temporal/**/*.js",
 				]
 			: files,
 	expectedFailureFiles: files.length === 0 ? expectedFailureFiles(values.mode) : [],
