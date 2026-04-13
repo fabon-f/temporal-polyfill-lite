@@ -290,8 +290,17 @@ export function createDateTimeFormat(
 	const copiedOptions = pickObject(Object(options), dtfOptionsKeys);
 	// coerce first to avoid accessing userland objects (e.g. `toString` method) twice
 	copiedOptions["hour12"] = mapUnlessUndefined(copiedOptions["hour12"], toBoolean);
-	copiedOptions["hourCycle"] = mapUnlessUndefined(copiedOptions["hourCycle"], toString);
-	copiedOptions["formatMatcher"] = mapUnlessUndefined(copiedOptions["formatMatcher"], toString);
+	for (const optionKey of [
+		"hourCycle",
+		"formatMatcher",
+		"era",
+		"year",
+		"month",
+		"day",
+		"weekday",
+	]) {
+		mapUnlessUndefined(copiedOptions[optionKey], toString);
+	}
 	// for `Temporal.ZonedDateTime.prototype.toLocaleString`
 	if (toLocaleStringTimeZone !== undefined) {
 		if (copiedOptions["timeZone"] !== undefined) {
@@ -311,9 +320,20 @@ export function createDateTimeFormat(
 			(coercedOriginalOptions as Record<string, any>)[key] = undefined;
 		}
 	}
-	coercedOriginalOptions.hour12 = copiedOptions["hour12"];
-	coercedOriginalOptions.hourCycle = copiedOptions["hourCycle"];
-	coercedOriginalOptions.formatMatcher = copiedOptions["formatMatcher"];
+	// these options can be omitted or changed in the return value of `resolvedOptions`
+	for (const optionKey of [
+		"hour12",
+		"hourCycle",
+		"formatMatcher",
+		"era",
+		"year",
+		"month",
+		"day",
+		"weekday",
+	]) {
+		// @ts-expect-error
+		coercedOriginalOptions[optionKey] = copiedOptions[optionKey];
+	}
 	coercedOriginalOptions.timeZone = resolvedOptions.timeZone;
 	coercedOriginalOptions.calendar = resolvedOptions.calendar;
 
