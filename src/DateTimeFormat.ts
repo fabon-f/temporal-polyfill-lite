@@ -11,9 +11,9 @@ import {
 	notFormattable,
 	temporalTypeMismatch,
 } from "./internal/errorMessages.ts";
-import { createNullPrototypeObject, isObject, pickObject } from "./internal/object.ts";
+import { createNullPrototypeObject, isObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
-import { mapUnlessUndefined, throwRangeError, throwTypeError } from "./internal/utils.ts";
+import { throwRangeError, throwTypeError } from "./internal/utils.ts";
 import {
 	createIsoDateRecord,
 	getInternalSlotForPlainDate,
@@ -71,19 +71,6 @@ interface DateTimeFormatSlot {
 	$rawDtfForInstant?: Intl.DateTimeFormat;
 	[internalSlotBrand]: unknown;
 }
-
-const dtfOptionsKeys: string[] = [];
-new OriginalDateTimeFormat(
-	undefined,
-	new Proxy(
-		{},
-		{
-			get(_, p) {
-				dtfOptionsKeys.push(p as string);
-			},
-		},
-	),
-);
 
 const slots = new WeakMap<any, DateTimeFormatSlot>();
 
@@ -287,61 +274,48 @@ export function createDateTimeFormat(
 	if (options === null) {
 		throwTypeError(invalidFormattingOptions);
 	}
-	const copiedOptions = pickObject(Object(options), dtfOptionsKeys);
-	// coerce first to avoid accessing userland objects (e.g. `toString` method) twice
-	copiedOptions["hour12"] = mapUnlessUndefined(copiedOptions["hour12"], toBoolean);
-	for (const optionKey of [
-		"hourCycle",
-		"formatMatcher",
-		"era",
-		"year",
-		"month",
-		"day",
-		"weekday",
-	]) {
-		mapUnlessUndefined(copiedOptions[optionKey], toString);
-	}
-	// for `Temporal.ZonedDateTime.prototype.toLocaleString`
-	if (toLocaleStringTimeZone !== undefined) {
-		if (copiedOptions["timeZone"] !== undefined) {
-			throwTypeError(disallowedField("timeZone"));
-		}
-		copiedOptions["timeZone"] = toLocaleStringTimeZone;
-		if (!hasAnyOptions(copiedOptions, [...dateKeys, ...timeKeys, "timeZoneName"])) {
-			copiedOptions["timeZoneName"] = "short";
-		}
-	}
-	const rawDtf = new OriginalDateTimeFormat(locales as any, copiedOptions);
-	const resolvedOptions = rawDtf.resolvedOptions();
-	// `resolvedOptions` returns almost same to original options
-	const coercedOriginalOptions = createNullPrototypeObject(resolvedOptions);
-	for (const key of Object.keys(coercedOriginalOptions)) {
-		if (copiedOptions[key] === undefined) {
-			(coercedOriginalOptions as Record<string, any>)[key] = undefined;
-		}
-	}
-	// these options can be omitted or changed in the return value of `resolvedOptions`
-	for (const optionKey of [
-		"hour12",
-		"hourCycle",
-		"formatMatcher",
-		"era",
-		"year",
-		"month",
-		"day",
-		"weekday",
-	]) {
-		// @ts-expect-error
-		coercedOriginalOptions[optionKey] = copiedOptions[optionKey];
-	}
-	coercedOriginalOptions.timeZone = resolvedOptions.timeZone;
-	coercedOriginalOptions.calendar = resolvedOptions.calendar;
+
+	const coercedOriginalOptions: Intl.DateTimeFormatOptions = createNullPrototypeObject({});
+	let rawDtf = new OriginalDateTimeFormat(
+		locales as any,
+		new Proxy(Object(options), {
+			get(originalOptions: Record<keyof any, unknown>, property: keyof Intl.DateTimeFormatOptions) {
+				const value = originalOptions[property];
+				if (property === "timeZone") {
+					if (toLocaleStringTimeZone !== undefined) {
+						if (value !== undefined) {
+							throwTypeError(disallowedField("timeZone"));
+						}
+						return (coercedOriginalOptions[property] = toLocaleStringTimeZone);
+					}
+				}
+				if (value === undefined) {
+					return value;
+				}
+				// @ts-expect-error
+				return (coercedOriginalOptions[property] =
+					property === "hour12"
+						? toBoolean(value)
+						: property === "fractionalSecondDigits"
+							? toNumber(value)
+							: toString(value));
+			},
+		}),
+	);
 
 	if (
 		(required === DATE && coercedOriginalOptions["timeStyle"]) ||
 		(required === TIME && coercedOriginalOptions["dateStyle"])
 	) {
 		throwTypeError(invalidFormattingOptions);
+	}
+	coercedOriginalOptions["calendar"] = rawDtf.resolvedOptions().calendar;
+	if (
+		toLocaleStringTimeZone !== undefined &&
+		!hasAnyOptions(coercedOriginalOptions, [...dateKeys, ...timeKeys, "timeZoneName"])
+	) {
+		coercedOriginalOptions["timeZoneName"] = "short";
+		rawDtf = new OriginalDateTimeFormat(rawDtf.resolvedOptions().locale, coercedOriginalOptions);
 	}
 	slots.set(
 		instance,
