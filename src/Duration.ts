@@ -1333,7 +1333,7 @@ export class Duration {
 	}
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined): string {
 		const slot = getInternalSlotOrThrowForDuration(this);
-		const record: Partial<Record<PluralUnitKey, number>> = createNullPrototypeObject({});
+		const record: Partial<Record<PluralUnitKey, number>> = createNullPrototypeObject();
 		pluralUnitKeys.map((k, i) => {
 			record[k] = slot[i]!;
 		});

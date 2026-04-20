@@ -16,7 +16,7 @@ export interface EastAsianYearMonthDay {
 	$day: number;
 }
 
-const calendarFormatterCache: Record<string, Intl.DateTimeFormat> = createNullPrototypeObject({});
+const calendarFormatterCache: Record<string, Intl.DateTimeFormat> = createNullPrototypeObject();
 
 function formatToParts(calendar: string, epochDays: number): Intl.DateTimeFormatPart[] {
 	return (calendarFormatterCache[calendar] ||= new OriginalDateTimeFormat("en", {

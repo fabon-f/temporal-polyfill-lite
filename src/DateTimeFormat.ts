@@ -266,7 +266,7 @@ function hasAnyOptions(
 /** `CreateDateTimeFormat` */
 export function createDateTimeFormat(
 	locales: unknown,
-	options: {} | null = createNullPrototypeObject({}),
+	options: {} | null = createNullPrototypeObject(),
 	required: typeof DATE | typeof TIME | typeof DATETIME,
 	toLocaleStringTimeZone?: string,
 	instance = Object.create(DateTimeFormatImpl.prototype) as DateTimeFormatImpl,
@@ -275,7 +275,7 @@ export function createDateTimeFormat(
 		throwTypeError(invalidFormattingOptions);
 	}
 
-	const coercedOriginalOptions: Intl.DateTimeFormatOptions = createNullPrototypeObject({});
+	const coercedOriginalOptions: Intl.DateTimeFormatOptions = createNullPrototypeObject();
 	let rawDtf = new OriginalDateTimeFormat(
 		locales as any,
 		new Proxy(Object(options), {

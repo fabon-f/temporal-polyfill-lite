@@ -655,7 +655,7 @@ function calendarResolveFields(
 }
 
 export function createEmptyCalendarFieldsRecord(): CalendarFieldsRecord {
-	return createNullPrototypeObject({}) as CalendarFieldsRecord;
+	return createNullPrototypeObject() as CalendarFieldsRecord;
 }
 
 export {

@@ -409,7 +409,7 @@ type RelativeToOptionRecord =
 export function getTemporalRelativeToOption(options: object): RelativeToOptionRecord {
 	const value = (options as Record<string, unknown>)["relativeTo"];
 	if (value === undefined) {
-		return createNullPrototypeObject({});
+		return createNullPrototypeObject();
 	}
 	let matchExactly = true;
 	let offsetBehaviour: OffsetBehaviour = offsetBehaviourOption;

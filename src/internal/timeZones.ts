@@ -50,8 +50,8 @@ import { asciiCapitalize, asciiLowerCase, asciiUpperCase } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
 import { throwRangeError } from "./utils.ts";
 
-const intlCache = createNullPrototypeObject({}) as Record<string, Intl.DateTimeFormat>;
-const timeZoneCache = createNullPrototypeObject({}) as Record<string, LruCacheMap<number, number>>;
+const intlCache = createNullPrototypeObject() as Record<string, Intl.DateTimeFormat>;
+const timeZoneCache = createNullPrototypeObject() as Record<string, LruCacheMap<number, number>>;
 
 function clampEpochSecond(epochSecond: number): number {
 	// avoid CE / BCE confusion while retrieving offset info, clamp to 1653 BC (no offset transition in pre-modern years)

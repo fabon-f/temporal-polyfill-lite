@@ -91,7 +91,7 @@ export function toPositiveIntegerWithTruncation(arg: unknown): number {
 }
 
 /** `GetOptionsObject` */
-export function getOptionsObject(options: unknown = createNullPrototypeObject({})): object {
+export function getOptionsObject(options: unknown = createNullPrototypeObject()): object {
 	if (!isObject(options)) {
 		throwTypeError(invalidOptionsObject);
 	}
