@@ -591,19 +591,19 @@ export namespace Intl {
 	}
 }
 
-export const Intl: {
+export const Intl: typeof globalThis.Intl & {
 	DateTimeFormat: {
 		new (
-			locales?: string | string[],
+			locales?: globalThis.Intl.LocalesArgument,
 			options?: globalThis.Intl.DateTimeFormatOptions,
 		): Intl.DateTimeFormat;
 		(
-			locales?: string | string[],
+			locales?: globalThis.Intl.LocalesArgument,
 			options?: globalThis.Intl.DateTimeFormatOptions,
 		): Intl.DateTimeFormat;
 
 		supportedLocalesOf(
-			locales: string | string[],
+			locales: globalThis.Intl.LocalesArgument,
 			options?: globalThis.Intl.DateTimeFormatOptions,
 		): string[];
 	};
