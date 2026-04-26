@@ -533,7 +533,7 @@ export function DateTimeFormat(locale: unknown, options: unknown) {
 	return new DateTimeFormatImpl(locale, options);
 }
 
-const dtfDescriptors = Object.getOwnPropertyDescriptors(Intl.DateTimeFormat);
+const dtfDescriptors = Object.getOwnPropertyDescriptors(OriginalDateTimeFormat);
 dtfDescriptors.prototype.value = DateTimeFormatImpl.prototype;
 Object.defineProperties(DateTimeFormat, dtfDescriptors);
 DateTimeFormat.prototype.constructor = DateTimeFormat;
