@@ -68,6 +68,16 @@ function getDate(epochDays: number) {
 	};
 }
 
+function daysInMonth(year: number, month: number) {
+	if (month <= 6) {
+		return 31;
+	}
+	if (month !== 12 || isLeapYear(year)) {
+		return 30;
+	}
+	return 29;
+}
+
 export function epochDaysToDate(epochDays: number): CalendarDateRecord {
 	return {
 		$era: "ap",
@@ -94,7 +104,7 @@ export function epochDaysToDate(epochDays: number): CalendarDateRecord {
 		$daysInWeek: 7,
 		get $daysInMonth() {
 			const date = getDate(epochDays);
-			return date.$month <= 6 ? 31 : date.$month !== 12 ? 30 : isLeapYear(date.$year) ? 30 : 29;
+			return daysInMonth(date.$year, date.$month);
 		},
 		get $daysInYear() {
 			return isLeapYear(getDate(epochDays).$year) ? 366 : 365;
@@ -107,16 +117,10 @@ export function epochDaysToDate(epochDays: number): CalendarDateRecord {
 }
 
 export function constrainDay(year: number, month: number, day: number) {
-	if (month <= 6) {
-		return clamp(day, 1, 31);
-	}
-	if (month !== 12) {
-		return clamp(day, 1, 30);
-	}
 	if (day < 30) {
 		return day;
 	}
-	return clamp(day, 1, isLeapYear(year) ? 30 : 29);
+	return clamp(day, 1, daysInMonth(year, month));
 }
 
 export function monthDayToEpochDays(month: number, day: number) {

@@ -261,34 +261,18 @@ function getReferenceYearFromTable(
 		return referenceYear;
 	}
 	// leap months
-	if (monthNum === 2) {
-		return 1947;
-	}
-	if (monthNum === 3) {
-		return day === 30 ? 1955 : 1966;
-	}
-	if (monthNum === 4) {
-		return day === 30 ? 1944 : 1963;
-	}
-	if (monthNum === 5) {
-		return day === 30 ? 1952 : 1971;
-	}
-	if (monthNum === 6) {
-		return day === 30 ? 1941 : 1960;
-	}
-	if (monthNum === 7) {
-		return day === 30 ? 1938 : 1968;
-	}
-	if (monthNum === 8) {
-		return 1957;
-	}
-	if (monthNum === 9) {
-		return 2014;
-	}
-	if (monthNum === 10) {
-		return 1984;
-	}
-	return 2033;
+	return [
+		1947,
+		day === 30 ? 1955 : 1966,
+		day === 30 ? 1944 : 1963,
+		day === 30 ? 1952 : 1971,
+		day === 30 ? 1941 : 1960,
+		day === 30 ? 1938 : 1968,
+		1957,
+		2014,
+		1984,
+		2033,
+	][monthNum - 2]!;
 }
 
 export function monthDayToEpochDays(
