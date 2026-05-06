@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import { isoDateToEpochDays } from "../abstractOperations.ts";
 import type { CalendarDateRecord } from "../calendars.ts";
 import { calendarIntegersToEpochDays, daysInMonth, epochDaysToDate } from "./indian.ts";
+import { epochDaysToDateByIcu } from "./testUtils.ts";
 
 function epochDay(year: number, month: number, day: number) {
 	return isoDateToEpochDays(year, month - 1, day);
@@ -138,4 +139,12 @@ test("daysInMonth", () => {
 	expect(daysInMonth(1894, 10)).toEqual(30);
 	expect(daysInMonth(1894, 11)).toEqual(30);
 	expect(daysInMonth(1894, 12)).toEqual(30);
+});
+
+test("epochDaysToDate should match ICU4X", () => {
+	for (let epochDays = 0; epochDays < 1500; epochDays++) {
+		expect(epochDaysToDate(epochDays)).toEqual(epochDaysToDateByIcu("indian", epochDays));
+	}
+	expect(epochDaysToDate(-25488)).toEqual(epochDaysToDateByIcu("indian", -25488));
+	expect(epochDaysToDate(-25487)).toEqual(epochDaysToDateByIcu("indian", -25487));
 });

@@ -5,6 +5,7 @@ import {
 	epochDaysToDate,
 	monthDayToEpochDays,
 } from "./copticEthiopic.ts";
+import { epochDaysToDateByIcu } from "./testUtils.ts";
 
 test("calendarIntegersToEpochDays - coptic", () => {
 	expect(calendarIntegersToEpochDays("coptic", 0, 1, 1)).toEqual(-615923);
@@ -111,3 +112,14 @@ test("monthDayToEpochDays", () => {
 	expect(monthDayToEpochDays(13, 5)).toEqual(983);
 	expect(monthDayToEpochDays(13, 6)).toEqual(618);
 });
+
+test.for(["coptic", "ethiopic", "ethioaa"] as const)(
+	"epochDaysToDate should match ICU4X: %s",
+	(calendar) => {
+		for (let epochDays = 0; epochDays < 1500; epochDays++) {
+			expect(epochDaysToDate(calendar, epochDays)).toEqual(
+				epochDaysToDateByIcu(calendar, epochDays),
+			);
+		}
+	},
+);

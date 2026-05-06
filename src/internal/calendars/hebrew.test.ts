@@ -1,12 +1,14 @@
 import { Calendar, CalendarKind, Date as IcuDate } from "icu";
-import { expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import { parseMonthCode } from "../calendars.ts";
 import {
 	calendarIntegersToEpochDays,
 	daysInMonth,
+	epochDaysToDate,
 	isLeapYear,
 	monthCodeToOrdinal,
 } from "./hebrew.ts";
+import { epochDaysToDateByIcu, epochDaysToRataDie } from "./testUtils.ts";
 
 test("isLeapYear", () => {
 	for (const yearMod19 of [0, 3, 6, 8, 11, 14, 17]) {
@@ -133,15 +135,51 @@ test("daysInMonth", () => {
 	expect(daysInMonth(6, 13)).toEqual(29);
 });
 
-test("calendarIntegersToEpochDays should match to ICU4X", () => {
-	for (let year = -268058; year <= 279518; year++) {
-		const icuDate = IcuDate.fromRataDie(
-			BigInt(calendarIntegersToEpochDays(year, 1, 1) + 719163),
-			new Calendar(CalendarKind.Hebrew),
-		);
-		// manual assertion for best performance
-		if (icuDate.extendedYear !== year || icuDate.ordinalMonth !== 1 || icuDate.dayOfMonth !== 1) {
-			throw new Error(`mismatch in year ${year}`);
-		}
+test("epochDaysToDate should match to ICU4X", () => {
+	// this range (year 5706 - 5711) includes all possible patterns of Hebrew year
+	for (let epochDays = -8881; epochDays <= -6668; epochDays++) {
+		expect(epochDaysToDate(epochDays)).toEqual(epochDaysToDateByIcu("hebrew", epochDays));
 	}
+});
+
+describe("calendarIntegersToEpochDays should match ICU4X", () => {
+	test("valid year range", () => {
+		for (let year = -268058; year <= 279518; year++) {
+			const icuDate = IcuDate.fromRataDie(
+				epochDaysToRataDie(calendarIntegersToEpochDays(year, 1, 1)),
+				new Calendar(CalendarKind.Hebrew),
+			);
+			// manual assertion for best performance
+			if (icuDate.extendedYear !== year || icuDate.ordinalMonth !== 1 || icuDate.dayOfMonth !== 1) {
+				throw new Error(`mismatch in year ${year}`);
+			}
+		}
+	});
+
+	test("each month for all possible year patterns", () => {
+		// normal years (deficient, regular, complete)
+		for (const year of [5781, 5786, 5788]) {
+			for (let month = 1; month <= 12; month++) {
+				const icuDate = IcuDate.fromRataDie(
+					epochDaysToRataDie(calendarIntegersToEpochDays(year, month, 1)),
+					new Calendar(CalendarKind.Hebrew),
+				);
+				expect(icuDate.extendedYear).toEqual(year);
+				expect(icuDate.ordinalMonth).toEqual(month);
+				expect(icuDate.dayOfMonth).toEqual(1);
+			}
+		}
+		// leap years (deficient, regular, complete)
+		for (const year of [5784, 5782, 5787]) {
+			for (let month = 1; month <= 13; month++) {
+				const icuDate = IcuDate.fromRataDie(
+					epochDaysToRataDie(calendarIntegersToEpochDays(year, month, 1)),
+					new Calendar(CalendarKind.Hebrew),
+				);
+				expect(icuDate.extendedYear).toEqual(year);
+				expect(icuDate.ordinalMonth).toEqual(month);
+				expect(icuDate.dayOfMonth).toEqual(1);
+			}
+		}
+	});
 });

@@ -7,6 +7,7 @@ import {
 	epochDaysToDate,
 	monthDayToEpochDays,
 } from "./islamicTabular.ts";
+import { epochDaysToDateByIcu } from "./testUtils.ts";
 
 function ymd(date: CalendarDateRecord) {
 	return [date.$year, date.$month, date.$day];
@@ -295,3 +296,14 @@ test("monthDayToEpochDays - islamic-tbla", () => {
 	expect(monthDayToEpochDays("islamic-tbla", 12, 29)).toEqual(774);
 	expect(monthDayToEpochDays("islamic-tbla", 12, 30)).toEqual(420);
 });
+
+test.for(["islamic-civil", "islamic-tbla"] as const)(
+	"epochDaysToDate should match ICU4X: %s",
+	(calendar) => {
+		for (let epochDays = 0; epochDays < 11000; epochDays++) {
+			expect(epochDaysToDate(calendar, epochDays)).toEqual(
+				epochDaysToDateByIcu(calendar, epochDays),
+			);
+		}
+	},
+);
