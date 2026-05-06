@@ -46,6 +46,12 @@ The polyfill works in browsers after September 2020 by default (e.g. Safari 14).
 
 This polyfill doesn't internally rely on `bigint`, thus you can support older browsers by transpiling and injecting polyfills (e.g. it relies on `globalThis` which is baseline since January 2020). However, if you use APIs accepting or returning `bigint`, `bigint` support is required.
 
+## TypeScript configuration
+
+This polyfill provides type definitions out of the box (You don't need `@types/*`).
+
+Note that this package uses the [`exports` field](https://nodejs.org/api/packages.html#exports) in our `package.json`, you need to set [`"resolvePackageJsonExports": true`](https://www.typescriptlang.org/tsconfig/#resolvePackageJsonExports) in your `tsconfig.json`. Otherwise the type resolution will fail when you `import` this module.
+
 ## Spec compliance
 
 It supports the latest spec with few intentional deviations (see `tests/expectedFailures` directory for details).
