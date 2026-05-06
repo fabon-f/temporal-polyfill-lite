@@ -50,7 +50,7 @@ This polyfill doesn't internally rely on `bigint`, thus you can support older br
 
 This polyfill provides type definitions out of the box (You don't need `@types/*`).
 
-Note that this package uses the [`exports` field](https://nodejs.org/api/packages.html#exports) in our `package.json`, you need to set `"resolvePackageJsonExports": true`. Otherwise the type resolution will fail when you `import` this module.
+Note that this package uses the [`exports` field](https://nodejs.org/api/packages.html#exports) in our `package.json`, you need to set [`"resolvePackageJsonExports": true`](https://www.typescriptlang.org/tsconfig/#resolvePackageJsonExports) in your `tsconfig.json`. Otherwise the type resolution will fail when you `import` this module.
 
 ## Spec compliance
 
