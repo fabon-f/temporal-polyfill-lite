@@ -534,7 +534,13 @@ export function DateTimeFormat(locale: unknown, options: unknown) {
 }
 
 const dtfDescriptors = Object.getOwnPropertyDescriptors(OriginalDateTimeFormat);
-dtfDescriptors.prototype.value = DateTimeFormatImpl.prototype;
+const DateTimeFormatImplPrototype = DateTimeFormatImpl.prototype;
+dtfDescriptors.prototype.value = DateTimeFormatImplPrototype;
+for (const property of ["formatRange", "formatRangeToParts"] as const) {
+	if (!OriginalDateTimeFormat.prototype[property]) {
+		delete DateTimeFormatImplPrototype[property];
+	}
+}
 Object.defineProperties(DateTimeFormat, dtfDescriptors);
 DateTimeFormat.prototype.constructor = DateTimeFormat;
 defineStringTag(DateTimeFormat.prototype, "Intl.DateTimeFormat");
