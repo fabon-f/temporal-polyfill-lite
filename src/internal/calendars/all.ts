@@ -393,55 +393,54 @@ export function nonIsoCalendarIsoToDate(
 	isoDate: IsoDateRecord,
 ): CalendarDateRecord {
 	const epochDays = isoDateRecordToEpochDays(isoDate);
-	if (isIsoLikeCalendar(calendar)) {
-		const isoCalendarDate = {
-			...isoCalendarIsoToDate(isoDate),
-			$weekOfYear: {
-				$year: undefined,
-				$week: undefined,
-			},
+	const isoCalendarDate = {
+		...isoCalendarIsoToDate(isoDate),
+		$weekOfYear: {
+			$year: undefined,
+			$week: undefined,
+		},
+	};
+	if (calendar === "japanese") {
+		const era =
+			epochDays >= 18017
+				? "reiwa"
+				: epochDays >= 6947
+					? "heisei"
+					: epochDays >= -15713
+						? "showa"
+						: epochDays >= -20974
+							? "taisho"
+							: epochDays >= -35428
+								? "meiji"
+								: isoDate.$year > 0
+									? "ce"
+									: "bce";
+		const offset = erasPerCalendar[calendar].get(era);
+		return {
+			$era: era,
+			$eraYear:
+				era === "bce"
+					? 1 - isoDate.$year
+					: isoDate.$year - (assert(typeof offset === "number"), offset) + 1,
+			...isoCalendarDate,
 		};
-		if (calendar === "japanese") {
-			const era =
-				epochDays >= 18017
-					? "reiwa"
-					: epochDays >= 6947
-						? "heisei"
-						: epochDays >= -15713
-							? "showa"
-							: epochDays >= -20974
-								? "taisho"
-								: epochDays >= -35428
-									? "meiji"
-									: isoDate.$year > 0
-										? "ce"
-										: "bce";
-			const offset = erasPerCalendar[calendar].get(era);
-			return {
-				$era: era,
-				$eraYear:
-					era === "bce"
-						? 1 - isoDate.$year
-						: isoDate.$year - (assert(typeof offset === "number"), offset) + 1,
-				...isoCalendarDate,
-			};
-		}
-		if (calendar === "gregory") {
-			return {
-				$era: isoDate.$year > 0 ? "ce" : "bce",
-				$eraYear: isoDate.$year > 0 ? isoDate.$year : 1 - isoDate.$year,
-				...isoCalendarDate,
-			};
-		}
-		if (calendar === "buddhist") {
-			return {
-				$era: "be",
-				$eraYear: isoDate.$year + 543,
-				...isoCalendarDate,
-				$year: isoDate.$year + 543,
-			};
-		}
-		assert(calendar === "roc");
+	}
+	if (calendar === "gregory") {
+		return {
+			$era: isoDate.$year > 0 ? "ce" : "bce",
+			$eraYear: isoDate.$year > 0 ? isoDate.$year : 1 - isoDate.$year,
+			...isoCalendarDate,
+		};
+	}
+	if (calendar === "buddhist") {
+		return {
+			$era: "be",
+			$eraYear: isoDate.$year + 543,
+			...isoCalendarDate,
+			$year: isoDate.$year + 543,
+		};
+	}
+	if (calendar === "roc") {
 		return {
 			$era: isoDate.$year >= 1912 ? "roc" : "broc",
 			$eraYear: isoDate.$year >= 1912 ? isoDate.$year - 1911 : 1912 - isoDate.$year,
@@ -736,20 +735,8 @@ function constrainDayForMonthCode(
 	day: number,
 	overflow: Overflow,
 ): number {
-	if (isChineseDangi(calendar)) {
-		const constrainedDay = clamp(day, 1, 30);
-		return day !== constrainedDay && overflow === overflowReject
-			? throwRangeError(outOfBoundsDate)
-			: constrainedDay;
-	}
-	if (calendar === "islamic-umalqura") {
-		const constrainedDay = clamp(day, 1, 30);
-		return day !== constrainedDay && overflow === overflowReject
-			? throwRangeError(outOfBoundsDate)
-			: constrainedDay;
-	}
-	if (calendar === "persian") {
-		const constrainedDay = clamp(day, 1, monthCode[0] <= 6 ? 31 : 30);
+	if (isChineseDangi(calendar) || calendar === "islamic-umalqura" || calendar === "persian") {
+		const constrainedDay = clamp(day, 1, calendar === "persian" && monthCode[0] <= 6 ? 31 : 30);
 		return day !== constrainedDay && overflow === overflowReject
 			? throwRangeError(outOfBoundsDate)
 			: constrainedDay;
@@ -759,10 +746,7 @@ function constrainDayForMonthCode(
 			? constrainDay(calendar, 3, 6, day, overflow)
 			: constrainDay(calendar, 1, monthCode[0], day, overflow);
 	}
-	if (isCopticOrEthiopic(calendar)) {
-		return constrainDay(calendar, 3, monthCode[0], day, overflow);
-	}
-	return constrainDay(calendar, 2, monthCode[0], day, overflow);
+	return constrainDay(calendar, isCopticOrEthiopic(calendar) ? 3 : 2, monthCode[0], day, overflow);
 }
 
 function constrainMonth(
