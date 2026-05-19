@@ -74,10 +74,13 @@ function plugins({ minify, assertion, beautify }: Options) {
 	};
 }
 
-export async function bundle(mode: "basic" | "full", options: Options) {
+export async function bundle(
+	mode: "basic" | "full",
+	options: Options & { overwriteGlobal?: boolean },
+) {
 	const { input, output } = plugins(options);
 	await using bundle = await rolldown({
-		input: "src/global.ts",
+		input: options.overwriteGlobal ? "src/overwriteGlobal.ts" : "src/global.ts",
 		plugins: input,
 		resolve: {
 			conditionNames: mode === "full" ? ["nonIsoCalendars"] : [],

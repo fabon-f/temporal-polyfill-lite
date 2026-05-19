@@ -38,7 +38,12 @@ await rm("dist", { recursive: true, force: true });
 await mkdir("dist", {});
 await writeFile(
 	"dist/bundle.js",
-	await bundle(values.mode, { assertion: false, minify: true, beautify: true }),
+	await bundle(values.mode, {
+		assertion: false,
+		minify: true,
+		beautify: true,
+		overwriteGlobal: true,
+	}),
 );
 
 const result = await runTest262({
