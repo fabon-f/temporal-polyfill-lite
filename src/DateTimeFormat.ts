@@ -278,29 +278,32 @@ export function createDateTimeFormat(
 	const coercedOriginalOptions: Intl.DateTimeFormatOptions = createNullPrototypeObject();
 	let rawDtf = new OriginalDateTimeFormat(
 		locales as any,
-		new Proxy(Object(options), {
-			get(originalOptions: Record<keyof any, unknown>, property: keyof Intl.DateTimeFormatOptions) {
-				const value = originalOptions[property];
-				if (property === "timeZone") {
-					if (toLocaleStringTimeZone !== undefined) {
-						if (value !== undefined) {
-							throwTypeError(disallowedField("timeZone"));
+		new Proxy(
+			{},
+			{
+				get(_: unknown, property: keyof Intl.DateTimeFormatOptions) {
+					const value = (options as Record<keyof any, unknown>)[property];
+					if (property === "timeZone") {
+						if (toLocaleStringTimeZone !== undefined) {
+							if (value !== undefined) {
+								throwTypeError(disallowedField("timeZone"));
+							}
+							return (coercedOriginalOptions[property] = toLocaleStringTimeZone);
 						}
-						return (coercedOriginalOptions[property] = toLocaleStringTimeZone);
 					}
-				}
-				if (value === undefined) {
-					return value;
-				}
-				// @ts-expect-error
-				return (coercedOriginalOptions[property] =
-					property === "hour12"
-						? toBoolean(value)
-						: property === "fractionalSecondDigits"
-							? toNumber(value)
-							: toString(value));
+					if (value === undefined) {
+						return value;
+					}
+					// @ts-expect-error
+					return (coercedOriginalOptions[property] =
+						property === "hour12"
+							? toBoolean(value)
+							: property === "fractionalSecondDigits"
+								? toNumber(value)
+								: toString(value));
+				},
 			},
-		}),
+		),
 	);
 
 	if (
