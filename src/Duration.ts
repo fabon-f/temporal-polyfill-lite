@@ -545,7 +545,7 @@ function computeNudgeWindow(
 		endDuration = adjustDateDurationRecord(duration.$date, r2);
 	}
 	let startEpochNs: EpochNanoseconds;
-	if (r1 === 0) {
+	if (!dateDurationSign(startDuration)) {
 		startEpochNs = originEpochNs;
 	} else {
 		const startDateTime = combineIsoDateAndTimeRecord(
