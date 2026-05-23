@@ -5,14 +5,3 @@ built-ins/Temporal/Duration/prototype/total/precision-exact-mathematical-values-
 built-ins/Temporal/PlainDateTime/prototype/toZonedDateTime/no-observable-array-iteration.js
 built-ins/Temporal/PlainYearMonth/prototype/since/builtin-calendar-no-array-iteration.js
 built-ins/Temporal/PlainYearMonth/prototype/subtract/builtin-calendar-no-array-iteration.js
-
-built-ins/Temporal/Duration/prototype/round/exact-multiple-of-larger-unit-plaindate.js
-built-ins/Temporal/Duration/prototype/round/exact-multiple-of-larger-unit-zoned.js
-built-ins/Temporal/PlainDate/prototype/since/exact-multiple-of-larger-unit.js
-built-ins/Temporal/PlainDate/prototype/until/exact-multiple-of-larger-unit.js
-built-ins/Temporal/PlainDateTime/prototype/since/exact-multiple-of-larger-unit.js
-built-ins/Temporal/PlainDateTime/prototype/until/exact-multiple-of-larger-unit.js
-built-ins/Temporal/PlainYearMonth/prototype/since/exact-multiple-of-larger-unit.js
-built-ins/Temporal/PlainYearMonth/prototype/until/exact-multiple-of-larger-unit.js
-built-ins/Temporal/ZonedDateTime/prototype/since/exact-multiple-of-larger-unit.js
-built-ins/Temporal/ZonedDateTime/prototype/until/exact-multiple-of-larger-unit.js
