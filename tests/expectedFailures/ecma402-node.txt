@@ -28,5 +28,4 @@ intl402/DateTimeFormat/timezone-case-insensitive.js
 intl402/DateTimeFormat/timezone-legacy-non-iana.js
 intl402/DateTimeFormat/timezone-not-canonicalized.js
 
-intl402/DateTimeFormat/constructor-options-order.js
 intl402/Temporal/ZonedDateTime/prototype/round/same-date-starts-twice.js
