@@ -419,7 +419,7 @@ export function addZonedDateTime(
 	duration: InternalDurationRecord,
 	overflow: Overflow,
 ): EpochNanoseconds {
-	if (dateDurationSign(duration.$date) === 0) {
+	if (!dateDurationSign(duration.$date)) {
 		return addInstant(zonedDateTimeSlot.$epochNanoseconds, duration.$time);
 	}
 	const isoDateTime = getIsoDateTimeForZonedDateTimeSlot(zonedDateTimeSlot);

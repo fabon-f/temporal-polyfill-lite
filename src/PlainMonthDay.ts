@@ -208,7 +208,7 @@ export class PlainMonthDay {
 		const slot = getInternalSlotOrThrowForPlainMonthDay(this);
 		const otherSlot = getInternalSlotOrThrowForPlainMonthDay(toTemporalMonthDay(other));
 		return (
-			compareIsoDate(slot.$isoDate, otherSlot.$isoDate) === 0 &&
+			!compareIsoDate(slot.$isoDate, otherSlot.$isoDate) &&
 			calendarEquals(slot.$calendar, otherSlot.$calendar)
 		);
 	}

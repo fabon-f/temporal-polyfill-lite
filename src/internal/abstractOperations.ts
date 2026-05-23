@@ -265,7 +265,7 @@ export function validateTemporalRoundingIncrement(
 	inclusive: boolean,
 ) {
 	const maximum = inclusive ? dividend : dividend - 1;
-	if (increment > maximum || dividend % increment !== 0) {
+	if (increment > maximum || dividend % increment) {
 		throwRangeError(invalidField("roundingIncrement"));
 	}
 }
@@ -552,12 +552,12 @@ export function validatePartialTemporalObject(value: unknown): asserts value is 
 export function formatFractionalSeconds(subSecondNanoseconds: number, precision?: number): string {
 	const fractionalDigits = toZeroPaddedDecimalString(subSecondNanoseconds, 9);
 	if (precision === undefined) {
-		if (subSecondNanoseconds === 0) {
+		if (!subSecondNanoseconds) {
 			return "";
 		}
 		return `.${fractionalDigits.replace(/0*$/, "")}`;
 	}
-	if (precision === 0) {
+	if (!precision) {
 		return "";
 	}
 	return `.${fractionalDigits.slice(0, precision)}`;

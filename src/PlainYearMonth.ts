@@ -430,8 +430,7 @@ export class PlainYearMonth {
 		const slot = getInternalSlotOrThrowForPlainYearMonth(this);
 		const otherSlot = getInternalSlotOrThrowForPlainYearMonth(toTemporalYearMonth(other));
 		return (
-			compareIsoDate(slot.$isoDate, otherSlot.$isoDate) === 0 &&
-			slot.$calendar === otherSlot.$calendar
+			!compareIsoDate(slot.$isoDate, otherSlot.$isoDate) && slot.$calendar === otherSlot.$calendar
 		);
 	}
 	toString(options: unknown = undefined) {

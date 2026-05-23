@@ -291,7 +291,7 @@ export function toTemporalDuration(item: unknown): DurationSlot {
 
 /** `DurationSign` */
 export function durationSign(duration: DurationSlot): NumberSign {
-	return sign(duration.find((v) => v !== 0) || 0);
+	return sign(duration.find((v) => v) || 0);
 }
 
 /** `DateDurationSign` */
@@ -336,7 +336,7 @@ function validateDuration(...units: DurationTuple): void {
 
 /** `DefaultTemporalLargestUnit` */
 export function defaultTemporalLargestUnit(duration: DurationSlot): Unit {
-	const index = (duration.findIndex((v) => v !== 0) + 10) % 10;
+	const index = (duration.findIndex((v) => v) + 10) % 10;
 	assertUnitIndex(index);
 	return getUnitFromIndex(index);
 }
@@ -1104,7 +1104,7 @@ export class Duration {
 		return durationSign(getInternalSlotOrThrowForDuration(this));
 	}
 	get blank() {
-		return durationSign(getInternalSlotOrThrowForDuration(this)) === 0;
+		return !durationSign(getInternalSlotOrThrowForDuration(this));
 	}
 	with(temporalDurationLike: unknown) {
 		const thisSlot = getInternalSlotOrThrowForDuration(this);
