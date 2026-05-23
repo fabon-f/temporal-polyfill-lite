@@ -27,5 +27,3 @@ intl402/DateTimeFormat/prototype/resolvedOptions/resolved-numbering-system-unico
 intl402/DateTimeFormat/timezone-case-insensitive.js
 intl402/DateTimeFormat/timezone-legacy-non-iana.js
 intl402/DateTimeFormat/timezone-not-canonicalized.js
-
-intl402/Temporal/ZonedDateTime/prototype/round/same-date-starts-twice.js

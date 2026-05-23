@@ -958,14 +958,15 @@ export class ZonedDateTime {
 				slot.$timeZone,
 				addDaysToIsoDate(isoDateTime.$isoDate, 1),
 			);
+			const thisNs =
+				compareEpochNanoseconds(startOfNextDay, slot.$epochNanoseconds) !== 1
+					? addNanosecondsToEpochSeconds(startOfNextDay, -1)
+					: slot.$epochNanoseconds;
 			return createTemporalZonedDateTime(
 				addNanosecondsToEpochSeconds(
 					startOfDay,
 					roundNumberToIncrement(
-						timeDurationToSubsecondsNumber(
-							differenceEpochNanoseconds(startOfDay, slot.$epochNanoseconds),
-							-9,
-						),
+						timeDurationToSubsecondsNumber(differenceEpochNanoseconds(startOfDay, thisNs), -9),
 						timeDurationToSubsecondsNumber(
 							differenceEpochNanoseconds(startOfDay, startOfNextDay),
 							-9,
