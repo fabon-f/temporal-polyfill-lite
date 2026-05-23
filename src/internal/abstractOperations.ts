@@ -283,14 +283,13 @@ export function getTemporalFractionalSecondDigitsOption(options: object): number
 		}
 		return undefined;
 	}
-	if (isNaN(digitsValue) || !isFinite(digitsValue)) {
+	if (!isWithin(Math.floor(digitsValue), 0, 9)) {
+		// this path also handles Infinity and NaN
 		throwRangeError(invalidField(property));
 	}
-	const digitCount = Math.floor(digitsValue);
-	if (!isWithin(digitCount, 0, 9)) {
-		throwRangeError(invalidField(property));
-	}
-	return digitCount;
+	// `digitsValue | 0` always equals to `Math.floor(digitsValue)` here, because
+	// `digitsValue` is small enough and not negative (truncating and flooring will produce the same result).
+	return digitsValue | 0;
 }
 
 interface PrecisionRecord {

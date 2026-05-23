@@ -8,7 +8,8 @@ class TmpClass {
 	toTemporalInstant(this: unknown): Instant {
 		// brand check
 		const epochMilliseconds = Date.prototype.valueOf.call(this);
-		if (isNaN(epochMilliseconds)) {
+		if (epochMilliseconds !== epochMilliseconds) {
+			// `epochMilliseconds` is `NaN`
 			throwRangeError(invalidDate);
 		}
 		return createTemporalInstant(createEpochNanosecondsFromEpochMilliseconds(epochMilliseconds));

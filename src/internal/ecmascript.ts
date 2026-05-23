@@ -26,10 +26,10 @@ export function toPrimitive(input: unknown): unknown {
 			input,
 			"string",
 		);
-		if (!isObject(result)) {
-			return result;
+		if (isObject(result)) {
+			throwTypeError(toPrimitiveFailed);
 		}
-		throwTypeError(toPrimitiveFailed);
+		return result;
 	}
 	// `Date.prototype[Symbol.toPrimitive]` do almost same things to `OrdinaryToPrimitive`
 	return Date.prototype[Symbol.toPrimitive].call(input, "string");
@@ -51,16 +51,11 @@ export const toNumber: (arg: unknown) => number = Math.max as any;
 
 /** `ToBigInt` */
 export function toBigInt(arg: unknown): bigint {
-	if (isObject(arg) || typeof arg === "number") {
-		// When `arg` is an object and `toPrimitive(arg)` returns `number`, `ToBigInt` AO should raise `TypeError`,
-		// therefore we can't simply call `BigInt` function.
-		// `BigInt.asIntN` does almost the same thing to `ToBigInt` AO.
-		// Note that this code path can return incorrect result
-		// when `arg` is converted to BigInt larger than `2**53-1` bits,
-		// which is unlikely to occur due to a limit of JavaScript engines.
-		return BigInt.asIntN(2 ** 53 - 1, arg as any);
-	}
-	return BigInt(arg as any);
+	// `BigInt.asIntN` does almost the same thing to `ToBigInt` AO.
+	// Note that this code path can return incorrect result
+	// when `arg` is converted to BigInt larger than `2**53-1` bits,
+	// which is unlikely to occur due to a limit of JavaScript engines.
+	return BigInt.asIntN(2 ** 53 - 1, arg as any);
 }
 
 /** `ToIntegerIfIntegral` and alternative to `NumberToBigInt` */
@@ -75,7 +70,7 @@ export function toIntegerIfIntegral(arg: unknown): number {
 /** `ToIntegerWithTruncation` */
 export function toIntegerWithTruncation(arg: unknown): number {
 	const num = toNumber(arg);
-	if (isNaN(num) || !isFinite(num)) {
+	if (!isFinite(num)) {
 		throwRangeError(invalidNumber(num));
 	}
 	return Math.trunc(num) + 0;
