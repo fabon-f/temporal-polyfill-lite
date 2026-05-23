@@ -117,44 +117,6 @@ interface IsoDateTimeParseRecord {
 	$calendar: string | undefined;
 }
 
-/** part of `ParseISODateTime` */
-function parseAnnotationsAndGetCalendar(annotationsString: string): string | undefined {
-	let calendar: string | undefined;
-	let calendarWasCritical = false;
-	for (const match of annotationsString.matchAll(annotationRegExp)) {
-		const isCritical = !!match[1];
-		if (match[2] === "u-ca") {
-			if (!calendar) {
-				calendar = match[3];
-				if (isCritical) {
-					calendarWasCritical = true;
-				}
-			} else {
-				if (isCritical || calendarWasCritical) {
-					throwRangeError(parseError);
-				}
-			}
-		} else if (isCritical) {
-			// unknown annotation with critical flag
-			throwRangeError(parseError);
-		}
-	}
-	return calendar;
-}
-
-/** part of `ParseISODateTime` */
-function getTimeRecordFromMatchedGroups(matchedGroups: Record<string, string>): TimeRecord {
-	const fractionalSecond = (matchedGroups["g"] || "").padEnd(9, "0");
-	return createTimeRecord(
-		toNumber(matchedGroups["d"] || 0),
-		toNumber(matchedGroups["e"] || 0),
-		clamp(toNumber(matchedGroups["f"] || 0), 0, 59),
-		toNumber(fractionalSecond.slice(0, 3)),
-		toNumber(fractionalSecond.slice(3, 6)),
-		toNumber(fractionalSecond.slice(6)),
-	);
-}
-
 /** "Static Semantics: Early Errors" */
 function isSemanticallyValid(matchedGroups: Record<string, string>): boolean {
 	return (
@@ -185,17 +147,47 @@ export function parseIsoDateTime(
 			continue;
 		}
 		const matchedGroups = result.groups!;
-		const calendar = parseAnnotationsAndGetCalendar(matchedGroups["k"] || "");
+
+		let calendar: string | undefined;
+		if (matchedGroups["k"]) {
+			let calendarWasCritical = false;
+			for (const [, criticalFlag, key, value] of matchedGroups["k"].matchAll(annotationRegExp)) {
+				if (key === "u-ca") {
+					if (!calendar) {
+						calendar = value;
+						// `calendarWasCritical` is always `false` here
+						calendarWasCritical = !!criticalFlag;
+					} else if (criticalFlag || calendarWasCritical) {
+						throwRangeError(parseError);
+					}
+				} else if (criticalFlag) {
+					// unknown annotation with critical flag
+					throwRangeError(parseError);
+				}
+			}
+		}
+
 		if (matchedGroups["m"]) {
 			if (calendar && asciiLowerCase(calendar) !== "iso8601") {
 				throwRangeError(parseError);
 			}
 		}
+
+		const fractionalSecond = (matchedGroups["g"] || "").padEnd(9, "0");
 		return {
 			$year: mapUnlessUndefined(matchedGroups["a"] || matchedGroups["l"], toNumber),
 			$month: toNumber(matchedGroups["b"] || matchedGroups["m"] || 1),
 			$day: toNumber(matchedGroups["c"] || matchedGroups["n"] || 1),
-			$time: matchedGroups["d"] ? getTimeRecordFromMatchedGroups(matchedGroups) : undefined,
+			$time: matchedGroups["d"]
+				? createTimeRecord(
+						toNumber(matchedGroups["d"] || 0),
+						toNumber(matchedGroups["e"] || 0),
+						clamp(toNumber(matchedGroups["f"] || 0), 0, 59),
+						toNumber(fractionalSecond.slice(0, 3)),
+						toNumber(fractionalSecond.slice(3, 6)),
+						toNumber(fractionalSecond.slice(6)),
+					)
+				: undefined,
 			$timeZone: {
 				$z: !!matchedGroups["i"],
 				$offsetString: matchedGroups["h"],
