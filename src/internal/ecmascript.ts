@@ -2,8 +2,8 @@ import { REQUIRED } from "./enum.ts";
 import {
 	invalidField,
 	invalidNumber,
-	invalidOptionsObject,
 	missingField,
+	notObject,
 	notString,
 	toPrimitiveFailed,
 	undefinedArgument,
@@ -88,7 +88,7 @@ export function toPositiveIntegerWithTruncation(arg: unknown): number {
 /** `GetOptionsObject` */
 export function getOptionsObject(options: unknown = createNullPrototypeObject()): object {
 	if (!isObject(options)) {
-		throwTypeError(invalidOptionsObject);
+		throwTypeError(notObject(options));
 	}
 	return options;
 }

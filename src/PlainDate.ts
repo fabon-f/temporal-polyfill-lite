@@ -59,7 +59,6 @@ import {
 	forbiddenValueOf,
 	invalidDateTime,
 	invalidMethodCall,
-	outOfBoundsDate,
 } from "./internal/errorMessages.ts";
 import { clamp, compare, isWithin, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
@@ -191,7 +190,7 @@ export function regulateIsoDate(
 		return createIsoDateRecord(year, month, clamp(day, 1, isoDaysInMonth(year, month)));
 	}
 	if (!isValidIsoDate(year, month, day)) {
-		throwRangeError(outOfBoundsDate);
+		throwRangeError(invalidDateTime);
 	}
 	return createIsoDateRecord(year, month, day);
 }

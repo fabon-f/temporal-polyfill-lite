@@ -158,18 +158,18 @@ export function parseIsoDateTime(
 						// `calendarWasCritical` is always `false` here
 						calendarWasCritical = !!criticalFlag;
 					} else if (criticalFlag || calendarWasCritical) {
-						throwRangeError(parseError);
+						throwRangeError(parseError(isoString));
 					}
 				} else if (criticalFlag) {
 					// unknown annotation with critical flag
-					throwRangeError(parseError);
+					throwRangeError(parseError(isoString));
 				}
 			}
 		}
 
 		if (matchedGroups["m"]) {
 			if (calendar && asciiLowerCase(calendar) !== "iso8601") {
-				throwRangeError(parseError);
+				throwRangeError(parseError(isoString));
 			}
 		}
 
@@ -196,7 +196,7 @@ export function parseIsoDateTime(
 			$calendar: calendar,
 		};
 	}
-	throwRangeError(parseError);
+	throwRangeError(parseError(isoString));
 }
 
 const annotationValueRegExp = createRegExp(annotationValue);
@@ -216,7 +216,7 @@ export function parseTemporalCalendarString(item: string): string {
 		);
 	} catch {
 		if (!annotationValueRegExp.test(item)) {
-			throwRangeError(parseError);
+			throwRangeError(parseError(item));
 		}
 		return item;
 	}
@@ -228,7 +228,7 @@ const utcOffsetWithSubMinuteRegExp = createRegExp(utcOffsetWithSubMinute);
 export function parseDateTimeUtcOffset(offset: string): number {
 	const result = offset.match(utcOffsetWithSubMinuteRegExp);
 	if (!result) {
-		throwRangeError(parseError);
+		throwRangeError(parseError(offset));
 	}
 	assertNotUndefined(result[1]);
 	assertNotUndefined(result[2]);
