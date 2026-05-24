@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **BREAKING**: Reflect normative changes approved in the TC39 meeting of May 2026 ([#34](https://github.com/fabon-f/temporal-polyfill-lite/pull/34), [#35](https://github.com/fabon-f/temporal-polyfill-lite/pull/35))
+- Improve error messages ([#36](https://github.com/fabon-f/temporal-polyfill-lite/pull/36))
+
+### Fixed
+
+- Remove extra observable `[[GetOwnProperty]]` calls in `Intl.DateTimeFormat` constructor ([#33](https://github.com/fabon-f/temporal-polyfill-lite/pull/33))
+
 ## 0.3.6 (2026-05-07)
 
 ### Fixed
