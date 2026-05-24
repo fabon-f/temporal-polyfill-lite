@@ -685,7 +685,7 @@ export function parseTemporalDurationString(isoString: string): DurationSlot {
 	isoString = asciiLowerCase(isoString);
 	const result = isoString.match(durationRegExp);
 	if (!result || invalidDurationRegExp.test(isoString)) {
-		throwRangeError(parseError);
+		throwRangeError(parseError(isoString));
 	}
 	assertNotUndefined(result[1]);
 	const fracPart = balanceTime(

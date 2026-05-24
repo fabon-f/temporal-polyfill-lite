@@ -20,7 +20,7 @@ import {
 	type MonthCode,
 } from "../calendars.ts";
 import { overflowConstrain, overflowReject, type Overflow } from "../enum.ts";
-import { calendarNotSupported, invalidEra, outOfBoundsDate } from "../errorMessages.ts";
+import { calendarNotSupported, invalidDateTime, invalidEra } from "../errorMessages.ts";
 import { clamp, divFloor, isWithin, modFloor } from "../math.ts";
 import { createNullPrototypeObject } from "../object.ts";
 import { asciiLowerCase } from "../string.ts";
@@ -518,7 +518,7 @@ export function calendarMonthDayToIsoReferenceDate(
 			(day === 30 && (monthCode[0] === 2 || isWithin(monthCode[0], 8, 11))))
 	) {
 		if (overflow === overflowReject) {
-			throwRangeError(outOfBoundsDate);
+			throwRangeError(invalidDateTime);
 		}
 		monthCode[1] = false;
 	}
@@ -591,7 +591,7 @@ export function constrainMonthCode(
 	if (calendar === "hebrew") {
 		return monthCode[1] && !isLeapYearHebrew(arithmeticYear)
 			? overflow === overflowReject
-				? throwRangeError(outOfBoundsDate)
+				? throwRangeError(invalidDateTime)
 				: [6, false]
 			: monthCode;
 	}
@@ -602,7 +602,7 @@ export function constrainMonthCode(
 			monthCode,
 		);
 		return monthCode !== constrainedMonthCode && overflow === overflowReject
-			? throwRangeError(outOfBoundsDate)
+			? throwRangeError(invalidDateTime)
 			: constrainedMonthCode;
 	}
 	return monthCode;
@@ -725,7 +725,7 @@ function constrainDay(
 										: daysInMonthIslamicTabular(year, month),
 						);
 	return day !== constrainedDay && overflow === overflowReject
-		? throwRangeError(outOfBoundsDate)
+		? throwRangeError(invalidDateTime)
 		: constrainedDay;
 }
 
@@ -738,7 +738,7 @@ function constrainDayForMonthCode(
 	if (isChineseDangi(calendar) || calendar === "islamic-umalqura" || calendar === "persian") {
 		const constrainedDay = clamp(day, 1, calendar === "persian" && monthCode[0] <= 6 ? 31 : 30);
 		return day !== constrainedDay && overflow === overflowReject
-			? throwRangeError(outOfBoundsDate)
+			? throwRangeError(invalidDateTime)
 			: constrainedDay;
 	}
 	if (calendar === "hebrew") {
@@ -763,7 +763,7 @@ function constrainMonth(
 				(calendar === "hebrew" && isLeapYearHebrew(year)) || isCopticOrEthiopic(calendar) ? 13 : 12,
 			);
 	if (clampedMonth !== month && overflow === overflowReject) {
-		throwRangeError(outOfBoundsDate);
+		throwRangeError(invalidDateTime);
 	}
 	return clampedMonth;
 }
