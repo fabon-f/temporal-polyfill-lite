@@ -1,5 +1,9 @@
 # $262 not supported in the test runner
 intl402/DateTimeFormat/proto-from-ctor-realm.js
+# we don't implement `ChainDateTimeFormat` (normative optional)
+intl402/DateTimeFormat/intl-legacy-constructed-symbol-on-unwrap.js
+intl402/DateTimeFormat/intl-legacy-constructed-symbol-property.js
+intl402/DateTimeFormat/intl-legacy-constructed-symbol.js
 # impossible to format extreme dates in `Intl.DateTimeFormat` from JS
 intl402/DateTimeFormat/prototype/format/temporal-objects-no-time-clip.js
 intl402/DateTimeFormat/prototype/format/temporal-objects-no-time-clip-non-latin-numerals.js
