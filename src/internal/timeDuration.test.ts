@@ -1,15 +1,18 @@
-import { expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import { nanosecondsPerDay, nanosecondsPerHour } from "./constants.ts";
 import { roundingModeHalfEven } from "./enum.ts";
 import {
-	createTimeDurationFromMicroseconds,
-	createTimeDurationFromNanoseconds,
+	createTimeDurationFromUnit,
 	normalize,
 	roundTimeDuration,
+	type TimeDuration,
 } from "./timeDuration.ts";
 
 function fromNanosecondsBigInt(n: bigint) {
-	return [Number(n / BigInt(nanosecondsPerDay)), Number(n % BigInt(nanosecondsPerDay))] as const;
+	return [
+		Number(n / BigInt(nanosecondsPerDay)),
+		Number(n % BigInt(nanosecondsPerDay)),
+	] as TimeDuration;
 }
 
 function daysToNanoseconds(n: number) {
@@ -29,26 +32,28 @@ test("normalize", () => {
 	}
 });
 
-test("createTimeDurationFromNanoseconds and unsafe integers", () => {
-	const nanoseconds = [9007199254713599772327936, -9007199254713599772327936];
-	for (const n of nanoseconds) {
-		expect(createTimeDurationFromNanoseconds(n)).toEqual(fromNanosecondsBigInt(BigInt(n)));
-	}
-});
+describe("createTimeDurationFromUnit", () => {
+	test("nanoseconds and unsafe integers", () => {
+		const nanoseconds = [9007199254713599772327936, -9007199254713599772327936];
+		for (const n of nanoseconds) {
+			expect(createTimeDurationFromUnit(n, 1)).toEqual(fromNanosecondsBigInt(BigInt(n)));
+		}
+	});
 
-test("createTimeDurationFromMicroseconds and unsafe integers", () => {
-	const microsecondsList = [9007199254627199483904, -9007199254627199483904];
-	for (const n of microsecondsList) {
-		expect(createTimeDurationFromMicroseconds(n)).toEqual(fromNanosecondsBigInt(BigInt(n) * 1000n));
-	}
+	test("microseconds and unsafe integers", () => {
+		const microsecondsList = [9007199254627199483904, -9007199254627199483904];
+		for (const n of microsecondsList) {
+			expect(createTimeDurationFromUnit(n, 1e3)).toEqual(fromNanosecondsBigInt(BigInt(n) * 1000n));
+		}
+	});
 });
 
 test("roundTimeDuration", () => {
 	expect(
 		roundTimeDuration(
-			createTimeDurationFromNanoseconds(28 * nanosecondsPerHour),
+			fromNanosecondsBigInt(BigInt(28 * nanosecondsPerHour)),
 			8 * nanosecondsPerHour,
 			roundingModeHalfEven,
 		),
-	).toEqual(createTimeDurationFromNanoseconds(32 * nanosecondsPerHour));
+	).toEqual(fromNanosecondsBigInt(BigInt(32 * nanosecondsPerHour)));
 });

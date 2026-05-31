@@ -1,11 +1,6 @@
 import { roundNumberToIncrement } from "./abstractOperations.ts";
 import { assert } from "./assertion.ts";
-import {
-	microsecondsPerDay,
-	millisecondsPerDay,
-	nanosecondsPerDay,
-	secondsPerDay,
-} from "./constants.ts";
+import { nanosecondsPerDay, secondsPerDay } from "./constants.ts";
 import { toNumber } from "./ecmascript.ts";
 import type { RoundingMode } from "./enum.ts";
 import { compareEpochNanoseconds, normalizeEpochNanoseconds } from "./epochNanoseconds.ts";
@@ -26,31 +21,18 @@ export function normalize(days: number, nanoseconds: number): TimeDuration {
 	return (d < 0 && n > 0 ? [d + 1, n - nanosecondsPerDay] : [d, n]) as TimeDuration;
 }
 
-export function createTimeDurationFromSeconds(sec: number): TimeDuration {
-	return normalize(divTrunc(sec, secondsPerDay), (sec % secondsPerDay) * 1e9);
-}
-
-export function createTimeDurationFromNanoseconds(nanosec: number): TimeDuration {
-	// `divTrunc(nanosec / nanosecondsPerDay)` can return wrong result for unsafe integer due to floating-point precision.
-	// `(nanosec - nanosec % nanosecondsPerDay) / nanosecondsPerDay` can be slightly larger or smaller than "actual" integer,
-	// but `nanosecondsPerDay` is large enough compared to maximum ulp (unit in the last place) in valid duration range (2 ** 30),
-	// so calling `Math.round` can return precise integer.
+export function createTimeDurationFromUnit(value: number, nanosecondsPerUnit: number) {
+	const unitsPerDay = nanosecondsPerDay / nanosecondsPerUnit;
+	// `divTrunc(value / unitsPerDay)` can return wrong result due to double rounding
+	// (e.g. when `value` is 9007199254713599772327936 and `unitsPerDay` is 8.64e13).
+	// `(value - (value % unitsPerDay)) / unitsPerDay` can be larger or smaller than the exact value
+	// when `value` is an unsafe integer, but the error is very small
+	// because the maximum ulp (unit in the last place) of `value` is far smaller than `nanosecondsPerUnit`.
+	// Therefore, `Math.round` will return the exact integer.
 	return normalize(
-		Math.round((nanosec - (nanosec % nanosecondsPerDay)) / nanosecondsPerDay),
-		nanosec % nanosecondsPerDay,
+		Math.round((value - (value % unitsPerDay)) / unitsPerDay),
+		(value % unitsPerDay) * nanosecondsPerUnit,
 	);
-}
-
-export function createTimeDurationFromMicroseconds(microsec: number): TimeDuration {
-	// same to `createTimeDurationFromNanoseconds` (8.64e10 is large enough than maximum ulp `2 ** 20`)
-	return normalize(
-		Math.round((microsec - (microsec % microsecondsPerDay)) / microsecondsPerDay),
-		(microsec % microsecondsPerDay) * 1e3,
-	);
-}
-
-export function createTimeDurationFromMilliseconds(millisec: number): TimeDuration {
-	return normalize(divTrunc(millisec, millisecondsPerDay), (millisec % millisecondsPerDay) * 1e6);
 }
 
 export function addNanosecondsToTimeDuration(

@@ -68,10 +68,7 @@ import {
 	addDaysToTimeDuration,
 	addTimeDuration,
 	compareTimeDuration,
-	createTimeDurationFromMicroseconds,
-	createTimeDurationFromMilliseconds,
-	createTimeDurationFromNanoseconds,
-	createTimeDurationFromSeconds,
+	createTimeDurationFromUnit,
 	divideTimeDurationToFloatingPoint,
 	getApproximateRatioOfTimeDurationsForRounding,
 	negateTimeDuration,
@@ -404,12 +401,12 @@ export function timeDurationFromComponents(
 	return addTimeDuration(
 		addTimeDuration(
 			addTimeDuration(
-				createTimeDurationFromSeconds(hours * 3600 + minutes * 60 + seconds),
-				createTimeDurationFromMilliseconds(milliseconds),
+				createTimeDurationFromUnit(hours * 3600 + minutes * 60 + seconds, 1e9),
+				createTimeDurationFromUnit(milliseconds, 1e6),
 			),
-			createTimeDurationFromMicroseconds(microseconds),
+			createTimeDurationFromUnit(microseconds, 1e3),
 		),
-		createTimeDurationFromNanoseconds(nanoseconds),
+		createTimeDurationFromUnit(nanoseconds, 1),
 	);
 }
 
@@ -964,9 +961,8 @@ export function applySignToDurationSlot(duration: DurationSlot, sign: NumberSign
 }
 
 function timeDurationWithinLimits(d: TimeDuration): boolean {
-	// `createTimeDurationFromSeconds(2 ** 53)` returns the expected result here,
-	// even though 2 ** 53 is an unsafe integer.
-	return compareTimeDuration(absTimeDuration(d), createTimeDurationFromSeconds(2 ** 53)) < 0;
+	// `2 ** 53` can be represented as `number` without precision loss even though it is an unsafe integer.
+	return compareTimeDuration(absTimeDuration(d), createTimeDurationFromUnit(2 ** 53, 1e9)) < 0;
 }
 
 function validateTimeDurationRange(d: TimeDuration): TimeDuration {
