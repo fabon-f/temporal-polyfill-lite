@@ -41,11 +41,11 @@
 		"@rollup/plugin-terser": "^1.0.0",
 		"@tsconfig/strictest": "^2.0.8",
 		"@types/node": "^25.9.1",
-		"@typescript/native-preview": "7.0.0-dev.20260524.1",
+		"@typescript/native-preview": "7.0.0-dev.20260527.2",
 		"clean-pkg-json": "^1.4.2",
 		"icu": "^2.2.1",
-		"oxfmt": "0.51.0",
-		"oxlint": "^1.66.0",
+		"oxfmt": "0.52.0",
+		"oxlint": "^1.67.0",
 		"rolldown": "1.0.2",
 		"tzdata": "^1.0.49",
 		"unplugin-isolated-decl": "^0.16.0",
@@ -65,5 +65,5 @@
 			"default": "./src/internal/calendars/basic.ts"
 		}
 	},
-	"packageManager": "pnpm@11.3.0"
+	"packageManager": "pnpm@11.5.0"
 }
