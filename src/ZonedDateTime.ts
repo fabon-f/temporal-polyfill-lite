@@ -132,10 +132,7 @@ import {
 } from "./internal/errorMessages.ts";
 import { createNullPrototypeObject, isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
-import {
-	createTimeDurationFromSeconds,
-	timeDurationToSubsecondsNumber,
-} from "./internal/timeDuration.ts";
+import { timeDurationToSubsecondsNumber, zeroTimeDuration } from "./internal/timeDuration.ts";
 import {
 	disambiguatePossibleEpochNanoseconds,
 	formatDateTimeUtcOffsetRounded,
@@ -451,7 +448,7 @@ function differenceZonedDateTime(
 ): InternalDurationRecord {
 	const sign = compareEpochNanoseconds(slot1.$epochNanoseconds, slot2.$epochNanoseconds);
 	if (!sign) {
-		return combineDateAndTimeDuration(zeroDateDuration(), createTimeDurationFromSeconds(0));
+		return combineDateAndTimeDuration(zeroDateDuration(), zeroTimeDuration);
 	}
 	assert(timeZoneEquals(slot1.$timeZone, slot2.$timeZone));
 	const startDateTime = getIsoDateTimeForZonedDateTimeSlot(slot1);

@@ -81,6 +81,7 @@ import {
 	timeDurationDaysAndRemainderNanoseconds,
 	timeDurationToSecondsNumber,
 	timeDurationToSubsecondsNumber,
+	zeroTimeDuration,
 	type TimeDuration,
 } from "./internal/timeDuration.ts";
 import { getEpochNanosecondsFor } from "./internal/timeZones.ts";
@@ -640,7 +641,7 @@ function nudgeToCalendarUnit(
 	}
 	return {
 		$nudgeResult: {
-			$duration: combineDateAndTimeDuration(resultDuration, createTimeDurationFromSeconds(0)),
+			$duration: combineDateAndTimeDuration(resultDuration, zeroTimeDuration),
 			$nudgedEpochNs: nudgedEpochNs,
 			$didExpandCalendarUnit: didExpandCalendarUnit,
 		},
@@ -782,7 +783,7 @@ function bubbleRelativeDuration(
 				? getEpochNanosecondsFor(timeZone, endDateTime, disambiguationCompatible)
 				: getUtcEpochNanoseconds(endDateTime);
 			if (timeDurationSign(differenceEpochNanoseconds(endEpochNs, nudgedEpochNs)) !== -sign) {
-				duration = combineDateAndTimeDuration(endDuration, createTimeDurationFromSeconds(0));
+				duration = combineDateAndTimeDuration(endDuration, zeroTimeDuration);
 			} else {
 				break;
 			}
@@ -1231,7 +1232,7 @@ export class Duration {
 									roundTimeDurationByDays(internalDuration.$time, roundingIncrement, roundingMode),
 								)[0],
 							),
-							createTimeDurationFromSeconds(0),
+							zeroTimeDuration,
 						)
 					: combineDateAndTimeDuration(
 							zeroDateDuration(),

@@ -61,7 +61,7 @@ import { divFloor, isWithin, modFloor } from "./internal/math.ts";
 import { createNullPrototypeObject, isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
-import { createTimeDurationFromSeconds, signTimeDuration } from "./internal/timeDuration.ts";
+import { signTimeDuration, zeroTimeDuration } from "./internal/timeDuration.ts";
 import { Unit } from "./internal/unit.ts";
 import { throwRangeError, throwTypeError } from "./internal/utils.ts";
 import {
@@ -217,7 +217,7 @@ function differenceTemporalPlainYearMonth(
 			0,
 			0,
 		),
-		createTimeDurationFromSeconds(0),
+		zeroTimeDuration,
 	);
 	if (settings.$smallestUnit !== Unit.Month || settings.$roundingIncrement !== 1) {
 		const isoDateTime = combineIsoDateAndTimeRecord(thisDate, midnightTimeRecord());

@@ -19,6 +19,8 @@ export type TimeDuration = [days: number, remainderNanoseconds: number] & {
 	[timeDurationBrand]: unknown;
 };
 
+export const zeroTimeDuration = [0, 0] as TimeDuration;
+
 export function normalize(days: number, nanoseconds: number): TimeDuration {
 	const [d, n] = normalizeEpochNanoseconds(days, nanoseconds);
 	return (d < 0 && n > 0 ? [d + 1, n - nanosecondsPerDay] : [d, n]) as TimeDuration;
