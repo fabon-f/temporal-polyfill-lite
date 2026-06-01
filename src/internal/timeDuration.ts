@@ -66,7 +66,7 @@ export const compareTimeDuration = compareEpochNanoseconds as (
 
 /** `TimeDurationSign` */
 export function signTimeDuration(timeDuration: TimeDuration): NumberSign {
-	return compareTimeDuration(timeDuration, [0, 0] as TimeDuration);
+	return compareTimeDuration(timeDuration, zeroTimeDuration);
 }
 
 export function timeDurationDaysAndRemainderNanoseconds(
