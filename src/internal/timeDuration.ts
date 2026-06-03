@@ -51,7 +51,7 @@ export function addTimeDuration(one: TimeDuration, two: TimeDuration): TimeDurat
 }
 
 export function absTimeDuration(timeDuration: TimeDuration): TimeDuration {
-	return normalize(Math.abs(timeDuration[0]), Math.abs(timeDuration[1]));
+	return timeDuration.map(Math.abs) as [number, number] as TimeDuration;
 }
 
 export function negateTimeDuration(timeDuration: TimeDuration): TimeDuration {
