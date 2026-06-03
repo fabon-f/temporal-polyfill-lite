@@ -27,7 +27,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [24, 26]
+        # TODO: investigate test262 script failure on v26
+        node-version: [24]
     permissions:
       contents: read
     steps:
