@@ -7,18 +7,12 @@ import { extractYearMonthDay } from "./dateTimeFormatter.ts";
 const newYearCache = createLruCache<number, number>(1000);
 
 function startOfYear(arithmeticYear: number): number {
-	const newYearEpochDays = newYearCache.$get(arithmeticYear);
-	// newYearEpochDays should not be 0 (1970-01-01 is not a Persian new year)
-	if (newYearEpochDays) {
-		return newYearEpochDays;
-	}
-	// 1st May is within the valid range (between -271821-04-20 and +275760-09-13) for all valid ISO years (between -271821 and 275760)
-	const epochDaysAfterNewYear = isoDateToEpochDays(arithmeticYear + 621, 4, 1);
-	const ymd = extractYearMonthDay("persian", epochDaysAfterNewYear);
-	const startOfYearEpochDays =
-		epochDaysAfterNewYear - dayOfYearFromMonthDay(ymd.$month, ymd.$day) + 1;
-	newYearCache.$set(arithmeticYear, startOfYearEpochDays);
-	return startOfYearEpochDays;
+	return newYearCache.$getOrInsertComputed(arithmeticYear, () => {
+		// 1st May is within the valid range (between -271821-04-20 and +275760-09-13) for all valid ISO years (between -271821 and 275760)
+		const epochDaysAfterNewYear = isoDateToEpochDays(arithmeticYear + 621, 4, 1);
+		const ymd = extractYearMonthDay("persian", epochDaysAfterNewYear);
+		return epochDaysAfterNewYear - dayOfYearFromMonthDay(ymd.$month, ymd.$day) + 1;
+	});
 }
 
 export function dayOfYearFromMonthDay(month: number, day: number) {

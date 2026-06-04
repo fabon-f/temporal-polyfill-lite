@@ -12,13 +12,9 @@ import {
 const cache = createLruCache<number, YearMonthDayNumber>(5000);
 
 function getYearMonthDay(epochDays: number) {
-	const ymdFromCache = cache.$get(epochDays);
-	if (ymdFromCache) {
-		return ymdFromCache;
-	}
-	const ymd = extractYearMonthDay("islamic-umalqura", epochDays);
-	cache.$set(epochDays, ymd);
-	return ymd;
+	return cache.$getOrInsertComputed(epochDays, () =>
+		extractYearMonthDay("islamic-umalqura", epochDays),
+	);
 }
 
 function getFirstDayOfMonth(year: number, month: number): number {

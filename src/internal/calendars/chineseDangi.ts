@@ -23,39 +23,31 @@ const cache = {
 };
 
 function yearMonthDay(calendar: "chinese" | "dangi", epochDays: number): EastAsianYearMonthDay {
-	const cachedDate = cache[calendar].$get(epochDays);
-	if (cachedDate) {
-		return cachedDate;
-	}
-	const date = extractYearMonthDayForEastAsianLunisolarCalendar(calendar, epochDays);
-	cache[calendar].$set(epochDays, date);
-	return date;
+	return cache[calendar].$getOrInsertComputed(epochDays, () =>
+		extractYearMonthDayForEastAsianLunisolarCalendar(calendar, epochDays),
+	);
 }
 
 function getNewYear(calendar: "chinese" | "dangi", year: number) {
-	let cachedNewYear = newYearCache[calendar].$get(year);
-	if (cachedNewYear) {
-		return cachedNewYear;
-	}
-
-	let epochDaysInNewYear = isoDateToEpochDays(
-		year,
-		0,
-		year === 1985 ? 53 : Math.floor(modFloor(-10.8822 * year + 16, 29.53)) + 23,
-	);
-	let ymd = yearMonthDay(calendar, epochDaysInNewYear);
-	// `epochDaysInNewYear` is few days after the new year in most cases, but adjust here for exceptions
-	for (let i = 0; ymd.$monthCode !== "M01"; i++) {
-		if (i > 20) {
-			// `Intl.DateTimeFormat` can return an inconsistent result when the date is in extreme range,
-			// which causes an infinite loop.
-			throw new Error("unexpected calendar error");
+	return newYearCache[calendar].$getOrInsertComputed(year, () => {
+		let epochDaysInNewYear = isoDateToEpochDays(
+			year,
+			0,
+			year === 1985 ? 53 : Math.floor(modFloor(-10.8822 * year + 16, 29.53)) + 23,
+		);
+		let ymd = yearMonthDay(calendar, epochDaysInNewYear);
+		// `epochDaysInNewYear` is few days after the new year in most cases, but adjust here for exceptions
+		for (let i = 0; ymd.$monthCode !== "M01"; i++) {
+			if (i > 20) {
+				// `Intl.DateTimeFormat` can return an inconsistent result when the date is in extreme range,
+				// which causes an infinite loop.
+				throw new Error("unexpected calendar error");
+			}
+			epochDaysInNewYear += ymd.$year < year ? 31 - ymd.$day : -ymd.$day;
+			ymd = yearMonthDay(calendar, epochDaysInNewYear);
 		}
-		epochDaysInNewYear += ymd.$year < year ? 31 - ymd.$day : -ymd.$day;
-		ymd = yearMonthDay(calendar, epochDaysInNewYear);
-	}
-	newYearCache[calendar].$set(year, epochDaysInNewYear - ymd.$day + 1);
-	return epochDaysInNewYear - ymd.$day + 1;
+		return epochDaysInNewYear - ymd.$day + 1;
+	});
 }
 
 function ordinalMonthToMonthCode(
