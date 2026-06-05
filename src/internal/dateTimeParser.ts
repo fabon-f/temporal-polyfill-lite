@@ -90,10 +90,9 @@ const ambiguousTemporalTimeStringRegExp = [
 ];
 
 function isAmbiguousTemporalTimeString(isoString: string): boolean {
-	return ambiguousTemporalTimeStringRegExp.some((regexp) => {
-		const result = isoString.match(regexp);
-		return result && isSemanticallyValid(result.groups!);
-	});
+	return ambiguousTemporalTimeStringRegExp.some((regexp) =>
+		isSemanticallyValid(isoString.match(regexp)?.groups),
+	);
 }
 
 const timeZoneIdentifierRegExp = createRegExp(timeZoneIdentifier);
@@ -118,8 +117,9 @@ interface IsoDateTimeParseRecord {
 }
 
 /** "Static Semantics: Early Errors" */
-function isSemanticallyValid(matchedGroups: Record<string, string>): boolean {
+function isSemanticallyValid(matchedGroups: Record<string, string> | undefined): boolean {
 	return (
+		!!matchedGroups &&
 		(matchedGroups["a"] || matchedGroups["l"]) !== "-000000" &&
 		(!matchedGroups["a"] ||
 			isValidIsoDate(
