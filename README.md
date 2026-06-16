@@ -44,6 +44,8 @@ import { install } from "temporal-polyfill-lite/calendars-full/shim";
 
 ```typescript
 import { setSystemTimeZoneIdCacheTtl } from "temporal-polyfill-lite/shim";
+// or use "temporal-polyfill-lite/calendars-full/shim" entrypoint if you use the "full" bundle
+
 setSystemTimeZoneIdCacheTtl(1000);
 // The result of `Temporal.Now.timeZoneId()` will be cached for a second
 ```
