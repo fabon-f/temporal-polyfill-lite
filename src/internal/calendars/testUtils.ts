@@ -36,7 +36,7 @@ function calendarIdToIcuCalendarKind(calendar: RuleBasedCalendarId): CalendarKin
 	}
 }
 
-export function epochDaysToRataDie(epochDays: number) {
+function epochDaysToRataDie(epochDays: number) {
 	return BigInt(epochDays) + 719163n;
 }
 
