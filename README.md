@@ -40,6 +40,14 @@ import "temporal-polyfill-lite/calendars-full/global";
 import { install } from "temporal-polyfill-lite/calendars-full/shim";
 ```
 
+`Temporal.Now.timeZoneId` is very slow in the polyfill because there is no efficient way to get the system time zone (except native `Temporal.Now.timeZoneId`). `temporal-polyfill-lite` has an opt-in cache mechanism for this.
+
+```typescript
+import { setSystemTimeZoneIdCacheTtl } from "temporal-polyfill-lite/shim";
+setSystemTimeZoneIdCacheTtl(1000);
+// The result of `Temporal.Now.timeZoneId()` will be cached for a second
+```
+
 ## Browser support
 
 The polyfill works in browsers after September 2020 by default (e.g. Safari 14).
