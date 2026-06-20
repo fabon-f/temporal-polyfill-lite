@@ -311,11 +311,9 @@ function validateDuration(...units: DurationTuple): void {
 		throwRangeError(invalidDuration);
 	}
 	if (
-		!(
-			units.every((v) => Math.abs(v) < 1e25) && // reject extreme numbers first to avoid Infinity / NaN
-			Math.abs(units[unitIndices.$year]) < 2 ** 32 &&
-			Math.abs(units[unitIndices.$month]) < 2 ** 32 &&
-			Math.abs(units[unitIndices.$week]) < 2 ** 32
+		units.some((v) => Math.abs(v) > 1e25) || // reject extreme numbers first to avoid Infinity / NaN
+		[units[unitIndices.$year], units[unitIndices.$month], units[unitIndices.$week]].some(
+			(v) => Math.abs(v) >= 2 ** 32,
 		)
 	) {
 		throwRangeError(outOfBoundsDuration);
@@ -361,7 +359,7 @@ function toTemporalPartialDurationRecord(temporalDurationLike: unknown): Partial
 		number | undefined,
 		number | undefined,
 	];
-	if (unitsByAlphabeticalOrder.every((v) => v === undefined)) {
+	if (!unitsByAlphabeticalOrder.some((v) => v !== undefined)) {
 		throwTypeError(emptyFields);
 	}
 	return [9, 5, 8, 0, 1, 4, 7, 3, 2, 6].map(
@@ -1037,7 +1035,7 @@ export class Duration {
 		const slot1 = toTemporalDuration(one);
 		const slot2 = toTemporalDuration(two);
 		const relativeToRecord = getTemporalRelativeToOption(getOptionsObject(options));
-		if (slot1.every((v, i) => slot2[i] === v)) {
+		if (!slot1.some((v, i) => slot2[i] !== v)) {
 			return 0;
 		}
 		const largestUnit1 = defaultTemporalLargestUnit(slot1);

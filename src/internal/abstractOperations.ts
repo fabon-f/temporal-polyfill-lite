@@ -644,7 +644,7 @@ export function getRoundingIncrementOption(options: object): number {
 	const property = "roundingIncrement";
 	const value = (options as Record<string, unknown>)[property];
 	const integerIncrement = mapUnlessUndefined(value, toIntegerWithTruncation) ?? 1;
-	if (integerIncrement < 1 || integerIncrement > 1e9) {
+	if (!isWithin(integerIncrement, 1, 1e9)) {
 		throwRangeError(invalidField(property));
 	}
 	return integerIncrement;
