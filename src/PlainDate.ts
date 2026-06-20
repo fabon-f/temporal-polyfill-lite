@@ -38,6 +38,7 @@ import {
 	isoDaysInMonth,
 	prepareCalendarFields,
 	toTemporalCalendarIdentifier,
+	type CalendarDateRecord,
 	type SupportedCalendars,
 } from "./internal/calendars.ts";
 import { parseIsoDateTime, temporalDateTimeStringRegExp } from "./internal/dateTimeParser.ts";
@@ -322,6 +323,11 @@ export function validateIsoDate(isoDate: IsoDateRecord) {
 	return isoDate;
 }
 
+function calendarDateForPlainDate(plainDate: unknown): CalendarDateRecord {
+	const slot = getInternalSlotOrThrowForPlainDate(plainDate);
+	return calendarIsoToDate(slot.$calendar, slot.$isoDate);
+}
+
 export class PlainDate {
 	constructor(isoYear: unknown, isoMonth: unknown, isoDay: unknown, calendar: unknown = "iso8601") {
 		const y = toIntegerWithTruncation(isoYear);
@@ -347,64 +353,49 @@ export class PlainDate {
 		return getInternalSlotOrThrowForPlainDate(this).$calendar;
 	}
 	get era() {
-		const slot = getInternalSlotOrThrowForPlainDate(this);
-		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$era;
+		return calendarDateForPlainDate(this).$era;
 	}
 	get eraYear() {
-		const slot = getInternalSlotOrThrowForPlainDate(this);
-		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$eraYear;
+		return calendarDateForPlainDate(this).$eraYear;
 	}
 	get year() {
-		const slot = getInternalSlotOrThrowForPlainDate(this);
-		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$year;
+		return calendarDateForPlainDate(this).$year;
 	}
 	get month() {
-		const slot = getInternalSlotOrThrowForPlainDate(this);
-		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$month;
+		return calendarDateForPlainDate(this).$month;
 	}
 	get monthCode() {
-		const slot = getInternalSlotOrThrowForPlainDate(this);
-		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$monthCode;
+		return calendarDateForPlainDate(this).$monthCode;
 	}
 	get day() {
-		const slot = getInternalSlotOrThrowForPlainDate(this);
-		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$day;
+		return calendarDateForPlainDate(this).$day;
 	}
 	get dayOfWeek() {
-		const slot = getInternalSlotOrThrowForPlainDate(this);
-		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$dayOfWeek;
+		return calendarDateForPlainDate(this).$dayOfWeek;
 	}
 	get dayOfYear() {
-		const slot = getInternalSlotOrThrowForPlainDate(this);
-		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$dayOfYear;
+		return calendarDateForPlainDate(this).$dayOfYear;
 	}
 	get weekOfYear() {
-		const slot = getInternalSlotOrThrowForPlainDate(this);
-		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$weekOfYear.$week;
+		return calendarDateForPlainDate(this).$weekOfYear.$week;
 	}
 	get yearOfWeek() {
-		const slot = getInternalSlotOrThrowForPlainDate(this);
-		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$weekOfYear.$year;
+		return calendarDateForPlainDate(this).$weekOfYear.$year;
 	}
 	get daysInWeek() {
-		const slot = getInternalSlotOrThrowForPlainDate(this);
-		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$daysInWeek;
+		return calendarDateForPlainDate(this).$daysInWeek;
 	}
 	get daysInMonth() {
-		const slot = getInternalSlotOrThrowForPlainDate(this);
-		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$daysInMonth;
+		return calendarDateForPlainDate(this).$daysInMonth;
 	}
 	get daysInYear() {
-		const slot = getInternalSlotOrThrowForPlainDate(this);
-		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$daysInYear;
+		return calendarDateForPlainDate(this).$daysInYear;
 	}
 	get monthsInYear() {
-		const slot = getInternalSlotOrThrowForPlainDate(this);
-		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$monthsInYear;
+		return calendarDateForPlainDate(this).$monthsInYear;
 	}
 	get inLeapYear() {
-		const slot = getInternalSlotOrThrowForPlainDate(this);
-		return calendarIsoToDate(slot.$calendar, slot.$isoDate).$inLeapYear;
+		return calendarDateForPlainDate(this).$inLeapYear;
 	}
 	toPlainYearMonth() {
 		const slot = getInternalSlotOrThrowForPlainDate(this);
