@@ -15,4 +15,9 @@ describe("createNativeZonedDateTime", () => {
 			new Temporal.ZonedDateTime(BigInt(epochMilliseconds) * 1000000n, "Asia/Tokyo"),
 		);
 	});
+	test("invalid time zone", () => {
+		expect(() => {
+			createNativeZonedDateTime(0, "Invalid/zone");
+		}).toThrow(RangeError);
+	});
 });
