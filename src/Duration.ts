@@ -677,7 +677,6 @@ function nudgeToZonedTime(
 	const beyondDaySpan = addTimeDuration(roundedTimeDuration, negateTimeDuration(daySpan));
 	let didRoundBeyondDay = false;
 	let dayDelta = 0;
-	let nudgedEpochNs: EpochNanoseconds;
 	if (timeDurationSign(beyondDaySpan) !== -sign) {
 		didRoundBeyondDay = true;
 		dayDelta = sign;
@@ -686,14 +685,12 @@ function nudgeToZonedTime(
 			increment * unitLength,
 			roundingMode,
 		);
-		nudgedEpochNs = addTimeDurationToEpochNanoseconds(endEpochNs, roundedTimeDuration);
-	} else {
-		nudgedEpochNs = addTimeDurationToEpochNanoseconds(endEpochNs, roundedTimeDuration);
 	}
 	const resultDuration = combineDateAndTimeDuration(
 		adjustDateDurationRecord(duration.$date, duration.$date.$days + dayDelta),
 		roundedTimeDuration,
 	);
+	const nudgedEpochNs = addTimeDurationToEpochNanoseconds(endEpochNs, roundedTimeDuration);
 	return {
 		$duration: resultDuration,
 		$nudgedEpochNs: nudgedEpochNs,
@@ -720,19 +717,15 @@ function nudgeToDayOrTime(
 					roundingMode,
 				);
 	const roundedWholeDays = timeDurationDaysAndRemainderNanoseconds(roundedTime)[0];
-	const [days, remainder] = isDateUnit(largestUnit)
-		? [
-				roundedWholeDays,
-				addTimeDuration(
-					roundedTime,
-					timeDurationFromComponents(-roundedWholeDays * 24, 0, 0, 0, 0, 0),
-				),
-			]
-		: [0, roundedTime];
 	return {
 		$duration: combineDateAndTimeDuration(
-			adjustDateDurationRecord(duration.$date, days),
-			remainder,
+			adjustDateDurationRecord(duration.$date, isDateUnit(largestUnit) ? roundedWholeDays : 0),
+			isDateUnit(largestUnit)
+				? addTimeDuration(
+						roundedTime,
+						timeDurationFromComponents(-roundedWholeDays * 24, 0, 0, 0, 0, 0),
+					)
+				: roundedTime,
 		),
 		$nudgedEpochNs: addTimeDurationToEpochNanoseconds(
 			destEpochNs,
@@ -762,7 +755,7 @@ function bubbleRelativeDuration(
 	const smallestUnitIndex = getIndexFromUnit(smallestUnit);
 	let endDuration: DateDurationRecord;
 	for (let unitIndex = smallestUnitIndex - 1; unitIndex >= largestUnitIndex; unitIndex--) {
-		if (unitIndex !== unitIndices.$week || largestUnitIndex === unitIndices.$week) {
+		if (unitIndex !== unitIndices.$week || largestUnit === Unit.Week) {
 			if (unitIndex === unitIndices.$year) {
 				endDuration = createDateDurationRecord(duration.$date.$years + sign, 0, 0, 0);
 			} else if (unitIndex === unitIndices.$month) {
