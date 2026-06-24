@@ -149,7 +149,6 @@ export function getApproximateRatioOfTimeDurationsForRounding(
 	sign: 1 | -1,
 ) {
 	// actual value of the `target / divisor` isn't relevant for rounding, but comparison to threshold values (0, 0.5, and 1) should not change.
-	// TODO: consider remove duplication of logic in this function and `roundTimeDurationByDays`
 	if (!signTimeDuration(target)) {
 		return 0;
 	}

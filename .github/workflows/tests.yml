@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # TODO: investigate test262 script failure on v26
+        # FIXME: Disable v26 until https://github.com/nodejs/node/issues/64008 is fixed
         node-version: [24]
     permissions:
       contents: read
