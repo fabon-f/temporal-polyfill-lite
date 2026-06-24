@@ -73,21 +73,6 @@ test("rejectNonIanaTimeZoneId and non-IANA time zones", () => {
 });
 
 test("rejectNonIanaTimeZoneId and IANA time zones", () => {
-	const ianaTimeZoneIds = [
-		"CET",
-		"EET",
-		"EST",
-		"GMT",
-		"HST",
-		"MET",
-		"MST",
-		"PRC",
-		"ROC",
-		"ROK",
-		"UCT",
-		"UTC",
-		"WET",
-	];
 	for (const id of ianaTimeZoneIds) {
 		expect(() => rejectNonIanaTimeZoneId(id)).not.toThrow();
 	}
