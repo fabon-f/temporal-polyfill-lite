@@ -1,5 +1,9 @@
 import { expect, test } from "vitest";
-import { epochDaysToIsoDate, isoDateToEpochDays } from "./abstractOperations.ts";
+import {
+	epochDaysToIsoDate,
+	isoDateToEpochDays,
+	parseTemporalDurationString,
+} from "./abstractOperations.ts";
 
 test("isoDateToEpochDays and extreme dates", () => {
 	expect(isoDateToEpochDays(321970, 0, 1)).toEqual(116877600);
@@ -20,3 +24,10 @@ test("epochDaysToIsoDate", () => {
 		$day: 1,
 	});
 });
+
+test.for(["aaa", "AAA", "P1MT", "p1mt"])(
+	"parseTemporalDurationString and invalid string: %s",
+	(str) => {
+		expect(() => parseTemporalDurationString(str)).toThrow(str);
+	},
+);

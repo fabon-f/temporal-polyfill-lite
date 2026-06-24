@@ -123,7 +123,7 @@ import {
 	roundHalfFloor,
 	roundHalfTrunc,
 } from "./rounding.ts";
-import { asciiLowerCase, toZeroPaddedDecimalString } from "./string.ts";
+import { toZeroPaddedDecimalString } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
 import {
 	parseTimeZoneIdentifier,
@@ -678,11 +678,10 @@ export function parseTemporalDurationString(isoString: string): DurationSlot {
 	 * * date time separator "T" should be followed by time units
 	 * * at least one of units should be present
 	 */
-	const invalidDurationRegExp = /[pt]$|[.,](\d{1,9})[hms]./;
+	const invalidDurationRegExp = /[pt]$|[.,](\d{1,9})[hms]./i;
 	const durationRegExp =
-		/^([+-]?)p(?:(\d+)y)?(?:(\d+)m)?(?:(\d+)w)?(?:(\d+)d)?(?:t(?:(\d+)(?:[.,](\d{1,9}))?h)?(?:(\d+)(?:[.,](\d{1,9}))?m)?(?:(\d+)(?:[.,](\d{1,9}))?s)?)?$/;
+		/^([+-]?)p(?:(\d+)y)?(?:(\d+)m)?(?:(\d+)w)?(?:(\d+)d)?(?:t(?:(\d+)(?:[.,](\d{1,9}))?h)?(?:(\d+)(?:[.,](\d{1,9}))?m)?(?:(\d+)(?:[.,](\d{1,9}))?s)?)?$/i;
 
-	isoString = asciiLowerCase(isoString);
 	const result = isoString.match(durationRegExp);
 	if (!result || invalidDurationRegExp.test(isoString)) {
 		throwRangeError(parseError(isoString));
