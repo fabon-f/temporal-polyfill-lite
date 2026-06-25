@@ -27,8 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # FIXME: Disable v26 until https://github.com/nodejs/node/issues/64008 is fixed
-        node-version: [24]
+        node-version: [24, 26]
     permissions:
       contents: read
     steps:
