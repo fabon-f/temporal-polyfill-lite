@@ -1,3 +1,4 @@
+import { durationRecordToDurationLikeObject, OriginalDurationFormat } from "./DurationFormat.ts";
 import {
 	formatFractionalSeconds,
 	getRoundingIncrementOption,
@@ -90,7 +91,6 @@ import {
 	timeUnitLengths,
 	Unit,
 	unitIndices,
-	type PluralUnitKey,
 } from "./internal/unit.ts";
 import {
 	mapUnlessUndefined,
@@ -1320,12 +1320,9 @@ export class Duration {
 		return temporalDurationToString(getInternalSlotOrThrowForDuration(this));
 	}
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined): string {
-		const slot = getInternalSlotOrThrowForDuration(this);
-		const record: Partial<Record<PluralUnitKey, number>> = createNullPrototypeObject();
-		pluralUnitKeys.map((k, i) => {
-			record[k] = slot[i]!;
-		});
-		return new Intl.DurationFormat(locales as any, options as any).format(record);
+		return new OriginalDurationFormat(locales as any, options as any).format(
+			durationRecordToDurationLikeObject(getInternalSlotOrThrowForDuration(this)),
+		);
 	}
 	valueOf() {
 		throwTypeError(forbiddenValueOf);
