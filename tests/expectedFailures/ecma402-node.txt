@@ -28,3 +28,6 @@ intl402/DateTimeFormat/prototype/resolvedOptions/order-dayPeriod.js
 intl402/DateTimeFormat/timezone-case-insensitive.js
 intl402/DateTimeFormat/timezone-legacy-non-iana.js
 intl402/DateTimeFormat/timezone-not-canonicalized.js
+# V8 bugs related to `Intl.DurationFormat` are also left as-is
+intl402/DurationFormat/prototype/format/digital-style-with-hours-display-auto-with-zero-hour.js
+intl402/DurationFormat/prototype/format/precision-exact-mathematical-values.js
