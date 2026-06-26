@@ -71,6 +71,9 @@ const result = await runTest262({
 					"tests/test262/test/built-ins/Date/prototype/toTemporalInstant/*.js",
 					"tests/test262/test/intl402/DateTimeFormat/**/*.js",
 					"tests/test262/test/intl402/Temporal/**/*.js",
+					...(globalThis.Intl.DurationFormat
+						? ["tests/test262/test/intl402/DurationFormat/**/*.js"]
+						: []),
 				]
 			: files,
 	expectedFailureFiles: files.length === 0 ? expectedFailureFiles(values.mode) : [],

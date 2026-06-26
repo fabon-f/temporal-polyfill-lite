@@ -1,3 +1,6 @@
 intl402/DateTimeFormat/prototype/format/temporal-objects-resolved-time-zone.js
 intl402/DateTimeFormat/prototype/resolvedOptions/resolved-calendar-unicode-extensions-and-options.js
 intl402/DateTimeFormat/prototype/resolvedOptions/resolved-numbering-system-unicode-extensions-and-options.js
+intl402/DurationFormat/prototype/format/duration-out-of-range-3.js
+intl402/DurationFormat/prototype/format/duration-out-of-range-4.js
+intl402/DurationFormat/prototype/resolvedOptions/resolved-numbering-system-unicode-extensions-and-options.js
