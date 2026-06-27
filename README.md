@@ -52,9 +52,7 @@ setSystemTimeZoneIdCacheTtl(1000);
 
 ## Browser support
 
-The polyfill works in browsers after September 2020 by default (e.g. Safari 14).
-
-This polyfill doesn't internally rely on `bigint`, thus you can support older browsers by transpiling and injecting polyfills (e.g. it relies on `globalThis` which is baseline since January 2020). However, if you use APIs accepting or returning `bigint`, `bigint` support is required.
+The polyfill works in browsers after September 2020 by default (e.g. Safari 14). See [`docs/legacy.md`](docs/legacy.md) if you want broader support.
 
 ## TypeScript configuration
 
@@ -68,4 +66,5 @@ It supports the latest spec with few intentional deviations (see `tests/expected
 
 ## Docs
 
-- `docs/restrictions.md`: caveats and restrictions of this polyfill
+- [`docs/legacy.md`](docs/legacy.md): information about support for legacy browsers
+- [`docs/restrictions.md`](docs/restrictions.md): caveats and restrictions of this polyfill
