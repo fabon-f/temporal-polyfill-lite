@@ -49,6 +49,16 @@ new Intl.DateTimeFormat("en-US").formatRange(
 
 This polyfill adds `Temporal` support to `Intl.DateTimeFormat` without modifying its underlying logic; therefore, native environment bugs and spec deviations remain present.
 
+## `Temporal.Duration.prototype.toLocaleString` and `Intl.DurationFormat`
+
+### environments without `Intl.DurationFormat`
+
+`Temporal.Duration.prototype.toLocaleString` will throw an error in runtimes where `Intl.DurationFormat` is not supported.
+
+### other `Intl.DurationFormat` issues
+
+This polyfill enables `Intl.DurationFormat` to accept ISO 8601 duration strings (such as `P1Y`); however, it does not otherwise modify native behavior, even to patch existing bugs.
+
 ## calendars
 
 ### calendrical calculations
