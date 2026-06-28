@@ -1,9 +1,8 @@
 import { toTemporalDuration, type DurationSlot } from "./Duration.ts";
-import { invalidMethodCall } from "./internal/errorMessages.ts";
 import { createNullPrototypeObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { pluralUnitKeys, type PluralUnitKey } from "./internal/unit.ts";
-import { throwTypeError } from "./internal/utils.ts";
+import { getInternalSlotOrThrow } from "./internal/utils.ts";
 
 export const OriginalDurationFormat = globalThis.Intl.DurationFormat;
 type RawDurationFormatter = InstanceType<typeof OriginalDurationFormat>;
@@ -17,12 +16,8 @@ interface DurationFormatSlot {
 
 const slots = new WeakMap<any, DurationFormatSlot>();
 
-export function getInternalSlotOrThrowForDurationFormat(durationFormat: any): DurationFormatSlot {
-	const slot = slots.get(durationFormat);
-	if (!slot) {
-		throwTypeError(invalidMethodCall);
-	}
-	return slot;
+function getInternalSlotOrThrowForDurationFormat(durationFormat: any): DurationFormatSlot {
+	return getInternalSlotOrThrow(slots, durationFormat);
 }
 
 export function durationRecordToDurationLikeObject(slot: DurationSlot) {

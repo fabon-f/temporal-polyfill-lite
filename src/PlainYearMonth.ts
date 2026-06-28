@@ -53,7 +53,6 @@ import {
 	calendarMismatch,
 	forbiddenValueOf,
 	invalidDateTime,
-	invalidMethodCall,
 	notObject,
 	outOfBoundsDate,
 	yearMonthAddition,
@@ -64,7 +63,7 @@ import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
 import { signTimeDuration, zeroTimeDuration } from "./internal/timeDuration.ts";
 import { Unit } from "./internal/unit.ts";
-import { throwRangeError, throwTypeError } from "./internal/utils.ts";
+import { getInternalSlotOrThrow, throwRangeError, throwTypeError } from "./internal/utils.ts";
 import {
 	compareIsoDate,
 	createIsoDateRecord,
@@ -298,11 +297,7 @@ export function getInternalSlotForPlainYearMonth(
 }
 
 function getInternalSlotOrThrowForPlainYearMonth(plainDateTime: unknown): PlainYearMonthSlot {
-	const slot = getInternalSlotForPlainYearMonth(plainDateTime);
-	if (!slot) {
-		throwTypeError(invalidMethodCall);
-	}
-	return slot;
+	return getInternalSlotOrThrow(slots, plainDateTime);
 }
 
 export function isPlainYearMonth(item: unknown): item is PlainYearMonth {

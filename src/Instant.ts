@@ -66,7 +66,6 @@ import {
 	durationWithDateUnit,
 	forbiddenValueOf,
 	invalidField,
-	invalidMethodCall,
 	outOfBoundsDate,
 } from "./internal/errorMessages.ts";
 import { isObject } from "./internal/object.ts";
@@ -79,7 +78,12 @@ import {
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
 import { nanosecondsForTimeUnit, Unit } from "./internal/unit.ts";
-import { mapUnlessUndefined, throwRangeError, throwTypeError } from "./internal/utils.ts";
+import {
+	getInternalSlotOrThrow,
+	mapUnlessUndefined,
+	throwRangeError,
+	throwTypeError,
+} from "./internal/utils.ts";
 import { balanceIsoDateTime, isoDateTimeToString } from "./PlainDateTime.ts";
 import { createTemporalZonedDateTime, getInternalSlotForZonedDateTime } from "./ZonedDateTime.ts";
 
@@ -260,11 +264,7 @@ function getInternalSlotForInstant(instant: unknown): InstantSlot | undefined {
 }
 
 export function getInternalSlotOrThrowForInstant(instant: unknown): InstantSlot {
-	const slot = getInternalSlotForInstant(instant);
-	if (!slot) {
-		throwTypeError(invalidMethodCall);
-	}
-	return slot;
+	return getInternalSlotOrThrow(slots, instant);
 }
 
 export function isInstant(value: unknown): value is Instant {

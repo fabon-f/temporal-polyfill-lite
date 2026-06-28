@@ -1,4 +1,5 @@
 import { assert } from "./assertion.ts";
+import { invalidMethodCall } from "./errorMessages.ts";
 
 export function mapUnlessUndefined<T, R>(
 	value: T | undefined,
@@ -18,4 +19,12 @@ export function throwRangeError(message?: string): never {
 
 export function throwTypeError(message?: string): never {
 	throw new TypeError(message);
+}
+
+export function getInternalSlotOrThrow<C>(slots: WeakMap<any, C>, instance: unknown): C {
+	const slot = slots.get(instance);
+	if (!slot) {
+		throwTypeError(invalidMethodCall);
+	}
+	return slot;
 }

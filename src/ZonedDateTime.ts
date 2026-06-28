@@ -121,7 +121,6 @@ import {
 	calendarMismatch,
 	forbiddenValueOf,
 	invalidField,
-	invalidMethodCall,
 	offsetMismatch,
 	timeZoneMismatch,
 	undefinedArgument,
@@ -147,7 +146,7 @@ import {
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
 import { Unit } from "./internal/unit.ts";
-import { throwRangeError, throwTypeError } from "./internal/utils.ts";
+import { getInternalSlotOrThrow, throwRangeError, throwTypeError } from "./internal/utils.ts";
 import {
 	addDaysToIsoDate,
 	compareIsoDate,
@@ -665,11 +664,7 @@ export function getInternalSlotForZonedDateTime(
 }
 
 export function getInternalSlotOrThrowForZonedDateTime(zonedDateTime: unknown): ZonedDateTimeSlot {
-	const slot = getInternalSlotForZonedDateTime(zonedDateTime);
-	if (!slot) {
-		throwTypeError(invalidMethodCall);
-	}
-	return slot;
+	return getInternalSlotOrThrow(slots, zonedDateTime);
 }
 
 export function isZonedDateTime(item: unknown): item is ZonedDateTime {

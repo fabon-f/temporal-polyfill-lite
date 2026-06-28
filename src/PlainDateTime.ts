@@ -78,7 +78,6 @@ import {
 	forbiddenValueOf,
 	invalidDateTime,
 	invalidField,
-	invalidMethodCall,
 	outOfBoundsDate,
 } from "./internal/errorMessages.ts";
 import type { NumberSign } from "./internal/math.ts";
@@ -88,7 +87,7 @@ import { toZeroPaddedDecimalString } from "./internal/string.ts";
 import { zeroTimeDuration } from "./internal/timeDuration.ts";
 import { getEpochNanosecondsFor, toTemporalTimeZoneIdentifier } from "./internal/timeZones.ts";
 import { Unit } from "./internal/unit.ts";
-import { throwRangeError, throwTypeError } from "./internal/utils.ts";
+import { getInternalSlotOrThrow, throwRangeError, throwTypeError } from "./internal/utils.ts";
 import {
 	addDaysToIsoDate,
 	compareIsoDate,
@@ -471,11 +470,7 @@ export function getInternalSlotForPlainDateTime(
 }
 
 export function getInternalSlotOrThrowForPlainDateTime(plainDateTime: unknown): PlainDateTimeSlot {
-	const slot = getInternalSlotForPlainDateTime(plainDateTime);
-	if (!slot) {
-		throwTypeError(invalidMethodCall);
-	}
-	return slot;
+	return getInternalSlotOrThrow(slots, plainDateTime);
 }
 
 export function isPlainDateTime(item: unknown): item is PlainDateTime {

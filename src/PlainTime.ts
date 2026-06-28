@@ -50,7 +50,6 @@ import {
 	forbiddenValueOf,
 	invalidDateTime,
 	invalidField,
-	invalidMethodCall,
 } from "./internal/errorMessages.ts";
 import { clamp, compare, divFloor, isWithin, modFloor, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
@@ -65,7 +64,12 @@ import {
 	nanosecondsForTimeUnit,
 	Unit,
 } from "./internal/unit.ts";
-import { throwRangeError, throwTypeError, withArray } from "./internal/utils.ts";
+import {
+	getInternalSlotOrThrow,
+	throwRangeError,
+	throwTypeError,
+	withArray,
+} from "./internal/utils.ts";
 import { getInternalSlotOrThrowForPlainDateTime, isPlainDateTime } from "./PlainDateTime.ts";
 import {
 	getInternalSlotOrThrowForZonedDateTime,
@@ -430,11 +434,7 @@ function createPlainTimeSlot(time: TimeRecord): PlainTimeSlot {
 }
 
 export function getInternalSlotOrThrowForPlainTime(plainTime: unknown): PlainTimeSlot {
-	const slot = slots.get(plainTime);
-	if (!slot) {
-		throwTypeError(invalidMethodCall);
-	}
-	return slot;
+	return getInternalSlotOrThrow(slots, plainTime);
 }
 
 export function isPlainTime(item: unknown): item is PlainTime {

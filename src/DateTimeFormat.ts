@@ -7,13 +7,12 @@ import {
 	calendarMismatch,
 	disallowedField,
 	invalidFormattingOptions,
-	invalidMethodCall,
 	notFormattable,
 	temporalTypeMismatch,
 } from "./internal/errorMessages.ts";
 import { createNullPrototypeObject, isObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
-import { throwRangeError, throwTypeError } from "./internal/utils.ts";
+import { getInternalSlotOrThrow, throwRangeError, throwTypeError } from "./internal/utils.ts";
 import {
 	createIsoDateRecord,
 	getInternalSlotForPlainDate,
@@ -75,11 +74,7 @@ interface DateTimeFormatSlot {
 const slots = new WeakMap<any, DateTimeFormatSlot>();
 
 function getInternalSlotOrThrowForDateTimeFormat(dtf: DateTimeFormatImpl): DateTimeFormatSlot {
-	const slot = slots.get(dtf);
-	if (!slot) {
-		throwTypeError(invalidMethodCall);
-	}
-	return slot;
+	return getInternalSlotOrThrow(slots, dtf);
 }
 
 export function formatDateTime(dtf: DateTimeFormatSlot, date: unknown): string {

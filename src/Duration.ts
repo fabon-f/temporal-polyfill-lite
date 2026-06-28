@@ -52,7 +52,6 @@ import {
 	disallowedUnit,
 	durationWithDateUnit,
 	invalidDuration,
-	invalidMethodCall,
 	invalidLargestAndSmallestUnitOptions,
 	missingField,
 	outOfBoundsDuration,
@@ -93,6 +92,7 @@ import {
 	unitIndices,
 } from "./internal/unit.ts";
 import {
+	getInternalSlotOrThrow,
 	mapUnlessUndefined,
 	throwRangeError,
 	throwTypeError,
@@ -940,11 +940,7 @@ function isDuration(duration: unknown): boolean {
 }
 
 function getInternalSlotOrThrowForDuration(duration: unknown): DurationSlot {
-	const slot = slots.get(duration);
-	if (!slot) {
-		throwTypeError(invalidMethodCall);
-	}
-	return slot;
+	return getInternalSlotOrThrow(slots, duration);
 }
 
 export function applySignToDurationSlot(duration: DurationSlot, sign: NumberSign): DurationSlot {

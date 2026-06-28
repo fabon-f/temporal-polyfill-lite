@@ -55,12 +55,7 @@ import {
 	type Overflow,
 	type ShowCalendarName,
 } from "./internal/enum.ts";
-import {
-	calendarMismatch,
-	forbiddenValueOf,
-	invalidDateTime,
-	invalidMethodCall,
-} from "./internal/errorMessages.ts";
+import { calendarMismatch, forbiddenValueOf, invalidDateTime } from "./internal/errorMessages.ts";
 import { clamp, compare, isWithin, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
@@ -72,7 +67,7 @@ import {
 	toTemporalTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
 import { Unit } from "./internal/unit.ts";
-import { throwRangeError, throwTypeError } from "./internal/utils.ts";
+import { getInternalSlotOrThrow, throwRangeError, throwTypeError } from "./internal/utils.ts";
 import {
 	combineIsoDateAndTimeRecord,
 	createTemporalDateTime,
@@ -307,11 +302,7 @@ export function getInternalSlotForPlainDate(plainDate: unknown): PlainDateSlot |
 }
 
 export function getInternalSlotOrThrowForPlainDate(plainDate: unknown): PlainDateSlot {
-	const slot = getInternalSlotForPlainDate(plainDate);
-	if (!slot) {
-		throwTypeError(invalidMethodCall);
-	}
-	return slot;
+	return getInternalSlotOrThrow(slots, plainDate);
 }
 
 export function isPlainDate(item: unknown): item is PlainDate {
