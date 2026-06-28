@@ -74,7 +74,7 @@ interface DateTimeFormatSlot {
 
 const slots = new WeakMap<any, DateTimeFormatSlot>();
 
-export function getInternalSlotOrThrowForDateTimeFormat(dtf: any): DateTimeFormatSlot {
+function getInternalSlotOrThrowForDateTimeFormat(dtf: DateTimeFormatImpl): DateTimeFormatSlot {
 	const slot = slots.get(dtf);
 	if (!slot) {
 		throwTypeError(invalidMethodCall);
@@ -82,33 +82,30 @@ export function getInternalSlotOrThrowForDateTimeFormat(dtf: any): DateTimeForma
 	return slot;
 }
 
-export function formatDateTime(dtf: DateTimeFormatImpl, date: unknown): string {
-	const [rawDtf, value] = handleDateTimeValue(getInternalSlotOrThrowForDateTimeFormat(dtf), date);
+export function formatDateTime(dtf: DateTimeFormatSlot, date: unknown): string {
+	const [rawDtf, value] = handleDateTimeValue(dtf, date);
 	return rawDtf.format(value as any);
 }
 
-function formatDateTimeToParts(dtf: DateTimeFormatImpl, date: unknown): Intl.DateTimeFormatPart[] {
-	const slot = getInternalSlotOrThrowForDateTimeFormat(dtf);
-	const [rawDtf, value] = handleDateTimeValue(slot, date);
+function formatDateTimeToParts(dtf: DateTimeFormatSlot, date: unknown): Intl.DateTimeFormatPart[] {
+	const [rawDtf, value] = handleDateTimeValue(dtf, date);
 	return rawDtf.formatToParts(value as any);
 }
 
-function formatDateTimeRange(dtf: DateTimeFormatImpl, x: unknown, y: unknown): string {
-	const slot = getInternalSlotOrThrowForDateTimeFormat(dtf);
+function formatDateTimeRange(dtf: DateTimeFormatSlot, x: unknown, y: unknown): string {
 	validateSameTemporalType(x, y);
-	const [rawDtf, value1] = handleDateTimeValue(slot, x);
-	return rawDtf.formatRange(value1 as any, handleDateTimeValue(slot, y)[1] as any);
+	const [rawDtf, value1] = handleDateTimeValue(dtf, x);
+	return rawDtf.formatRange(value1 as any, handleDateTimeValue(dtf, y)[1] as any);
 }
 
 function formatDateTimeRangeToParts(
-	dtf: DateTimeFormatImpl,
+	dtf: DateTimeFormatSlot,
 	x: unknown,
 	y: unknown,
 ): Intl.DateTimeRangeFormatPart[] {
-	const slot = getInternalSlotOrThrowForDateTimeFormat(dtf);
 	validateSameTemporalType(x, y);
-	const [rawDtf, value1] = handleDateTimeValue(slot, x);
-	return rawDtf.formatRangeToParts(value1 as any, handleDateTimeValue(slot, y)[1] as any);
+	const [rawDtf, value1] = handleDateTimeValue(dtf, x);
+	return rawDtf.formatRangeToParts(value1 as any, handleDateTimeValue(dtf, y)[1] as any);
 }
 
 function removeDateTimeFormatOptions(
@@ -269,8 +266,7 @@ export function createDateTimeFormat(
 	options: {} | null = createNullPrototypeObject(),
 	required: typeof DATE | typeof TIME | typeof DATETIME,
 	toLocaleStringTimeZone?: string,
-	instance = Object.create(DateTimeFormatImpl.prototype) as DateTimeFormatImpl,
-): DateTimeFormatImpl {
+): DateTimeFormatSlot {
 	if (options === null) {
 		throwTypeError(invalidFormattingOptions);
 	}
@@ -320,15 +316,11 @@ export function createDateTimeFormat(
 		coercedOriginalOptions["timeZoneName"] = "short";
 		rawDtf = new OriginalDateTimeFormat(rawDtf.resolvedOptions().locale, coercedOriginalOptions);
 	}
-	slots.set(
-		instance,
-		createNullPrototypeObject({
-			$rawDtf: rawDtf,
-			$originalOptions: coercedOriginalOptions as Intl.DateTimeFormatOptions,
-			$locale: rawDtf.resolvedOptions().locale,
-		}) as DateTimeFormatSlot,
-	);
-	return instance;
+	return createNullPrototypeObject({
+		$rawDtf: rawDtf,
+		$originalOptions: coercedOriginalOptions as Intl.DateTimeFormatOptions,
+		$locale: rawDtf.resolvedOptions().locale,
+	}) as DateTimeFormatSlot;
 }
 
 /** `SameTemporalType` */
@@ -488,13 +480,13 @@ class TmpClass {
 	// make `format` function not work as constructor
 	/** DateTime Format Functions */
 	$dateTimeFormatFunction(this: DateTimeFormatImpl, date: unknown): string {
-		return formatDateTime(this, date);
+		return formatDateTime(getInternalSlotOrThrowForDateTimeFormat(this), date);
 	}
 }
 
 export class DateTimeFormatImpl {
 	constructor(locales: unknown, options: unknown) {
-		createDateTimeFormat(locales, options, DATETIME, undefined, this);
+		slots.set(this, createDateTimeFormat(locales, options, DATETIME, undefined));
 	}
 	get format() {
 		return Object.defineProperty(
@@ -505,14 +497,14 @@ export class DateTimeFormatImpl {
 		);
 	}
 	formatToParts(date: unknown) {
-		return formatDateTimeToParts(this, date);
+		return formatDateTimeToParts(getInternalSlotOrThrowForDateTimeFormat(this), date);
 	}
 	formatRange(startDate: unknown, endDate: unknown) {
 		if (startDate === undefined || endDate === undefined) {
 			throwTypeError(notFormattable);
 		}
 		return formatDateTimeRange(
-			this,
+			getInternalSlotOrThrowForDateTimeFormat(this),
 			toDateTimeFormattable(startDate),
 			toDateTimeFormattable(endDate),
 		);
@@ -522,7 +514,7 @@ export class DateTimeFormatImpl {
 			throwTypeError(notFormattable);
 		}
 		return formatDateTimeRangeToParts(
-			this,
+			getInternalSlotOrThrowForDateTimeFormat(this),
 			toDateTimeFormattable(startDate),
 			toDateTimeFormattable(endDate),
 		);

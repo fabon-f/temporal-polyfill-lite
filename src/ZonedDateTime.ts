@@ -1,8 +1,4 @@
-import {
-	createDateTimeFormat,
-	formatDateTime,
-	getInternalSlotOrThrowForDateTimeFormat,
-} from "./DateTimeFormat.ts";
+import { createDateTimeFormat, formatDateTime } from "./DateTimeFormat.ts";
 import {
 	applySignToDurationSlot,
 	combineDateAndTimeDuration,
@@ -1033,15 +1029,14 @@ export class ZonedDateTime {
 	}
 	toLocaleString(locales: unknown = undefined, options: unknown = undefined) {
 		const slot = getInternalSlotOrThrowForZonedDateTime(this);
-		const dtf = createDateTimeFormat(locales, options, DATETIME, slot.$timeZone);
-		const dtfSlot = getInternalSlotOrThrowForDateTimeFormat(dtf);
+		const dtfSlot = createDateTimeFormat(locales, options, DATETIME, slot.$timeZone);
 		if (
 			slot.$calendar !== "iso8601" &&
 			!calendarEquals(slot.$calendar, dtfSlot.$originalOptions.calendar as SupportedCalendars)
 		) {
 			throwRangeError(calendarMismatch);
 		}
-		return formatDateTime(dtf, createTemporalInstant(slot.$epochNanoseconds));
+		return formatDateTime(dtfSlot, createTemporalInstant(slot.$epochNanoseconds));
 	}
 	toJSON() {
 		return temporalZonedDateTimeToString(
