@@ -1,7 +1,7 @@
 {
 	"type": "module",
 	"name": "temporal-polyfill-lite",
-	"version": "0.4.1",
+	"version": "0.4.2",
 	"description": "Lightweight Temporal polyfill",
 	"keywords": [
 		"Temporal"
