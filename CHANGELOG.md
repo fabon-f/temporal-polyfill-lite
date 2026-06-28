@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Keep the original input in the error message for duration parsing. The input string was accidentally converted to lower case in the message before. ([#39](https://github.com/fabon-f/temporal-polyfill-lite/pull/39))
 
+### Fixed
+
+- Make `Intl.DurationFormat` spec-compliant ([#41](https://github.com/fabon-f/temporal-polyfill-lite/pull/41))
+
 ## 0.4.1 (2026-06-21)
 
 ### Changed
