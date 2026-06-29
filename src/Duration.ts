@@ -275,8 +275,9 @@ export function combineDateAndTimeDuration(
 
 /** `ToTemporalDuration` */
 export function toTemporalDuration(item: unknown): DurationSlot {
-	if (isDuration(item)) {
-		return getInternalSlotOrThrowForDuration(item);
+	const durationSlot = slots.get(item);
+	if (durationSlot) {
+		return durationSlot;
 	}
 	if (!isObject(item)) {
 		validateString(item);
@@ -933,10 +934,6 @@ function addDurations(operationSign: 1 | -1, duration: DurationSlot, other: unkn
 			largestUnit,
 		),
 	);
-}
-
-function isDuration(duration: unknown): boolean {
-	return slots.has(duration);
 }
 
 function getInternalSlotOrThrowForDuration(duration: unknown): DurationSlot {
