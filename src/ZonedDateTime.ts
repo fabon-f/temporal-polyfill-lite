@@ -1004,7 +1004,7 @@ export class ZonedDateTime {
 		const digits = getTemporalFractionalSecondDigitsOption(resolvedOptions);
 		const showOffset = getTemporalShowOffsetOption(resolvedOptions);
 		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
-		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
+		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit");
 		const showTimeZone = getTemporalShowTimeZoneNameOption(resolvedOptions);
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === Unit.Hour) {

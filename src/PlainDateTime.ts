@@ -697,7 +697,7 @@ export class PlainDateTime {
 		const showCalendar = getTemporalShowCalendarNameOption(resolvedOptions);
 		const digits = getTemporalFractionalSecondDigitsOption(resolvedOptions);
 		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
-		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
+		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit");
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === Unit.Hour) {
 			throwRangeError(invalidField("smallestUnit"));

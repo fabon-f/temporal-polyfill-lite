@@ -1116,22 +1116,21 @@ export class Duration {
 	round(roundTo: unknown) {
 		const durationSlot = getInternalSlotOrThrowForDuration(this);
 		const options = getRoundToOptionsObject(roundTo);
-		let largestUnit = getTemporalUnitValuedOption(options, "largestUnit", undefined);
+		let largestUnit = getTemporalUnitValuedOption(options, "largestUnit");
 		const relativeToRecord = getTemporalRelativeToOption(options);
 		const roundingIncrement = getRoundingIncrementOption(options);
 		const roundingMode = getRoundingModeOption(options, roundingModeHalfExpand);
-		let smallestUnit = getTemporalUnitValuedOption(options, "smallestUnit", undefined);
+		let smallestUnit = getTemporalUnitValuedOption(options, "smallestUnit");
 		validateTemporalUnitValue(smallestUnit, DATETIME);
-		const smallestUnitPresent = smallestUnit !== undefined;
-		smallestUnit ??= Unit.Nanosecond;
 		const existingLargestUnit = defaultTemporalLargestUnit(durationSlot);
-		const defaultLargestUnit = largerOfTwoTemporalUnits(existingLargestUnit, smallestUnit);
-		const largestUnitPresent = largestUnit !== undefined;
+		const bothLargestAndSmallestUnitAbsent =
+			smallestUnit === undefined && largestUnit === undefined;
+		smallestUnit ??= Unit.Nanosecond;
 		if (largestUnit === undefined || largestUnit === "auto") {
-			largestUnit = defaultLargestUnit;
+			largestUnit = largerOfTwoTemporalUnits(existingLargestUnit, smallestUnit);
 		}
 		if (
-			(!smallestUnitPresent && !largestUnitPresent) ||
+			bothLargestAndSmallestUnitAbsent ||
 			getIndexFromUnit(largestUnit) > getIndexFromUnit(smallestUnit)
 		) {
 			throwRangeError(invalidLargestAndSmallestUnitOptions);
@@ -1282,7 +1281,7 @@ export class Duration {
 		const resolvedOptions = getOptionsObject(options);
 		const digits = getTemporalFractionalSecondDigitsOption(resolvedOptions);
 		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
-		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
+		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit");
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === Unit.Hour || smallestUnit === Unit.Minute) {
 			throwRangeError(disallowedUnit(smallestUnit));

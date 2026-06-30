@@ -336,12 +336,11 @@ export function getTemporalUnitValuedOption(
 export function getTemporalUnitValuedOption(
 	options: object,
 	key: string,
-	defaultValue: undefined,
 ): Unit | "auto" | undefined;
 export function getTemporalUnitValuedOption(
 	options: object,
 	key: string,
-	defaultValue: typeof REQUIRED | undefined,
+	defaultValue?: typeof REQUIRED | undefined,
 ) {
 	const allowedStrings = [...singularUnitKeys, ...pluralUnitKeys, "auto"];
 	return mapUnlessUndefined(getOption(options, key, allowedStrings, defaultValue), (s) =>
@@ -760,11 +759,10 @@ export function getDifferenceSettings<
 	fallbackSmallestUnit: Unit,
 	smallestLargestDefaultUnit: Unit,
 ): DifferenceSettings<UnitType<UnitGroup>> {
-	let largestUnit = getTemporalUnitValuedOption(options, "largestUnit", undefined) ?? "auto";
+	let largestUnit = getTemporalUnitValuedOption(options, "largestUnit") ?? "auto";
 	const roundingIncrement = getRoundingIncrementOption(options);
 	const roundingMode = getRoundingModeOption(options, roundingModeTrunc);
-	const smallestUnit =
-		getTemporalUnitValuedOption(options, "smallestUnit", undefined) ?? fallbackSmallestUnit;
+	const smallestUnit = getTemporalUnitValuedOption(options, "smallestUnit") ?? fallbackSmallestUnit;
 	validateTemporalUnitValue(largestUnit, unitGroup, ["auto"]);
 	if (disallowedUnits.includes(largestUnit as any)) {
 		throwRangeError(disallowedUnit(largestUnit));

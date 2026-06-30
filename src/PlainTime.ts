@@ -541,7 +541,7 @@ export class PlainTime {
 		const resolvedOptions = getOptionsObject(options);
 		const digits = getTemporalFractionalSecondDigitsOption(resolvedOptions);
 		const roundingMode = getRoundingModeOption(resolvedOptions, roundingModeTrunc);
-		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit", undefined);
+		const smallestUnit = getTemporalUnitValuedOption(resolvedOptions, "smallestUnit");
 		validateTemporalUnitValue(smallestUnit, TIME);
 		if (smallestUnit === Unit.Hour) {
 			throwRangeError(invalidField("smallestUnit"));
