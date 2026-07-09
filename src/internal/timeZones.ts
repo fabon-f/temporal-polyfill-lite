@@ -116,7 +116,7 @@ function bisectOffsetTransition(
 	// right: always different offset to `start` (same to `end`)
 	let left = startEpochSecond;
 	let right = endEpochSecond;
-	for (; right - left > 1; ) {
+	for (; right - left > 1;) {
 		const mid = Math.floor((right + left) / 2);
 		// cache only few seconds around the result
 		if (

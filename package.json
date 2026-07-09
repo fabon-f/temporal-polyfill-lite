@@ -44,7 +44,7 @@
 		"@typescript/native-preview": "7.0.0-dev.20260707.2",
 		"clean-pkg-json": "^2.0.0",
 		"icu": "^2.2.1",
-		"oxfmt": "0.57.0",
+		"oxfmt": "0.58.0",
 		"oxlint": "^1.73.0",
 		"rolldown": "1.1.5",
 		"tzdata": "^1.0.49",

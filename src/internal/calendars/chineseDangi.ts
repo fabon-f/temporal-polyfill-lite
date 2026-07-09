@@ -180,7 +180,7 @@ export function balanceYearMonth(calendar: "chinese" | "dangi", year: number, mo
 	const monthsSign = month >= 1 ? 1 : -1;
 	let currentDate = getNewYear(calendar, year);
 	let monthsToAddOrSubtract = Math.abs(month - 1);
-	for (; monthsToAddOrSubtract > 0; ) {
+	for (; monthsToAddOrSubtract > 0;) {
 		// add per 5e5 months in order not to accumulate error
 		const months = Math.min(monthsToAddOrSubtract, 5e5);
 		currentDate += Math.floor(29.5306 * months * monthsSign + 10);
@@ -212,7 +212,7 @@ export function untilInMonths(
 	}
 	let months = 0;
 	let currentDate = start;
-	for (; (target - currentDate) * direction > 0; ) {
+	for (; (target - currentDate) * direction > 0;) {
 		let newDate = currentDate + clamp(15000000, 1, Math.abs(target - currentDate)) * direction;
 		newDate -= yearMonthDay(calendar, newDate).$day - 1;
 		months += Math.round((newDate - currentDate) / 29.5306);
