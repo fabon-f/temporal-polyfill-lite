@@ -65,5 +65,5 @@
 			"default": "./src/internal/calendars/basic.ts"
 		}
 	},
-	"packageManager": "pnpm@11.13.0"
+	"packageManager": "pnpm@11.15.0"
 }
