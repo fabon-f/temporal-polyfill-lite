@@ -43,9 +43,9 @@
 		"@types/node": "^26.1.2",
 		"clean-pkg-json": "^2.0.0",
 		"icu": "^2.2.1",
-		"oxfmt": "0.61.0",
-		"oxlint": "^1.76.0",
-		"rolldown": "1.2.1",
+		"oxfmt": "0.62.0",
+		"oxlint": "^1.77.0",
+		"rolldown": "1.2.2",
 		"typescript": "7.0.2",
 		"tzdata": "^1.0.50",
 		"unplugin-isolated-decl": "^0.17.0",
@@ -65,5 +65,5 @@
 			"default": "./src/internal/calendars/basic.ts"
 		}
 	},
-	"packageManager": "pnpm@11.18.0"
+	"packageManager": "pnpm@11.20.0"
 }
