@@ -12,5 +12,5 @@
 		"noUnusedLocals": false,
 		"noUnusedParameters": false,
 	},
-	"exclude": ["test262"]
+	"exclude": ["test262", "src/types/global.d.ts"]
 }
