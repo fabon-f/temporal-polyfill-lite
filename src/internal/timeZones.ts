@@ -411,7 +411,10 @@ export function getStartOfDay(
 }
 
 /** `TimeZoneEquals` */
-export function timeZoneEquals(one: string, two: string): boolean {
+export function timeZoneEquals(
+	one: AvailableTimeZoneIdentifier,
+	two: AvailableTimeZoneIdentifier,
+): boolean {
 	return (
 		one === two ||
 		(!isOffsetTimeZoneIdentifier(one) &&
