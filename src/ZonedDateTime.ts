@@ -50,7 +50,7 @@ import {
 	validateTemporalRoundingIncrement,
 	validateTemporalUnitValue,
 } from "./internal/abstractOperations.ts";
-import { assert, assertIsoDaysRange, assertNotUndefined } from "./internal/assertion.ts";
+import { assert, assertNotUndefined } from "./internal/assertion.ts";
 import {
 	calendarDateAdd,
 	calendarDateUntil,
@@ -222,11 +222,11 @@ export function interpretISODateTimeOffset(
 			isoDateTime.$time.$microsecond,
 			isoDateTime.$time.$nanosecond - offsetNanoseconds,
 		);
-		assertIsoDaysRange(balanced.$isoDate);
+		// skip `CheckISODaysRange` since `validateEpochNanoseconds` is enough here
 		return validateEpochNanoseconds(getUtcEpochNanoseconds(balanced));
 	}
 	assert(offsetOption === offsetPrefer || offsetOption === offsetReject);
-	// `checkIsoDaysRange` isn't an assertion here
+	// `checkIsoDaysRange` cannot be skipped here
 	// cf. https://github.com/tc39/proposal-temporal/pull/3014#issuecomment-3856086253
 	checkIsoDaysRange(isoDate);
 	const possibleEpochNs = getPossibleEpochNanoseconds(timeZone, isoDateTime);

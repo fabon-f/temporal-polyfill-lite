@@ -15,7 +15,7 @@ import {
 	parseTemporalTimeZoneString,
 	roundNumberToIncrement,
 } from "./abstractOperations.ts";
-import { assert, assertIsoDaysRange, assertNotUndefined } from "./assertion.ts";
+import { assert, assertNotUndefined } from "./assertion.ts";
 import { createLruCache, type LruCacheMap } from "./cacheMap.ts";
 import {
 	millisecondsPerDay,
@@ -361,7 +361,7 @@ export function getPossibleEpochNanoseconds(
 			isoDateTime.$time.$microsecond,
 			isoDateTime.$time.$nanosecond - parseDateTimeUtcOffset(timeZone),
 		);
-		assertIsoDaysRange(balanced.$isoDate);
+		// skip `CheckISODaysRange` since `validateEpochNanoseconds` is enough here
 		return [validateEpochNanoseconds(getUtcEpochNanoseconds(balanced))];
 	} else {
 		return getNamedTimeZoneEpochNanoseconds(timeZone, isoDateTime).map(validateEpochNanoseconds);
