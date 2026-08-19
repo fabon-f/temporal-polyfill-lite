@@ -50,6 +50,14 @@ import { asciiCapitalize, asciiLowerCase, asciiUpperCase } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
 import { throwRangeError } from "./utils.ts";
 
+const offsetTimeZoneIdBrand = /*#__PURE__*/ Symbol();
+const namedTimeZoneIdBrand = /*#__PURE__*/ Symbol();
+type OffsetTimeZoneIdentifier = string & { [offsetTimeZoneIdBrand]: unknown };
+export type AvailableNamedTimeZoneIdentifier = string & { [namedTimeZoneIdBrand]: unknown };
+export type AvailableTimeZoneIdentifier =
+	| AvailableNamedTimeZoneIdentifier
+	| OffsetTimeZoneIdentifier;
+
 const intlCache = createNullPrototypeObject() as Record<string, Intl.DateTimeFormat>;
 const timeZoneCache = createNullPrototypeObject() as Record<string, LruCacheMap<number, number>>;
 
@@ -59,14 +67,14 @@ function clampEpochSecond(epochSecond: number): number {
 }
 
 export function getTimeZoneOffsetNanosecondsForEpochSecondFromCache(
-	timeZone: string,
+	timeZone: AvailableTimeZoneIdentifier,
 	epochSeconds: number,
 ): number | undefined {
 	return timeZoneCache[timeZone] && timeZoneCache[timeZone].$get(clampEpochSecond(epochSeconds));
 }
 
 function getNamedTimeZoneOffsetNanosecondsForEpochSecond(
-	timeZone: string,
+	timeZone: AvailableNamedTimeZoneIdentifier,
 	epochSecond: number,
 	stopUpdateCache?: boolean,
 ): number {
@@ -107,7 +115,7 @@ function getFormatterForTimeZone(timeZone: string): Intl.DateTimeFormat {
 
 /** assumption: different offset between start and end */
 function bisectOffsetTransition(
-	timeZone: string,
+	timeZone: AvailableNamedTimeZoneIdentifier,
 	startEpochSecond: number,
 	endEpochSecond: number,
 ): number {
@@ -145,7 +153,7 @@ function adjustWindowForEpoch(epochSecond: number): number {
 
 /** supports reversed range (start > end) */
 function searchTimeZoneTransition(
-	timeZone: string,
+	timeZone: AvailableNamedTimeZoneIdentifier,
 	startEpochSeconds: number,
 	endEpochSeconds: number,
 	direction: -1 | 1,
@@ -175,7 +183,7 @@ function searchTimeZoneTransition(
 }
 
 export function getTimeZoneTransition(
-	timeZone: string,
+	timeZone: AvailableTimeZoneIdentifier,
 	epoch: EpochNanoseconds,
 	direction: -1 | 1,
 ): EpochNanoseconds | null {
@@ -233,11 +241,14 @@ export function rejectNonIanaTimeZoneId(id: string) {
 }
 
 /** `GetAvailableNamedTimeZoneIdentifier` + throwing `RangeError` */
-export function getAvailableNamedTimeZoneIdentifier(timeZone: string): string {
+export function getAvailableNamedTimeZoneIdentifier(
+	timeZone: string,
+): AvailableNamedTimeZoneIdentifier {
+	assert(!isOffsetTimeZoneIdentifier(timeZone));
 	timeZone = normalizeIanaTimeZoneId(timeZone);
 	rejectNonIanaTimeZoneId(timeZone);
 	getFormatterForTimeZone(timeZone);
-	return timeZone;
+	return timeZone as AvailableNamedTimeZoneIdentifier;
 }
 
 /** `GetISOPartsFromEpoch` */
@@ -251,8 +262,10 @@ function getIsoPartsFromEpoch(epochNanoseconds: EpochNanoseconds): IsoDateTimeRe
 }
 
 /** `FormatOffsetTimeZoneIdentifier` */
-export function formatOffsetTimeZoneIdentifier(offsetMinutes: number): string {
-	return formatUtcOffsetNanoseconds(offsetMinutes * nanosecondsPerMinute);
+export function formatOffsetTimeZoneIdentifier(offsetMinutes: number): OffsetTimeZoneIdentifier {
+	return formatUtcOffsetNanoseconds(
+		offsetMinutes * nanosecondsPerMinute,
+	) as OffsetTimeZoneIdentifier;
 }
 
 /** `FormatUTCOffsetNanoseconds` */
@@ -278,7 +291,9 @@ export function formatDateTimeUtcOffsetRounded(offsetNanoseconds: number): strin
 }
 
 /** `ToTemporalTimeZoneIdentifier` */
-export function toTemporalTimeZoneIdentifier(temporalTimeZoneLike: unknown): string {
+export function toTemporalTimeZoneIdentifier(
+	temporalTimeZoneLike: unknown,
+): AvailableTimeZoneIdentifier {
 	if (isZonedDateTime(temporalTimeZoneLike)) {
 		return getInternalSlotOrThrowForZonedDateTime(temporalTimeZoneLike).$timeZone;
 	}
@@ -292,7 +307,10 @@ export function toTemporalTimeZoneIdentifier(temporalTimeZoneLike: unknown): str
 }
 
 /** `GetOffsetNanosecondsFor` */
-export function getOffsetNanosecondsFor(timeZone: string, epoch: EpochNanoseconds): number {
+export function getOffsetNanosecondsFor(
+	timeZone: AvailableTimeZoneIdentifier,
+	epoch: EpochNanoseconds,
+): number {
 	return isOffsetTimeZoneIdentifier(timeZone)
 		? parseDateTimeUtcOffset(timeZone)
 		: getNamedTimeZoneOffsetNanosecondsForEpochSecond(timeZone, epochSeconds(epoch));
@@ -300,7 +318,7 @@ export function getOffsetNanosecondsFor(timeZone: string, epoch: EpochNanosecond
 
 /** `GetEpochNanosecondsFor` */
 export function getEpochNanosecondsFor(
-	timeZone: string,
+	timeZone: AvailableTimeZoneIdentifier,
 	isoDateTime: IsoDateTimeRecord,
 	disambiguation: Disambiguation,
 ): EpochNanoseconds {
@@ -315,7 +333,7 @@ export function getEpochNanosecondsFor(
 /** `DisambiguatePossibleEpochNanoseconds` */
 export function disambiguatePossibleEpochNanoseconds(
 	possibleEpochNs: EpochNanoseconds[],
-	timeZone: string,
+	timeZone: AvailableTimeZoneIdentifier,
 	isoDateTime: IsoDateTimeRecord,
 	disambiguation: Disambiguation,
 ): EpochNanoseconds {
@@ -328,6 +346,7 @@ export function disambiguatePossibleEpochNanoseconds(
 		throwRangeError(ambiguousTime);
 	}
 
+	assert(!isOffsetTimeZoneIdentifier(timeZone));
 	// We are not sure whether handling of dates near boundary is correct here
 	// TODO: verify
 	const candidates = getNamedTimeZoneEpochCandidates(timeZone, isoDateTime).map(
@@ -346,7 +365,7 @@ export function disambiguatePossibleEpochNanoseconds(
 
 /** `GetPossibleEpochNanoseconds` */
 export function getPossibleEpochNanoseconds(
-	timeZone: string,
+	timeZone: AvailableTimeZoneIdentifier,
 	isoDateTime: IsoDateTimeRecord,
 ): EpochNanoseconds[] {
 	if (isOffsetTimeZoneIdentifier(timeZone)) {
@@ -369,13 +388,17 @@ export function getPossibleEpochNanoseconds(
 }
 
 /** `GetStartOfDay` */
-export function getStartOfDay(timeZone: string, isoDate: IsoDateRecord): EpochNanoseconds {
+export function getStartOfDay(
+	timeZone: AvailableTimeZoneIdentifier,
+	isoDate: IsoDateRecord,
+): EpochNanoseconds {
 	const isoDateTime = combineIsoDateAndTimeRecord(isoDate, midnightTimeRecord());
 	const possibleEarlierEpochNs = getPossibleEpochNanoseconds(timeZone, isoDateTime)[0];
 	if (possibleEarlierEpochNs) {
 		// backward transition or no transition
 		return possibleEarlierEpochNs;
 	}
+	assert(!isOffsetTimeZoneIdentifier(timeZone));
 	// cf. https://github.com/tc39/proposal-temporal/issues/2910
 	const disambiguatedEpochs = getNamedTimeZoneEpochCandidates(timeZone, isoDateTime);
 	assert(disambiguatedEpochs.length === 2);
@@ -424,7 +447,7 @@ export function parseTimeZoneIdentifier(identifier: string): TimeZoneIdentifierP
 
 /** `GetNamedTimeZoneEpochNanoseconds` */
 function getNamedTimeZoneEpochNanoseconds(
-	timeZone: string,
+	timeZone: AvailableNamedTimeZoneIdentifier,
 	isoDateTime: IsoDateTimeRecord,
 ): EpochNanoseconds[] {
 	return getNamedTimeZoneEpochCandidates(timeZone, isoDateTime).filter(
@@ -437,13 +460,15 @@ function getNamedTimeZoneEpochNanoseconds(
 }
 
 /** `IsOffsetTimeZoneIdentifier` */
-export function isOffsetTimeZoneIdentifier(identifier: string) {
+export function isOffsetTimeZoneIdentifier(
+	identifier: string,
+): identifier is OffsetTimeZoneIdentifier {
 	assert(isTimeZoneIdentifier(identifier));
 	return /^[+-]/.test(identifier);
 }
 
 function getNamedTimeZoneEpochCandidates(
-	timeZone: string,
+	timeZone: AvailableNamedTimeZoneIdentifier,
 	isoDateTime: IsoDateTimeRecord,
 ): EpochNanoseconds[] {
 	const utcEpoch = getUtcEpochNanoseconds(isoDateTime);

@@ -128,6 +128,7 @@ import { utcEpochMilliseconds } from "./time.ts";
 import {
 	parseTimeZoneIdentifier,
 	toTemporalTimeZoneIdentifier,
+	type AvailableTimeZoneIdentifier,
 	type TimeZoneIdentifierParseRecord,
 } from "./timeZones.ts";
 import {
@@ -411,7 +412,7 @@ export function getTemporalRelativeToOption(options: object): RelativeToOptionRe
 	}
 	let matchExactly = true;
 	let offsetBehaviour: OffsetBehaviour = offsetBehaviourOption;
-	let timeZone: string | undefined;
+	let timeZone: AvailableTimeZoneIdentifier | undefined;
 	let offsetString: string | undefined;
 	let calendar: SupportedCalendars;
 	let isoDate: IsoDateRecord;

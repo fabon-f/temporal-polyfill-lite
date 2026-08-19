@@ -57,7 +57,7 @@ import {
 import { divFloor, divTrunc, modFloor } from "./math.ts";
 import { createNullPrototypeObject } from "./object.ts";
 import { toZeroPaddedDecimalString } from "./string.ts";
-import { toTemporalTimeZoneIdentifier } from "./timeZones.ts";
+import { toTemporalTimeZoneIdentifier, type AvailableTimeZoneIdentifier } from "./timeZones.ts";
 import { Unit } from "./unit.ts";
 import { mapUnlessUndefined, throwRangeError, throwTypeError } from "./utils.ts";
 import {
@@ -153,7 +153,7 @@ export interface CalendarFieldsRecord {
 	microsecond?: number | undefined;
 	nanosecond?: number | undefined;
 	offset?: string | undefined;
-	timeZone?: string | undefined;
+	timeZone?: AvailableTimeZoneIdentifier | undefined;
 }
 
 export type MonthCode = [monthNumber: number, isLeapMonth: boolean];

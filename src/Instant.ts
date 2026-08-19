@@ -76,6 +76,8 @@ import {
 	getIsoDateTimeFromOffsetNanoseconds,
 	getOffsetNanosecondsFor,
 	toTemporalTimeZoneIdentifier,
+	type AvailableNamedTimeZoneIdentifier,
+	type AvailableTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
 import { nanosecondsForTimeUnit, Unit } from "./internal/unit.ts";
 import {
@@ -192,10 +194,13 @@ export function roundTemporalInstant(
 /** `TemporalInstantToString` */
 function temporalInstantToString(
 	epoch: EpochNanoseconds,
-	timeZone?: string | undefined,
+	timeZone?: AvailableTimeZoneIdentifier | undefined,
 	precision?: number | typeof MINUTE,
 ): string {
-	const offsetNanoseconds = getOffsetNanosecondsFor(timeZone || "UTC", epoch);
+	const offsetNanoseconds = getOffsetNanosecondsFor(
+		timeZone || ("UTC" as AvailableNamedTimeZoneIdentifier),
+		epoch,
+	);
 	return `${isoDateTimeToString(
 		getIsoDateTimeFromOffsetNanoseconds(epoch, offsetNanoseconds),
 		"iso8601",

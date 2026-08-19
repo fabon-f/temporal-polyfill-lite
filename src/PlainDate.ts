@@ -65,6 +65,7 @@ import {
 	getEpochNanosecondsFor,
 	getStartOfDay,
 	toTemporalTimeZoneIdentifier,
+	type AvailableTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
 import { Unit } from "./internal/unit.ts";
 import { getInternalSlotOrThrow, throwRangeError, throwTypeError } from "./internal/utils.ts";
@@ -480,7 +481,7 @@ export class PlainDate {
 	toZonedDateTime(item: unknown) {
 		const slot = getInternalSlotOrThrowForPlainDate(this);
 		let temporalTime: unknown;
-		let timeZone: string;
+		let timeZone: AvailableTimeZoneIdentifier;
 		if (isObject(item)) {
 			const tzLike = (item as Record<string, unknown>)["timeZone"];
 			if (tzLike === undefined) {

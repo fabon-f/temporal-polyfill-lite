@@ -11,6 +11,7 @@ import {
 	getTimeZoneTransition,
 	rejectNonIanaTimeZoneId,
 	normalizeIanaTimeZoneId,
+	type AvailableNamedTimeZoneIdentifier,
 } from "./timeZones.ts";
 
 const ianaTimeZoneIds = Object.keys(tzdata.zones);
@@ -80,17 +81,20 @@ test("rejectNonIanaTimeZoneId and IANA time zones", () => {
 
 test("getOffsetNanosecondsFor", () => {
 	expect(
-		getOffsetNanosecondsFor("Asia/Tokyo", dateToEpochNanoseconds(new Date("2025-01-01T00:00:00Z"))),
+		getOffsetNanosecondsFor(
+			"Asia/Tokyo" as AvailableNamedTimeZoneIdentifier,
+			dateToEpochNanoseconds(new Date("2025-01-01T00:00:00Z")),
+		),
 	).toEqual(3.24e13);
 	expect(
 		getOffsetNanosecondsFor(
-			"Europe/London",
+			"Europe/London" as AvailableNamedTimeZoneIdentifier,
 			dateToEpochNanoseconds(new Date("2025-03-30T00:59:59.999Z")),
 		),
 	).toEqual(0);
 	expect(
 		getOffsetNanosecondsFor(
-			"Europe/London",
+			"Europe/London" as AvailableNamedTimeZoneIdentifier,
 			dateToEpochNanoseconds(new Date("2025-03-30T01:00:00Z")),
 		),
 	).toEqual(3.6e12);
@@ -99,7 +103,7 @@ test("getOffsetNanosecondsFor", () => {
 test("getOffsetNanosecondsFor and sub-minute offset", () => {
 	expect(
 		getOffsetNanosecondsFor(
-			"Africa/Monrovia",
+			"Africa/Monrovia" as AvailableNamedTimeZoneIdentifier,
 			dateToEpochNanoseconds(new Date("1970-01-01T00:00:00Z")),
 		),
 	).toEqual(-2.67e12);
@@ -110,7 +114,7 @@ test("getOffsetNanosecondsFor and far-past", () => {
 	expect(
 		Math.abs(
 			getOffsetNanosecondsFor(
-				"Asia/Tokyo",
+				"Asia/Tokyo" as AvailableNamedTimeZoneIdentifier,
 				dateToEpochNanoseconds(new Date("-001000-01-01T00:00:00Z")),
 			),
 		),
@@ -122,17 +126,27 @@ describe("getTimeZoneTransition", () => {
 		const transition1 = dateToEpochNanoseconds(new Date("2025-03-30T01:00:00Z"));
 		const transition2 = dateToEpochNanoseconds(new Date("2025-10-26T01:00:00Z"));
 		expect(
-			getTimeZoneTransition("Europe/London", addNanosecondsToEpochSeconds(transition1, -1), 1),
+			getTimeZoneTransition(
+				"Europe/London" as AvailableNamedTimeZoneIdentifier,
+				addNanosecondsToEpochSeconds(transition1, -1),
+				1,
+			),
 		).toEqual(transition1);
-		expect(getTimeZoneTransition("Europe/London", transition1, 1)).toEqual(transition2);
 		expect(
-			getTimeZoneTransition("Europe/London", addNanosecondsToEpochSeconds(transition1, 1), 1),
+			getTimeZoneTransition("Europe/London" as AvailableNamedTimeZoneIdentifier, transition1, 1),
+		).toEqual(transition2);
+		expect(
+			getTimeZoneTransition(
+				"Europe/London" as AvailableNamedTimeZoneIdentifier,
+				addNanosecondsToEpochSeconds(transition1, 1),
+				1,
+			),
 		).toEqual(transition2);
 	});
 
 	test("forward searching in far future", () => {
-		const timeZoneWithRegularDst = "America/New_York";
-		const timeZoneWithoutRegularDst = "Asia/Tokyo";
+		const timeZoneWithRegularDst = "America/New_York" as AvailableNamedTimeZoneIdentifier;
+		const timeZoneWithoutRegularDst = "Asia/Tokyo" as AvailableNamedTimeZoneIdentifier;
 		expect(
 			getTimeZoneTransition(
 				timeZoneWithRegularDst,
@@ -153,7 +167,7 @@ describe("getTimeZoneTransition", () => {
 		// Japan has historical offset transition
 		expect(
 			getTimeZoneTransition(
-				"Asia/Tokyo",
+				"Asia/Tokyo" as AvailableNamedTimeZoneIdentifier,
 				dateToEpochNanoseconds(new Date("-200000-01-01T00:00:00Z")),
 				1,
 			),
@@ -164,18 +178,28 @@ describe("getTimeZoneTransition", () => {
 		const transition1 = dateToEpochNanoseconds(new Date("2025-03-30T01:00:00Z"));
 		const transition2 = dateToEpochNanoseconds(new Date("2025-10-26T01:00:00Z"));
 		expect(
-			getTimeZoneTransition("Europe/London", addNanosecondsToEpochSeconds(transition2, -1), -1),
+			getTimeZoneTransition(
+				"Europe/London" as AvailableNamedTimeZoneIdentifier,
+				addNanosecondsToEpochSeconds(transition2, -1),
+				-1,
+			),
 		).toEqual(transition1);
-		expect(getTimeZoneTransition("Europe/London", transition2, -1)).toEqual(transition1);
 		expect(
-			getTimeZoneTransition("Europe/London", addNanosecondsToEpochSeconds(transition2, 1), -1),
+			getTimeZoneTransition("Europe/London" as AvailableNamedTimeZoneIdentifier, transition2, -1),
+		).toEqual(transition1);
+		expect(
+			getTimeZoneTransition(
+				"Europe/London" as AvailableNamedTimeZoneIdentifier,
+				addNanosecondsToEpochSeconds(transition2, 1),
+				-1,
+			),
 		).toEqual(transition2);
 	});
 
 	test("backward searching in far future", () => {
 		expect(
 			getTimeZoneTransition(
-				"America/New_York",
+				"America/New_York" as AvailableNamedTimeZoneIdentifier,
 				dateToEpochNanoseconds(new Date("+200000-01-01T00:00:00Z")),
 				-1,
 			),
@@ -183,7 +207,7 @@ describe("getTimeZoneTransition", () => {
 		const lastTransitionInJapan = dateToEpochNanoseconds(new Date("1951-09-09T00:00:00+09:00"));
 		expect(
 			getTimeZoneTransition(
-				"Asia/Tokyo",
+				"Asia/Tokyo" as AvailableNamedTimeZoneIdentifier,
 				dateToEpochNanoseconds(new Date("+200000-01-01T00:00:00Z")),
 				-1,
 			),
@@ -193,7 +217,7 @@ describe("getTimeZoneTransition", () => {
 	test("backward searching in far past", () => {
 		expect(
 			getTimeZoneTransition(
-				"America/New_York",
+				"America/New_York" as AvailableNamedTimeZoneIdentifier,
 				dateToEpochNanoseconds(new Date("-200000-01-01T00:00:00Z")),
 				-1,
 			),

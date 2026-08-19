@@ -6,6 +6,7 @@ import { toNumber } from "./ecmascript.ts";
 import { parseError } from "./errorMessages.ts";
 import { clamp } from "./math.ts";
 import { asciiLowerCase } from "./string.ts";
+import type { AvailableTimeZoneIdentifier } from "./timeZones.ts";
 import { mapUnlessUndefined, throwRangeError } from "./utils.ts";
 
 /**
@@ -96,7 +97,7 @@ function isAmbiguousTemporalTimeString(isoString: string): boolean {
 }
 
 const timeZoneIdentifierRegExp = createRegExp(timeZoneIdentifier);
-export function isTimeZoneIdentifier(timeZone: string): boolean {
+export function isTimeZoneIdentifier(timeZone: string): timeZone is AvailableTimeZoneIdentifier {
 	return timeZoneIdentifierRegExp.test(timeZone);
 }
 

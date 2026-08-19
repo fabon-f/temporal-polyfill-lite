@@ -144,6 +144,7 @@ import {
 	parseTimeZoneIdentifier,
 	timeZoneEquals,
 	toTemporalTimeZoneIdentifier,
+	type AvailableTimeZoneIdentifier,
 } from "./internal/timeZones.ts";
 import { Unit } from "./internal/unit.ts";
 import { getInternalSlotOrThrow, throwRangeError, throwTypeError } from "./internal/utils.ts";
@@ -175,7 +176,7 @@ const internalSlotBrand = /*#__PURE__*/ Symbol();
 
 export interface ZonedDateTimeSlot {
 	$epochNanoseconds: EpochNanoseconds;
-	$timeZone: string;
+	$timeZone: AvailableTimeZoneIdentifier;
 	$calendar: SupportedCalendars;
 	/** cached offset nanoseconds */
 	$offsetNanoseconds: number | undefined;
@@ -190,7 +191,7 @@ export function interpretISODateTimeOffset(
 	time: TimeRecord | undefined,
 	offsetBehaviour: OffsetBehaviour,
 	offsetNanoseconds: number,
-	timeZone: string,
+	timeZone: AvailableTimeZoneIdentifier,
 	disambiguation: Disambiguation,
 	offsetOption: Offset,
 	matchExactly: boolean,
@@ -256,7 +257,7 @@ export function interpretISODateTimeOffset(
 
 /** `ToTemporalZonedDateTime` */
 function toTemporalZonedDateTime(item: unknown, options?: unknown): ZonedDateTimeSlot {
-	let timeZone: string;
+	let timeZone: AvailableTimeZoneIdentifier;
 	let offsetString: string | undefined;
 	let hasUtcDesignator = false;
 	let disambiguation: Disambiguation;
@@ -345,7 +346,7 @@ function toTemporalZonedDateTime(item: unknown, options?: unknown): ZonedDateTim
 /** ` CreateTemporalZonedDateTime` */
 export function createTemporalZonedDateTime(
 	epochNanoseconds: EpochNanoseconds,
-	timeZone: string,
+	timeZone: AvailableTimeZoneIdentifier,
 	calendar: SupportedCalendars,
 	instance?: ZonedDateTime,
 ): ZonedDateTime {
@@ -363,7 +364,7 @@ export function createTemporalZonedDateTime(
 
 export function createZonedDateTimeSlot(
 	epochNanoseconds: EpochNanoseconds,
-	timeZone: string,
+	timeZone: AvailableTimeZoneIdentifier,
 	calendar: SupportedCalendars,
 	offsetNanoseconds?: number,
 ): ZonedDateTimeSlot {

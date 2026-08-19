@@ -81,7 +81,7 @@ import {
 	zeroTimeDuration,
 	type TimeDuration,
 } from "./internal/timeDuration.ts";
-import { getEpochNanosecondsFor } from "./internal/timeZones.ts";
+import { getEpochNanosecondsFor, type AvailableTimeZoneIdentifier } from "./internal/timeZones.ts";
 import {
 	getIndexFromUnit,
 	getUnitFromIndex,
@@ -490,7 +490,7 @@ function computeNudgeWindow(
 	duration: InternalDurationRecord,
 	originEpochNs: EpochNanoseconds,
 	isoDateTime: IsoDateTimeRecord,
-	timeZone: string | undefined,
+	timeZone: AvailableTimeZoneIdentifier | undefined,
 	calendar: SupportedCalendars,
 	increment: number,
 	unit: Unit.Date,
@@ -583,7 +583,7 @@ function nudgeToCalendarUnit(
 	originEpochNs: EpochNanoseconds,
 	destEpochNs: EpochNanoseconds,
 	isoDateTime: IsoDateTimeRecord,
-	timeZone: string | undefined,
+	timeZone: AvailableTimeZoneIdentifier | undefined,
 	calendar: SupportedCalendars,
 	increment: number,
 	unit: Unit.Date,
@@ -656,7 +656,7 @@ function nudgeToZonedTime(
 	sign: 1 | -1,
 	duration: InternalDurationRecord,
 	isoDateTime: IsoDateTimeRecord,
-	timeZone: string,
+	timeZone: AvailableTimeZoneIdentifier,
 	calendar: SupportedCalendars,
 	increment: number,
 	unit: Unit.Time,
@@ -744,7 +744,7 @@ function bubbleRelativeDuration(
 	duration: InternalDurationRecord,
 	nudgedEpochNs: EpochNanoseconds,
 	isoDateTime: IsoDateTimeRecord,
-	timeZone: string | undefined,
+	timeZone: AvailableTimeZoneIdentifier | undefined,
 	calendar: SupportedCalendars,
 	largestUnit: Unit,
 	smallestUnit: Unit.Date,
@@ -787,7 +787,7 @@ export function roundRelativeDuration(
 	originEpochNs: EpochNanoseconds,
 	destEpochNs: EpochNanoseconds,
 	isoDateTime: IsoDateTimeRecord,
-	timeZone: string | undefined,
+	timeZone: AvailableTimeZoneIdentifier | undefined,
 	calendar: SupportedCalendars,
 	largestUnit: Unit,
 	increment: number,
@@ -850,7 +850,7 @@ export function totalRelativeDuration(
 	originEpochNs: EpochNanoseconds,
 	destEpochNs: EpochNanoseconds,
 	isoDateTime: IsoDateTimeRecord,
-	timeZone: string | undefined,
+	timeZone: AvailableTimeZoneIdentifier | undefined,
 	calendar: SupportedCalendars,
 	unit: Unit,
 ): number {
