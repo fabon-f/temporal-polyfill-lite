@@ -794,6 +794,8 @@ export function getDifferenceSettings<
 
 /** `GetUTCEpochNanoseconds` */
 export function getUtcEpochNanoseconds(isoDateTime: IsoDateTimeRecord): EpochNanoseconds {
+	// This function can return imprecise result for dates which exceeds lower or upper bounds significantly (by 4e+6 days or more),
+	// but it won't be a problem since the result will be rejected by `validateEpochNanoseconds` in any case.
 	return addNanosecondsToEpochSeconds(
 		createEpochNanosecondsFromEpochMilliseconds(
 			utcEpochMilliseconds(
