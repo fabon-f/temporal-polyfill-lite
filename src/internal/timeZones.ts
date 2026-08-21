@@ -464,8 +464,10 @@ function getNamedTimeZoneEpochNanoseconds(
 
 /** `IsOffsetTimeZoneIdentifier` */
 export function isOffsetTimeZoneIdentifier(
-	identifier: string,
-): identifier is OffsetTimeZoneIdentifier {
+	identifier: AvailableTimeZoneIdentifier,
+): identifier is OffsetTimeZoneIdentifier;
+export function isOffsetTimeZoneIdentifier(identifier: string): boolean;
+export function isOffsetTimeZoneIdentifier(identifier: string): boolean {
 	assert(isTimeZoneIdentifier(identifier));
 	return /^[+-]/.test(identifier);
 }
