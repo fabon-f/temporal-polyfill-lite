@@ -31,7 +31,7 @@ export function systemTimeZoneIdentifier(): string {
 	// but it won't be a problem since system time zone don't change in such special runtimes.
 	if (
 		ttlMilliseconds &&
-		timeZoneIdAccessTimestamp + ttlMilliseconds > Date.now() &&
+		timeZoneIdAccessTimestamp + ttlMilliseconds > /*#__PURE__*/ Date.now() &&
 		cachedSystemTimeZoneId
 	) {
 		// cache is not expired yet
