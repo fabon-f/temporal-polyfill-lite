@@ -45,6 +45,7 @@ import {
 } from "./epochNanoseconds.ts";
 import { ambiguousTime, invalidTimeZone } from "./errorMessages.ts";
 import { clamp, divFloor, isWithin, modFloor } from "./math.ts";
+import { NativeTemporal } from "./nativeTemporal.ts";
 import { createNullPrototypeObject } from "./object.ts";
 import { asciiCapitalize, asciiLowerCase, asciiUpperCase } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
@@ -419,8 +420,12 @@ export function timeZoneEquals(
 		one === two ||
 		(!isOffsetTimeZoneIdentifier(one) &&
 			!isOffsetTimeZoneIdentifier(two) &&
-			getFormatterForTimeZone(one).resolvedOptions().timeZone ===
-				getFormatterForTimeZone(two).resolvedOptions().timeZone)
+			(NativeTemporal
+				? new NativeTemporal.ZonedDateTime(BigInt(0), one).equals(
+						new NativeTemporal.ZonedDateTime(BigInt(0), two),
+					)
+				: getFormatterForTimeZone(one).resolvedOptions().timeZone ===
+					getFormatterForTimeZone(two).resolvedOptions().timeZone))
 	);
 }
 
