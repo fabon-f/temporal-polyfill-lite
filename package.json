@@ -42,14 +42,14 @@
 		"@tsconfig/strictest": "^2.0.8",
 		"@types/node": "^26.2.0",
 		"clean-pkg-json": "^2.0.0",
-		"icu": "^2.3.0",
-		"oxfmt": "0.63.0",
-		"oxlint": "^1.78.0",
-		"rolldown": "1.2.4",
+		"icu": "^2.3.1",
+		"oxfmt": "0.64.0",
+		"oxlint": "^1.79.0",
+		"rolldown": "1.2.5",
 		"typescript": "7.0.2",
 		"tzdata": "^1.0.50",
 		"unplugin-isolated-decl": "^0.17.0",
-		"vitest": "^4.1.10"
+		"vitest": "^4.1.11"
 	},
 	"scripts": {
 		"build": "node script/build.ts",
