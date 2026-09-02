@@ -12,12 +12,14 @@ Temporal.Duration.from("PT816H2049.18749766S").total("hours");
 
 ## time zone equivalence in Safari / JavaScriptCore
 
-Safari doesn't resolve linked time zones from the `backward` file in the time zone database (cf. <https://bugs.webkit.org/show_bug.cgi?id=310866>); consequently, `Temporal.ZonedDateTime.prototype.equals` may return inaccurate results for pairs of renamed or merged time zone IDs.
+Certain versions of JavaScriptCore do not provide a way to resolve linked time zones from the `backward` file in the time zone database (see <https://bugs.webkit.org/show_bug.cgi?id=310866>); consequently, `Temporal.ZonedDateTime.prototype.equals` may return inaccurate results for pairs of renamed or merged time zone IDs.
+
+This issue does not occur in Safari or Bun environments that provide a native Temporal implementation.
 
 ```javascript
 new Temporal.ZonedDateTime(0n, "Europe/Kiev").equals(new Temporal.ZonedDateTime(0n, "Europe/Kyiv"));
-// correct:   `true`  (Chrome, Firefox, Node.js)
-// incorrect: `false` (Safari, Bun)
+// correct:   `true`  (Chrome, Firefox, Node.js, Bun v1.4+, and Safari Technology Preview / future releases with native Temporal support)
+// incorrect: `false` (Safari versions without native Temporal support, Bun prior to v1.4)
 ```
 
 ## `toLocaleString` and `Intl.DateTimeFormat`

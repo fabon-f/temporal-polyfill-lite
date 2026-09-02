@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Correctly handle time zone aliases in `Temporal.ZonedDateTime.prototype.equals` on JavaScriptCore-based environments (such as Safari and Bun), provided that a native `Temporal` implementation is available ([#43](https://github.com/fabon-f/temporal-polyfill-lite/pull/43)).
+
 ## 0.4.2 (2026-06-29)
 
 ### Changed
