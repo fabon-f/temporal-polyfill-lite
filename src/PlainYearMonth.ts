@@ -52,7 +52,6 @@ import {
 import {
 	calendarMismatch,
 	forbiddenValueOf,
-	invalidDateTime,
 	notObject,
 	outOfBoundsDate,
 	yearMonthAddition,
@@ -68,7 +67,6 @@ import {
 	compareIsoDate,
 	createIsoDateRecord,
 	createTemporalDate,
-	isValidIsoDate,
 	padIsoYear,
 	type IsoDateRecord,
 } from "./PlainDate.ts";
@@ -321,9 +319,6 @@ export class PlainYearMonth {
 		validateString(calendar);
 		const canonicalizedCalendar = canonicalizeCalendar(calendar);
 		const ref = toIntegerWithTruncation(referenceIsoDay);
-		if (!isValidIsoDate(y, m, ref)) {
-			throwRangeError(invalidDateTime);
-		}
 		createTemporalYearMonth(createIsoDateRecord(y, m, ref), canonicalizedCalendar, this);
 	}
 	static from(item: unknown, options: unknown = undefined) {

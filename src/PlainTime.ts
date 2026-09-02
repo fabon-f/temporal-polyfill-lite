@@ -104,7 +104,7 @@ export type PlainTimeSlot = TimeRecord & {
 
 const slots = new WeakMap<any, PlainTimeSlot>();
 
-/** `CreateTimeRecord` */
+/** `CreateTimeRecord` + validation */
 export function createTimeRecord(
 	hour: number,
 	minute: number,
@@ -114,7 +114,9 @@ export function createTimeRecord(
 	nanosecond: number,
 	deltaDays = 0,
 ): TimeRecord {
-	assert(isValidTime(hour, minute, second, millisecond, microsecond, nanosecond));
+	if (!isValidTime(hour, minute, second, millisecond, microsecond, nanosecond)) {
+		throwRangeError(invalidDateTime);
+	}
 	return {
 		$hour: hour,
 		$minute: minute,
@@ -203,9 +205,6 @@ export function regulateTime(
 			clamp(microsecond, 0, 999),
 			clamp(nanosecond, 0, 999),
 		);
-	}
-	if (!isValidTime(hour, minute, second, millisecond, microsecond, nanosecond)) {
-		throwRangeError(invalidDateTime);
 	}
 	return createTimeRecord(hour, minute, second, millisecond, microsecond, nanosecond);
 }
@@ -453,9 +452,6 @@ export class PlainTime {
 		const units = [hour, minute, second, millisecond, microsecond, nanosecond].map(
 			toIntegerWithTruncation,
 		) as TimeRecordTupleWithoutDays;
-		if (!isValidTime(...units)) {
-			throwRangeError(invalidDateTime);
-		}
 		createTemporalTime(createTimeRecord(...units), this);
 	}
 	static from(item: unknown, options: unknown = undefined) {

@@ -21,7 +21,7 @@ import {
 	isoDateToFields,
 	validatePartialTemporalObject,
 } from "./internal/abstractOperations.ts";
-import { assert, assertNotUndefined } from "./internal/assertion.ts";
+import { assertNotUndefined } from "./internal/assertion.ts";
 import {
 	calendarDateAdd,
 	calendarDateFromFields,
@@ -108,9 +108,11 @@ export interface PlainDateSlot {
 
 const slots = new WeakMap<any, PlainDateSlot>();
 
-/** `CreateISODateRecord` */
+/** `CreateISODateRecord` + validation */
 export function createIsoDateRecord(year: number, month: number, day: number): IsoDateRecord {
-	assert(isValidIsoDate(year, month, day));
+	if (!isValidIsoDate(year, month, day)) {
+		throwRangeError(invalidDateTime);
+	}
 	return {
 		$year: year,
 		$month: month,
@@ -185,9 +187,6 @@ export function regulateIsoDate(
 	if (overflow === overflowConstrain) {
 		month = clamp(month, 1, 12);
 		return createIsoDateRecord(year, month, clamp(day, 1, isoDaysInMonth(year, month)));
-	}
-	if (!isValidIsoDate(year, month, day)) {
-		throwRangeError(invalidDateTime);
 	}
 	return createIsoDateRecord(year, month, day);
 }
@@ -327,9 +326,6 @@ export class PlainDate {
 		const d = toIntegerWithTruncation(isoDay);
 		validateString(calendar);
 		const canonicalizedCalendar = canonicalizeCalendar(calendar);
-		if (!isValidIsoDate(y, m, d)) {
-			throwRangeError(invalidDateTime);
-		}
 		createTemporalDate(createIsoDateRecord(y, m, d), canonicalizedCalendar, this);
 	}
 	static from(item: unknown, options: unknown = undefined) {

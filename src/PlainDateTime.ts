@@ -76,7 +76,6 @@ import {
 import {
 	calendarMismatch,
 	forbiddenValueOf,
-	invalidDateTime,
 	invalidField,
 	outOfBoundsDate,
 } from "./internal/errorMessages.ts";
@@ -95,7 +94,6 @@ import {
 	createTemporalDate,
 	getInternalSlotOrThrowForPlainDate,
 	isPlainDate,
-	isValidIsoDate,
 	padIsoYear,
 	type IsoDateRecord,
 } from "./PlainDate.ts";
@@ -106,7 +104,6 @@ import {
 	createTemporalTime,
 	createTimeRecord,
 	differenceTime,
-	isValidTime,
 	midnightTimeRecord,
 	regulateTime,
 	roundTime,
@@ -505,9 +502,6 @@ export class PlainDateTime {
 		) as [number, number, number, number, number, number];
 		validateString(calendar);
 		const canonicalizedCalendar = canonicalizeCalendar(calendar);
-		if (!isValidIsoDate(...dateUnits) || !isValidTime(...timeUnits)) {
-			throwRangeError(invalidDateTime);
-		}
 		createTemporalDateTime(
 			combineIsoDateAndTimeRecord(
 				createIsoDateRecord(...dateUnits),

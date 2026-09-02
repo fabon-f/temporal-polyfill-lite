@@ -32,16 +32,15 @@ import {
 	showCalendarName,
 	type ShowCalendarName,
 } from "./internal/enum.ts";
-import { forbiddenValueOf, invalidDateTime, notObject } from "./internal/errorMessages.ts";
+import { forbiddenValueOf, notObject } from "./internal/errorMessages.ts";
 import { isObject } from "./internal/object.ts";
 import { defineStringTag, renameFunction } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
-import { getInternalSlotOrThrow, throwRangeError, throwTypeError } from "./internal/utils.ts";
+import { getInternalSlotOrThrow, throwTypeError } from "./internal/utils.ts";
 import {
 	compareIsoDate,
 	createIsoDateRecord,
 	createTemporalDate,
-	isValidIsoDate,
 	padIsoYear,
 	validateIsoDate,
 	type IsoDateRecord,
@@ -155,9 +154,6 @@ export class PlainMonthDay {
 		validateString(calendar);
 		const canonicalizedCalendar = canonicalizeCalendar(calendar);
 		const y = toIntegerWithTruncation(referenceIsoYear);
-		if (!isValidIsoDate(y, m, d)) {
-			throwRangeError(invalidDateTime);
-		}
 		createTemporalMonthDay(createIsoDateRecord(y, m, d), canonicalizedCalendar, this);
 	}
 	static from(item: unknown, options: unknown = undefined) {
