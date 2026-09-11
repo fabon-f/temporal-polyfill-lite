@@ -25,7 +25,7 @@ test("epochDaysToIsoDate", () => {
 	});
 });
 
-test.for(["aaa", "AAA", "P1MT", "p1mt"])(
+test.for(["aaa", "AAA", "P1MT", "p1mt", "PT1ſ"])(
 	"parseTemporalDurationString and invalid string: %s",
 	(str) => {
 		expect(() => parseTemporalDurationString(str)).toThrow(str);
