@@ -1,7 +1,9 @@
 import { describe, expect, test } from "vitest";
 import { createNativeZonedDateTime } from "./nativeTemporal.ts";
 
-describe("createNativeZonedDateTime", () => {
+const nativeTemporalAvailable = typeof globalThis.Temporal === "object";
+
+describe.runIf(nativeTemporalAvailable)("createNativeZonedDateTime", () => {
 	test("basic", () => {
 		expect(createNativeZonedDateTime(0, "America/Los_Angeles")).toEqual(
 			Temporal.Instant.fromEpochMilliseconds(0).toZonedDateTimeISO("America/Los_Angeles"),
