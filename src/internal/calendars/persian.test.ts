@@ -110,9 +110,7 @@ test("epochDaysToDate should match to Intl.DateTimeFormat", () => {
 	}
 });
 
-test("roundtrip in extreme days", () => {
-	for (const epochDays of [-1e8 - 1, 1e8]) {
-		const date = epochDaysToDate(epochDays);
-		expect(calendarIntegersToEpochDays(date.$year, date.$month, date.$day)).toEqual(epochDays);
-	}
+test.for([-1e8 - 1, 1e8])("roundtrip in extreme epoch days: %i", (epochDays) => {
+	const date = epochDaysToDate(epochDays);
+	expect(calendarIntegersToEpochDays(date.$year, date.$month, date.$day)).toEqual(epochDays);
 });

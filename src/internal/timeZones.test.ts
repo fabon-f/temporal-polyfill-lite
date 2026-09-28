@@ -25,58 +25,58 @@ test.for(ianaTimeZoneIds)("time zone case normalization: %s", (timeZone) => {
 	expect(normalizeIanaTimeZoneId(timeZone.toUpperCase())).toEqual(timeZone);
 });
 
-test("rejectNonIanaTimeZoneId and non-IANA time zones", () => {
-	const nonIanaTimeZoneIds = [
-		"ACT",
-		"AET",
-		"AGT",
-		"ART",
-		"AST",
-		"BET",
-		"BST",
-		"CAT",
-		"CNT",
-		"CST",
-		"CTT",
-		"EAT",
-		"ECT",
-		"IET",
-		"IST",
-		"JST",
-		"MIT",
-		"NET",
-		"NST",
-		"PLT",
-		"PNT",
-		"PRT",
-		"PST",
-		"SST",
-		"VST",
-		"SystemV",
-		"SystemV/AST4ADT",
-		"SystemV/EST5EDT",
-		"SystemV/CST6CDT",
-		"SystemV/MST7MDT",
-		"SystemV/PST8PDT",
-		"SystemV/YST9YDT",
-		"SystemV/AST4",
-		"SystemV/EST5",
-		"SystemV/CST6",
-		"SystemV/MST7",
-		"SystemV/PST8",
-		"SystemV/YST9",
-		"SystemV/HST10",
-		"US/Pacific-New",
-	];
-	for (const id of nonIanaTimeZoneIds) {
-		expect(() => rejectNonIanaTimeZoneId(id)).toThrow(RangeError);
-	}
-});
+const nonIanaTimeZoneIds = [
+	"ACT",
+	"AET",
+	"AGT",
+	"ART",
+	"AST",
+	"BET",
+	"BST",
+	"CAT",
+	"CNT",
+	"CST",
+	"CTT",
+	"EAT",
+	"ECT",
+	"IET",
+	"IST",
+	"JST",
+	"MIT",
+	"NET",
+	"NST",
+	"PLT",
+	"PNT",
+	"PRT",
+	"PST",
+	"SST",
+	"VST",
+	"SystemV",
+	"SystemV/AST4ADT",
+	"SystemV/EST5EDT",
+	"SystemV/CST6CDT",
+	"SystemV/MST7MDT",
+	"SystemV/PST8PDT",
+	"SystemV/YST9YDT",
+	"SystemV/AST4",
+	"SystemV/EST5",
+	"SystemV/CST6",
+	"SystemV/MST7",
+	"SystemV/PST8",
+	"SystemV/YST9",
+	"SystemV/HST10",
+	"US/Pacific-New",
+];
 
-test("rejectNonIanaTimeZoneId and IANA time zones", () => {
-	for (const id of ianaTimeZoneIds) {
-		expect(() => rejectNonIanaTimeZoneId(id)).not.toThrow();
-	}
+test.for(nonIanaTimeZoneIds)(
+	"rejectNonIanaTimeZoneId and non-IANA time zones: %s",
+	(nonIanaTimeZoneId) => {
+		expect(() => rejectNonIanaTimeZoneId(nonIanaTimeZoneId)).toThrow(RangeError);
+	},
+);
+
+test.for(ianaTimeZoneIds)("rejectNonIanaTimeZoneId and IANA time zones: %s", (id) => {
+	expect(() => rejectNonIanaTimeZoneId(id)).not.toThrow();
 });
 
 test("getOffsetNanosecondsFor", () => {
