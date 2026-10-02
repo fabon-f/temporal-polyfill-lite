@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { assert, describe, expect, test } from "vitest";
 import { parseMonthCode } from "../calendars.ts";
 import {
 	calendarIntegersToEpochDays,
@@ -145,10 +145,11 @@ describe("calendarIntegersToEpochDays should match ICU4X", () => {
 	test("valid year range", () => {
 		for (let year = -268058; year <= 279518; year++) {
 			const dateByIcu = epochDaysToDateByIcu("hebrew", calendarIntegersToEpochDays(year, 1, 1));
-			// manual assertion for best performance
-			if (dateByIcu.$year !== year || dateByIcu.$month !== 1 || dateByIcu.$day !== 1) {
-				throw new Error(`mismatch in year ${year}`);
-			}
+			// use `assert` instead of `expect` for better performance
+			assert(
+				dateByIcu.$year === year && dateByIcu.$month === 1 && dateByIcu.$day === 1,
+				`mismatch in year ${year}`,
+			);
 		}
 	});
 
