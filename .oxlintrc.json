@@ -3,5 +3,6 @@
 	"ignorePatterns": [
 		"test262",
 		"src/types/*"
-	]
+	],
+	"plugins": ["vitest"]
 }
