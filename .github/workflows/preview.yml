@@ -32,4 +32,4 @@ jobs:
       - name: Build
         run: pnpm run build
       - name: Publish
-        run: pnpm dlx pkg-pr-new@0.0.89 publish --pnpm
+        run: pnpm dlx pkg-pr-new@0.0.88 publish --pnpm
