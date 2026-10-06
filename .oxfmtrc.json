@@ -5,7 +5,8 @@
 	"ignorePatterns": [
 		"test262",
 		"pnpm-lock.yaml",
-		"*.json"
+		"*.json",
+		"*.md"
 	],
 	"experimentalSortImports": {
 		"groups": [
