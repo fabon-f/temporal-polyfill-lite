@@ -471,22 +471,19 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 	return [dateTimeFormat.$rawDtf, x];
 }
 
-class TmpClass {
-	// make `format` function not work as constructor
-	/** DateTime Format Functions */
-	$dateTimeFormatFunction(this: DateTimeFormatImpl, date: unknown): string {
-		return formatDateTime(getInternalSlotOrThrowForDateTimeFormat(this), date);
-	}
-}
-
 export class DateTimeFormatImpl {
 	constructor(locales: unknown, options: unknown) {
 		slots.set(this, createDateTimeFormat(locales, options, DATETIME, undefined));
 	}
 	get format() {
 		return Object.defineProperty(
-			(getInternalSlotOrThrowForDateTimeFormat(this).$boundFormatFunction ||=
-				TmpClass.prototype.$dateTimeFormatFunction.bind(this)),
+			(getInternalSlotOrThrowForDateTimeFormat(this).$boundFormatFunction ||= {
+				// make `format` function not work as a constructor
+				/** DateTime Format Functions */
+				$dateTimeFormatFunction(this: DateTimeFormatImpl, date: unknown): string {
+					return formatDateTime(getInternalSlotOrThrowForDateTimeFormat(this), date);
+				},
+			}.$dateTimeFormatFunction.bind(this)),
 			"name",
 			{ value: "" },
 		);
