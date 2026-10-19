@@ -120,14 +120,15 @@ const islamicEras = new Map<string, EraKind>([
 	["ah", 1],
 	["bh", false],
 ]);
+const emptyEraMap = new Map<string, EraKind>();
 
 const erasPerCalendar: Record<SupportedCalendars, Map<string, EraKind>> = createNullPrototypeObject(
 	{
-		iso8601: new Map(),
+		iso8601: emptyEraMap,
 		buddhist: new Map([["be", 1]]),
-		chinese: new Map(),
+		chinese: emptyEraMap,
 		coptic: new Map([["am", 1]]),
-		dangi: new Map(),
+		dangi: emptyEraMap,
 		ethioaa: new Map([["aa", 1]]),
 		ethiopic: new Map([
 			["am", 1],
@@ -588,13 +589,6 @@ export function constrainMonthCode(
 	monthCode: MonthCode,
 	overflow: Overflow,
 ): MonthCode {
-	if (calendar === "hebrew") {
-		return monthCode[1] && !isLeapYearHebrew(arithmeticYear)
-			? overflow === overflowReject
-				? throwRangeError(invalidDateTime)
-				: [6, false]
-			: monthCode;
-	}
 	if (isChineseDangi(calendar)) {
 		const constrainedMonthCode = constrainMonthCodeChineseDangi(
 			calendar,
@@ -604,6 +598,13 @@ export function constrainMonthCode(
 		return monthCode !== constrainedMonthCode && overflow === overflowReject
 			? throwRangeError(invalidDateTime)
 			: constrainedMonthCode;
+	}
+	if (calendar === "hebrew") {
+		return monthCode[1] && !isLeapYearHebrew(arithmeticYear)
+			? overflow === overflowReject
+				? throwRangeError(invalidDateTime)
+				: [6, false]
+			: monthCode;
 	}
 	return monthCode;
 }
@@ -629,8 +630,7 @@ export function calendarDateArithmeticYearForEraYear(
 	era: string,
 	eraYear: number,
 ): number {
-	const canonicalizedEra = canonicalizeEraInCalendar(calendar, era);
-	const eraKind = erasPerCalendar[calendar].get(canonicalizedEra);
+	const eraKind = erasPerCalendar[calendar].get(canonicalizeEraInCalendar(calendar, era));
 	assertNotUndefined(eraKind);
 	return eraKind === false ? 1 - eraYear : eraKind + eraYear - 1;
 }

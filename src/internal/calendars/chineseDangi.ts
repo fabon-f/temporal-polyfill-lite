@@ -128,7 +128,6 @@ export function epochDaysToDate(
 	calendar: "chinese" | "dangi",
 	epochDays: number,
 ): CalendarDateRecord {
-	const isoDate = epochDaysToIsoDate(epochDays);
 	return {
 		$era: undefined,
 		$eraYear: undefined,
@@ -145,7 +144,7 @@ export function epochDaysToDate(
 		get $day() {
 			return yearMonthDay(calendar, epochDays).$day;
 		},
-		$dayOfWeek: isoDayOfWeek(isoDate),
+		$dayOfWeek: isoDayOfWeek(epochDaysToIsoDate(epochDays)),
 		get $dayOfYear() {
 			const year = yearMonthDay(calendar, epochDays).$year;
 			return epochDays - getNewYear(calendar, year) + 1;
