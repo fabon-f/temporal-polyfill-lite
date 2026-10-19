@@ -1,6 +1,6 @@
 import { describe } from "node:test";
 import tzdata from "tzdata" with { type: "json" };
-import { expect, test } from "vitest";
+import { assert, expect, test } from "vitest";
 import { millisecondsPerDay, nanosecondsPerMilliseconds } from "./constants.ts";
 import {
 	addNanosecondsToEpochSeconds,
@@ -161,6 +161,22 @@ describe("getTimeZoneTransition", () => {
 				1,
 			),
 		).toBeNull();
+	});
+
+	test("forward searching across the search horizon", () => {
+		// Forward searches stop ten years from now; one that starts between the last transition
+		// before that horizon and the horizon itself must still find the next transition.
+		// Thirty transitions of London take about fifteen years, past the horizon.
+		let transition = dateToEpochNanoseconds(new Date());
+		for (let i = 0; i < 30; i++) {
+			const next = getTimeZoneTransition(
+				"Europe/London" as AvailableNamedTimeZoneIdentifier,
+				transition,
+				1,
+			);
+			assert(next !== null, `no transition after the first ${i}`);
+			transition = next;
+		}
 	});
 
 	test("forward searching in far past", () => {

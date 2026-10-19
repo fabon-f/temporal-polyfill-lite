@@ -211,10 +211,14 @@ export function getTimeZoneTransition(
 		}
 		return searchTimeZoneTransition(timeZone, start, lowerLimit, direction);
 	}
-	if (start > upperLimit) {
-		return searchTimeZoneTransition(timeZone, start, start + secondsPerDay * 365, direction);
-	}
-	return searchTimeZoneTransition(timeZone, start, upperLimit, direction);
+	// up to a year past `start`, or up to the horizon when that is later: a time zone that keeps
+	// changing its offset has a transition within a year, also after its last one before the horizon
+	return searchTimeZoneTransition(
+		timeZone,
+		start,
+		Math.max(start + secondsPerDay * 365, upperLimit),
+		direction,
+	);
 }
 
 /** normalize upper/lower case of IANA time zone IDs */
