@@ -635,6 +635,10 @@ function nudgeToCalendarUnit(
 		resultDuration = nudgeWindow.$endDuration;
 		nudgedEpochNs = nudgeWindow.$endEpochNs;
 	}
+	if (!signTimeDuration(d2)) {
+		// https://github.com/fabon-f/temporal-polyfill-lite/issues/45
+		throwRangeError("internal error");
+	}
 	return {
 		$nudgeResult: {
 			$duration: combineDateAndTimeDuration(resultDuration, zeroTimeDuration),
