@@ -15,113 +15,113 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Keep the original input in the error message for duration parsing. The input string was accidentally converted to lower case in the message before. ([#39](https://github.com/fabon-f/temporal-polyfill-lite/pull/39))
+- Keep original input in the error message for duration parsing; previously, the input string was accidentally converted to lowercase ([#39](https://github.com/fabon-f/temporal-polyfill-lite/pull/39)).
 
 ### Fixed
 
-- Make `Intl.DurationFormat` spec-compliant ([#41](https://github.com/fabon-f/temporal-polyfill-lite/pull/41))
+- Make `Intl.DurationFormat` spec-compliant ([#41](https://github.com/fabon-f/temporal-polyfill-lite/pull/41)).
 
 ## 0.4.1 (2026-06-21)
 
 ### Changed
 
-- Reduce bundle size a bit
+- Slightly reduce bundle size.
 
 ## 0.4.0 (2026-05-25)
 
 ### Changed
 
-- **BREAKING**: Reflect normative changes approved in the TC39 meeting of May 2026 ([#34](https://github.com/fabon-f/temporal-polyfill-lite/pull/34), [#35](https://github.com/fabon-f/temporal-polyfill-lite/pull/35))
-- Improve error messages ([#36](https://github.com/fabon-f/temporal-polyfill-lite/pull/36))
+- **BREAKING**: Reflect normative changes approved in the May 2026 TC39 meeting ([#34](https://github.com/fabon-f/temporal-polyfill-lite/pull/34), [#35](https://github.com/fabon-f/temporal-polyfill-lite/pull/35)).
+- Improve error messages ([#36](https://github.com/fabon-f/temporal-polyfill-lite/pull/36)).
 
 ### Fixed
 
-- Remove extra observable `[[GetOwnProperty]]` calls in `Intl.DateTimeFormat` constructor ([#33](https://github.com/fabon-f/temporal-polyfill-lite/pull/33))
+- Remove extra observable `[[GetOwnProperty]]` calls in the `Intl.DateTimeFormat` constructor ([#33](https://github.com/fabon-f/temporal-polyfill-lite/pull/33)).
 
 ## 0.3.6 (2026-05-07)
 
 ### Fixed
 
-- Stop implement `formatRange` and `formatRangeToParts` methods to `Intl.DateTimeFormat` on legacy browsers without support for these methods, which makes feature detection of range formatting methods work correctly ([#32](https://github.com/fabon-f/temporal-polyfill-lite/pull/32))
+- Stop implementing `formatRange` and `formatRangeToParts` on `Intl.DateTimeFormat` in legacy browsers that lack native support for them, ensuring feature detection works correctly ([#32](https://github.com/fabon-f/temporal-polyfill-lite/pull/32)).
 
 ## 0.3.5 (2026-04-20)
 
 ### Fixed
 
-- Fix wrong order of observable operations for options object in `Intl.DateTimeFormat` constructor ([#28](https://github.com/fabon-f/temporal-polyfill-lite/pull/28))
-- Fix types of `Intl` when the polyfill is used as a ponyfill ([#29](https://github.com/fabon-f/temporal-polyfill-lite/pull/29))
+- Fix incorrect order of observable operations for options object in the `Intl.DateTimeFormat` constructor ([#28](https://github.com/fabon-f/temporal-polyfill-lite/pull/28)).
+- Fix types for `Intl` when the polyfill is used as a ponyfill ([#29](https://github.com/fabon-f/temporal-polyfill-lite/pull/29)).
 
 ## 0.3.4 (2026-04-14)
 
 ### Fixed
 
-- Fix discrepancy of date time format between timestamp and Temporal objects in `Intl.DateTimeFormat` ([#27](https://github.com/fabon-f/temporal-polyfill-lite/pull/27))
+- Fix discrepancy in date-time formatting between timestamps and Temporal objects in `Intl.DateTimeFormat` ([#27](https://github.com/fabon-f/temporal-polyfill-lite/pull/27)).
 
 ## 0.3.3 (2026-03-21)
 
 ### Added
 
-- Introduce opt-in cache for system time zone ID ([#22](https://github.com/fabon-f/temporal-polyfill-lite/pull/22))
+- Introduce opt-in cache for system time zone ID ([#22](https://github.com/fabon-f/temporal-polyfill-lite/pull/22)).
 
 ### Fixed
 
-- Fix bugs related to extreme dates in `persian` calendar ([#23](https://github.com/fabon-f/temporal-polyfill-lite/pull/23))
+- Fix bugs related to extreme dates in the `persian` calendar ([#23](https://github.com/fabon-f/temporal-polyfill-lite/pull/23)).
 
 ## 0.3.2 (2026-03-12)
 
 ### Changed
 
-- Implement out-of-bounds check in `Temporal.PlainMonthDay` construction for non-ISO calendars ([#21](https://github.com/fabon-f/temporal-polyfill-lite/pull/21))
+- Implement out-of-bounds checks in `Temporal.PlainMonthDay` construction for non-ISO calendars ([#21](https://github.com/fabon-f/temporal-polyfill-lite/pull/21)).
 
 ### Fixed
 
-- Fix a bug caused by extreme `year` field during `Temporal.PlainMonthDay` construction ([#20](https://github.com/fabon-f/temporal-polyfill-lite/pull/20))
+- Fix a bug caused by extreme `year` field values during `Temporal.PlainMonthDay` construction ([#20](https://github.com/fabon-f/temporal-polyfill-lite/pull/20)).
 
 ## 0.3.1 (2026-03-07)
 
 ### Fixed
 
-- Fix incorrect `sideEffects` package settings which causes a bundle issue ([#19](https://github.com/fabon-f/temporal-polyfill-lite/pull/19))
+- Fix incorrect `sideEffects` package setting that caused bundling issues ([#19](https://github.com/fabon-f/temporal-polyfill-lite/pull/19)).
 
 ## 0.3.0 (2026-03-07)
 
 ### Added
 
-- Add support for non-ISO calendars ([#6](https://github.com/fabon-f/temporal-polyfill-lite/issues/6))
+- Add support for non-ISO calendars ([#6](https://github.com/fabon-f/temporal-polyfill-lite/issues/6)).
 
 ### Changed
 
-- **BREAKING**: Make a type definition compatible with TypeScript 6.0, stop importing types to the global namespace when importing `temporal-polyfill-lite/global` ([#17](https://github.com/fabon-f/temporal-polyfill-lite/pull/17))
+- **BREAKING**: Make type definitions compatible with TypeScript 6.0; stop exporting types to the global namespace when importing `temporal-polyfill-lite/global` ([#17](https://github.com/fabon-f/temporal-polyfill-lite/pull/17)).
 
 ## 0.2.3 (2026-03-04)
 
 ### Fixed
 
-- Fix incorrect rounding of durations in edge cases ([#14](https://github.com/fabon-f/temporal-polyfill-lite/pull/14))
+- Fix incorrect rounding of durations in edge cases ([#14](https://github.com/fabon-f/temporal-polyfill-lite/pull/14)).
 
 ## 0.2.2 (2026-02-09)
 
 ### Fixed
 
-- Fix the bug caused by improper minification which makes `new Intl.DateTimeFormat()` throw `TypeError` ([#5](https://github.com/fabon-f/temporal-polyfill-lite/pull/5))
+- Fix a bug caused by improper minification that caused `new Intl.DateTimeFormat()` to throw a `TypeError` ([#5](https://github.com/fabon-f/temporal-polyfill-lite/pull/5)).
 
 ## 0.2.1 (2026-02-06)
 
 ### Changed
 
-- Improve performance for `ZonedDateTime` ([#3](https://github.com/fabon-f/temporal-polyfill-lite/pull/3), [e9b5cbf](https://github.com/fabon-f/temporal-polyfill-lite/commit/e9b5cbf3e06cd1db24c086ec5b41f7c5faf5861e))
-- Improve error messages ([94990ad](https://github.com/fabon-f/temporal-polyfill-lite/commit/94990adca9052a785db16f74716cccf653f51a83))
+- Improve performance for `ZonedDateTime` ([#3](https://github.com/fabon-f/temporal-polyfill-lite/pull/3), [e9b5cbf](https://github.com/fabon-f/temporal-polyfill-lite/commit/e9b5cbf3e06cd1db24c086ec5b41f7c5faf5861e)).
+- Improve error messages ([94990ad](https://github.com/fabon-f/temporal-polyfill-lite/commit/94990adca9052a785db16f74716cccf653f51a83)).
 
 ### Fixed
 
-- Stop display fractional seconds for date classes in `Intl.DateTimeFormat` ([#2](https://github.com/fabon-f/temporal-polyfill-lite/pull/2))
+- Stop displaying fractional seconds for date classes in `Intl.DateTimeFormat` ([#2](https://github.com/fabon-f/temporal-polyfill-lite/pull/2)).
 
 ## 0.2.0 (2026-01-30)
 
 ### Changed
 
-- **BREAKING**: Reflect a normative change which disallows adding weeks, days, and time units to `PlainYearMonth` ([#1](https://github.com/fabon-f/temporal-polyfill-lite/pull/1))
-- Stop mangling of function names in the production build for better stack traces ([14a367e](https://github.com/fabon-f/temporal-polyfill-lite/commit/14a367e7392b06324bf1844316be4a0b43e6a531))
+- **BREAKING**: Reflect a normative change that disallows adding weeks, days, and time units to `PlainYearMonth` ([#1](https://github.com/fabon-f/temporal-polyfill-lite/pull/1)).
+- Stop mangling function names in the production build for better stack traces ([14a367e](https://github.com/fabon-f/temporal-polyfill-lite/commit/14a367e7392b06324bf1844316be4a0b43e6a531)).
 
 ## 0.1.0 (2026-01-25)
 
