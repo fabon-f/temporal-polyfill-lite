@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **BREAKING**: Stop overwriting native Temporal implementations in `temporal-polyfill-lite/global` and `temporal-polyfill-lite/calendars-full/global` entry points ([#47](https://github.com/fabon-f/temporal-polyfill-lite/pull/47)).
+- Implement a workaround for Temporal specification issues in rare edge cases by throwing `RangeError` instead of returning dubious results ([#46](https://github.com/fabon-f/temporal-polyfill-lite/pull/46)).
+
+### Fixed
+
+- Fix a bug in `Temporal.ZonedDateTime.prototype.getTimeZoneTransition` with future DST transitions ([#44](https://github.com/fabon-f/temporal-polyfill-lite/pull/44)).
+
 ## 0.4.3 (2026-09-02)
 
 ### Fixed
