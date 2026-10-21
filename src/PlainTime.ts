@@ -66,6 +66,7 @@ import {
 } from "./internal/unit.ts";
 import {
 	getInternalSlotOrThrow,
+	mapUnlessUndefined,
 	throwRangeError,
 	throwTypeError,
 	withArray,
@@ -283,7 +284,6 @@ type PartialTemporalTimeLikeRecord = [
 function toTemporalTimeRecord(item: object, partial: true): PartialTemporalTimeLikeRecord;
 function toTemporalTimeRecord(item: object, partial?: false): TemporalTimeLikeRecord;
 function toTemporalTimeRecord(item: object, partial = false) {
-	let any = false;
 	const timeUnitsByAlphabeticalOrder = [
 		calendarFieldKeys.$hour,
 		calendarFieldKeys.$microsecond,
@@ -292,18 +292,14 @@ function toTemporalTimeRecord(item: object, partial = false) {
 		calendarFieldKeys.$nanosecond,
 		calendarFieldKeys.$second,
 	].map((property) => {
-		const value = (item as Record<string, unknown>)[property];
-		if (value !== undefined) {
-			any = true;
-			return toIntegerWithTruncation(value);
-		} else {
-			return partial ? undefined : 0;
-		}
+		return mapUnlessUndefined((item as Record<string, unknown>)[property], toIntegerWithTruncation);
 	});
-	if (!any) {
+	if (!timeUnitsByAlphabeticalOrder.some((v) => v !== undefined)) {
 		throwTypeError(emptyFields);
 	}
-	return [0, 3, 5, 2, 1, 4].map((i) => timeUnitsByAlphabeticalOrder[i]);
+	return [0, 3, 5, 2, 1, 4].map((i) =>
+		partial ? timeUnitsByAlphabeticalOrder[i] : timeUnitsByAlphabeticalOrder[i] || 0,
+	);
 }
 
 /** `TimeRecordToString` */
@@ -330,16 +326,15 @@ export function compareTimeRecord(time1: TimeRecord, time2: TimeRecord): NumberS
 }
 
 export function addTime(time: TimeRecord, timeDuration: TimeDuration): TimeRecord {
-	const daysAndNanoseconds = timeDurationDaysAndRemainderNanoseconds(timeDuration);
 	const result = balanceTime(
 		time.$hour,
 		time.$minute,
 		time.$second,
 		time.$millisecond,
 		time.$microsecond,
-		time.$nanosecond + daysAndNanoseconds[1],
+		time.$nanosecond + timeDurationDaysAndRemainderNanoseconds(timeDuration)[1],
 	);
-	result.$days += daysAndNanoseconds[0];
+	result.$days += timeDurationDaysAndRemainderNanoseconds(timeDuration)[0];
 	return result;
 }
 

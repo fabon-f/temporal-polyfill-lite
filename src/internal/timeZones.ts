@@ -1,5 +1,9 @@
 import { OriginalDateTimeFormat } from "../DateTimeFormat.ts";
-import { clampEpochNanoseconds, validateEpochNanoseconds } from "../Instant.ts";
+import {
+	clampEpochNanoseconds,
+	isValidEpochNanoseconds,
+	validateEpochNanoseconds,
+} from "../Instant.ts";
 import { type IsoDateRecord } from "../PlainDate.ts";
 import {
 	balanceIsoDateTime,
@@ -19,7 +23,6 @@ import { assert, assertNotUndefined } from "./assertion.ts";
 import { createLruCache, type LruCacheMap } from "./cacheMap.ts";
 import {
 	millisecondsPerDay,
-	nanosecondsPerDay,
 	nanosecondsPerHour,
 	nanosecondsPerMilliseconds,
 	nanosecondsPerMinute,
@@ -44,7 +47,7 @@ import {
 	type EpochNanoseconds,
 } from "./epochNanoseconds.ts";
 import { ambiguousTime, invalidTimeZone } from "./errorMessages.ts";
-import { clamp, divFloor, isWithin, modFloor } from "./math.ts";
+import { clamp, divFloor, modFloor } from "./math.ts";
 import { NativeTemporal } from "./nativeTemporal.ts";
 import { createNullPrototypeObject } from "./object.ts";
 import { asciiCapitalize, asciiLowerCase, asciiUpperCase } from "./string.ts";
@@ -188,9 +191,6 @@ export function getTimeZoneTransition(
 	epoch: EpochNanoseconds,
 	direction: -1 | 1,
 ): EpochNanoseconds | null {
-	if (timeZone === "UTC" || isOffsetTimeZoneIdentifier(timeZone)) {
-		return null;
-	}
 	// corresponds to 1843-03-31T16:53:20Z, before the first offset transition recorded in tz database (1845-01-01)
 	const lowerLimit = -4e9;
 	const upperLimit = Math.floor((Date.now() + millisecondsPerDay * 3650) / 1000);
@@ -199,6 +199,9 @@ export function getTimeZoneTransition(
 		lowerLimit,
 		Infinity,
 	);
+	if (timeZone === "UTC" || isOffsetTimeZoneIdentifier(timeZone)) {
+		return null;
+	}
 	if (direction === -1) {
 		if (start === lowerLimit) {
 			return null;
@@ -258,11 +261,10 @@ export function getAvailableNamedTimeZoneIdentifier(
 
 /** `GetISOPartsFromEpoch` */
 function getIsoPartsFromEpoch(epochNanoseconds: EpochNanoseconds): IsoDateTimeRecord {
-	const daysAndNanoseconds = epochDaysAndRemainderNanoseconds(epochNanoseconds);
-	assert(isWithin(daysAndNanoseconds[1], 0, nanosecondsPerDay - 1));
+	assert(isValidEpochNanoseconds(epochNanoseconds));
 	return combineIsoDateAndTimeRecord(
-		epochDaysToIsoDate(daysAndNanoseconds[0]),
-		balanceTime(0, 0, 0, 0, 0, daysAndNanoseconds[1]),
+		epochDaysToIsoDate(epochDaysAndRemainderNanoseconds(epochNanoseconds)[0]),
+		balanceTime(0, 0, 0, 0, 0, epochDaysAndRemainderNanoseconds(epochNanoseconds)[1]),
 	);
 }
 
