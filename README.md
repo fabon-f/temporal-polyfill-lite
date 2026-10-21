@@ -19,7 +19,7 @@ For users who need only Gregorian calendar (`iso8601` and `gregory`), you can us
 // as a ponyfill (without patching global variables)
 import { Intl, Temporal } from "temporal-polyfill-lite";
 
-// load the polyfill to global
+// load the polyfill to global if native implementation does not exist
 import "temporal-polyfill-lite/global";
 // load types to global if you need (optional)
 import "temporal-polyfill-lite/types/global";
