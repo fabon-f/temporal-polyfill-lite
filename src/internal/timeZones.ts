@@ -143,16 +143,16 @@ function bisectOffsetTransition(
 	return right;
 }
 
-function adjustWindowForEpoch(epochSecond: number): number {
-	if (epochSecond < -850000000) {
+function windowDaysForEpoch(epochSecond: number): number {
+	if (epochSecond < -8.5e8) {
 		// shortest interval of offset transition recorded in tz database before 1943-01-25 is 513 hours (DST in Hawaii in 1933)
-		return secondsPerDay * 21;
+		return 21;
 	}
-	if (epochSecond > -770000000 && epochSecond < 960000000) {
+	if (epochSecond > -7.7e8 && epochSecond < 9.6e8) {
 		// from 1945-08-08 to 2000-06-03, ditto
-		return secondsPerDay * 16;
+		return 16;
 	}
-	return secondsPerDay * 6.5;
+	return 6.5;
 }
 
 /** supports reversed range (start > end) */
@@ -168,7 +168,7 @@ function searchTimeZoneTransition(
 			currentStart = startEpochSeconds,
 			currentEnd = startEpochSeconds + window;
 		(endEpochSeconds - currentEnd) * direction > 0;
-		window = adjustWindowForEpoch(currentStart) * direction,
+		window = windowDaysForEpoch(currentStart) * secondsPerDay * direction,
 			currentStart = currentEnd,
 			currentEnd = clamp(currentEnd + window, -8.64e12, 8.64e12)
 	) {
