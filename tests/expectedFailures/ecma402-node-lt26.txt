@@ -4,3 +4,6 @@ intl402/DateTimeFormat/prototype/resolvedOptions/resolved-numbering-system-unico
 intl402/DurationFormat/prototype/format/duration-out-of-range-3.js
 intl402/DurationFormat/prototype/format/duration-out-of-range-4.js
 intl402/DurationFormat/prototype/resolvedOptions/resolved-numbering-system-unicode-extensions-and-options.js
+
+# Recent Node.js / V8 no longer canonicalizes CST6CDT, EST5EDT, MST7MDT, and PST8PDT in `Intl.DateTimeFormat`
+intl402/Temporal/ZonedDateTime/links.js
