@@ -47,7 +47,7 @@ import {
 	type EpochNanoseconds,
 } from "./epochNanoseconds.ts";
 import { ambiguousTime, invalidTimeZone } from "./errorMessages.ts";
-import { clamp, divFloor, modFloor } from "./math.ts";
+import { clamp, divFloor, isWithin, modFloor } from "./math.ts";
 import { NativeTemporal } from "./nativeTemporal.ts";
 import { createNullPrototypeObject } from "./object.ts";
 import { asciiCapitalize, asciiLowerCase, asciiUpperCase } from "./string.ts";
@@ -148,9 +148,13 @@ function windowDaysForEpoch(epochSecond: number): number {
 		// shortest interval of offset transition recorded in tz database before 1943-01-25 is 513 hours (DST in Hawaii in 1933)
 		return 21;
 	}
-	if (epochSecond > -7.7e8 && epochSecond < 9.6e8) {
+	if (isWithin(epochSecond, -7.7e8, 9.6e8)) {
 		// from 1945-08-08 to 2000-06-03, ditto
 		return 16;
+	}
+	if (isWithin(epochSecond, 1.29e9, 1.79e9)) {
+		// from 2010-11-17 to 2026-09-21, ditto
+		return 27;
 	}
 	return 6.5;
 }
