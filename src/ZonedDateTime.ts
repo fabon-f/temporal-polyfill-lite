@@ -204,13 +204,13 @@ export function interpretISODateTimeOffset(
 	const isoDateTime = combineIsoDateAndTimeRecord(isoDate, time);
 	if (
 		offsetBehaviour === offsetBehaviourWall ||
-		(offsetBehaviour === offsetBehaviourOption && offsetOption == offsetIgnore)
+		(offsetBehaviour === offsetBehaviourOption && offsetOption === offsetIgnore)
 	) {
 		return getEpochNanosecondsFor(timeZone, isoDateTime, disambiguation);
 	}
 	if (
 		offsetBehaviour === offsetBehaviourExact ||
-		(offsetBehaviour === offsetBehaviourOption && offsetOption == offsetUse)
+		(offsetBehaviour === offsetBehaviourOption && offsetOption === offsetUse)
 	) {
 		const balanced = balanceIsoDateTime(
 			isoDateTime.$isoDate.$year,
