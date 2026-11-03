@@ -576,7 +576,7 @@ export function nonIsoResolveFields(
 ): void {
 	const era = fields[calendarFieldKeys.$era];
 	const eraYear = fields[calendarFieldKeys.$eraYear];
-	let year = fields[calendarFieldKeys.$year];
+	const year = fields[calendarFieldKeys.$year];
 	const monthCode = fields[calendarFieldKeys.$monthCode];
 	const month = fields[calendarFieldKeys.$month];
 	const day = fields[calendarFieldKeys.$day];
