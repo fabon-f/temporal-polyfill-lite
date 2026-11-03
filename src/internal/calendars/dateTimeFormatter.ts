@@ -50,10 +50,7 @@ export function extractYearMonthDayForEastAsianLunisolarCalendar(
 	) as [string, string, string];
 	return {
 		$year: toIntegerIfIntegral(calendarIntegers[0]),
-		$monthCode: createMonthCode(
-			toIntegerIfIntegral(calendarIntegers[1]),
-			/bis/.test(calendarIntegers[1]),
-		),
+		$monthCode: createMonthCode(parseInt(calendarIntegers[1]), /bis/.test(calendarIntegers[1])),
 		$day: toIntegerIfIntegral(calendarIntegers[2]),
 	};
 }
