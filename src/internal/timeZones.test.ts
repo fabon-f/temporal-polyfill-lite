@@ -9,12 +9,12 @@ import {
 import {
 	getOffsetNanosecondsFor,
 	getTimeZoneTransition,
-	rejectNonIanaTimeZoneId,
 	normalizeIanaTimeZoneId,
 	type AvailableNamedTimeZoneIdentifier,
+	getAvailableNamedTimeZoneIdentifier,
 } from "./timeZones.ts";
 
-const ianaTimeZoneIds = Object.keys(tzdata.zones);
+const ianaTimeZoneIds = Object.keys(tzdata.zones).filter((timeZone) => timeZone !== "Factory");
 
 function dateToEpochNanoseconds(date: Date) {
 	return createEpochNanosecondsFromEpochMilliseconds(date.getTime());
@@ -73,14 +73,14 @@ const nonIanaTimeZoneIds = [
 ];
 
 test.for(nonIanaTimeZoneIds)(
-	"rejectNonIanaTimeZoneId and non-IANA time zones: %s",
+	"getAvailableNamedTimeZoneIdentifier and non-IANA time zones: %s",
 	(nonIanaTimeZoneId) => {
-		expect(() => rejectNonIanaTimeZoneId(nonIanaTimeZoneId)).toThrow(RangeError);
+		expect(() => getAvailableNamedTimeZoneIdentifier(nonIanaTimeZoneId)).toThrow(RangeError);
 	},
 );
 
-test.for(ianaTimeZoneIds)("rejectNonIanaTimeZoneId and IANA time zones: %s", (id) => {
-	expect(() => rejectNonIanaTimeZoneId(id)).not.toThrow();
+test.for(ianaTimeZoneIds)("getAvailableNamedTimeZoneIdentifier and IANA time zones: %s", (id) => {
+	expect(() => getAvailableNamedTimeZoneIdentifier(id)).not.toThrow();
 });
 
 test("getOffsetNanosecondsFor", () => {
