@@ -25,7 +25,9 @@ test.for(ianaTimeZoneIds)("time zone case normalization: %s", (timeZone) => {
 	expect(normalizeIanaTimeZoneId(timeZone.toUpperCase())).toEqual(timeZone);
 });
 
+// cf. https://github.com/unicode-org/icu/blob/main/icu4c/source/tools/tzcode/icuzones
 const nonIanaTimeZoneIds = [
+	// non-IANA zones which are available in Chrome and Node.js
 	"ACT",
 	"AET",
 	"AGT",
@@ -51,7 +53,7 @@ const nonIanaTimeZoneIds = [
 	"PST",
 	"SST",
 	"VST",
-	"SystemV",
+	// Removed "SystemV" zones which are still available in Chrome and Node.js
 	"SystemV/AST4ADT",
 	"SystemV/EST5EDT",
 	"SystemV/CST6CDT",
@@ -65,7 +67,9 @@ const nonIanaTimeZoneIds = [
 	"SystemV/PST8",
 	"SystemV/YST9",
 	"SystemV/HST10",
+	// Removed zones which are still available in Chrome, Safari, Node.js, and Bun
 	"US/Pacific-New",
+	"Canada/East-Saskatchewan",
 ];
 
 test.for(nonIanaTimeZoneIds)(
