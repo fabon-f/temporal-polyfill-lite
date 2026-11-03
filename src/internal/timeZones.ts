@@ -247,7 +247,7 @@ export function normalizeIanaTimeZoneId(id: string): string {
 }
 
 export function rejectNonIanaTimeZoneId(id: string) {
-	if (/^(?![cemw]et|[emh]st|prc|ro[ck]|uct|utc|gmt)[a-z]{3}$|systemv|^us.*w$/i.test(id)) {
+	if (/^(?![cemw]et|[emh]st|prc|ro[ck]|uct|utc|gmt)...$|systemv|^u.*w$/i.test(id)) {
 		throwRangeError(invalidTimeZone(id));
 	}
 }
