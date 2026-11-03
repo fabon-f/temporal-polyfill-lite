@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Improve performance of `Temporal.ZonedDateTime.prototype.getTimeZoneTransition` when the `ZonedDateTime` represents a recent date ([#48](https://github.com/fabon-f/temporal-polyfill-lite/pull/48))
+
+### Fixed
+
+- Reject the `Canada/East-Saskatchewan` time zone ID, which was removed from the IANA Time Zone Database, during `Temporal.ZonedDateTime` construction ([#49](https://github.com/fabon-f/temporal-polyfill-lite/pull/49))
+
 ## 1.0.0 (2026-10-21)
 
 ### Changed
