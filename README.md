@@ -5,7 +5,7 @@
 Lightweight Temporal polyfill.
 
 - **Small**: The bundle size is nearly 10% smaller than [temporal-polyfill](https://www.npmjs.com/package/temporal-polyfill), 60% smaller than [@js-temporal/polyfill](https://www.npmjs.com/package/@js-temporal/polyfill) if you need only Gregorian calendar (see [comparison](https://github.com/fabon-f/temporal-polyfill-comparison) for details).
-- **Spec-compliant**: It supports the latest spec, while other polyfills are based on the outdated spec (at least as of February 2026).
+- **Spec-compliant**: It supports the latest spec.
 
 # Usage
 
