@@ -511,17 +511,10 @@ export function calendarMonthDayToIsoReferenceDate(
 		assertNotUndefined(monthCode);
 		day = constrainDayForMonthCode(calendar, monthCode, day, overflow);
 	}
-	if (
-		isChineseDangi(calendar) &&
-		monthCode[1] &&
-		(monthCode[0] === 1 ||
-			monthCode[0] === 12 ||
-			(day === 30 && (monthCode[0] === 2 || isWithin(monthCode[0], 8, 11))))
-	) {
-		if (overflow === overflowReject) {
-			throwRangeError(invalidDateTime);
-		}
-		monthCode[1] = false;
+	if (isChineseDangi(calendar)) {
+		return epochDaysToIsoDate(
+			monthDayToEpochDaysChineseDangi(calendar, monthCode[0], monthCode[1], day, overflow),
+		);
 	}
 	if (isCopticOrEthiopic(calendar)) {
 		return epochDaysToIsoDate(monthDayToEpochDaysCopticOrEthiopic(monthCode[0], day));
@@ -537,11 +530,6 @@ export function calendarMonthDayToIsoReferenceDate(
 	}
 	if (calendar === "hebrew") {
 		return epochDaysToIsoDate(monthDayToEpochDaysHebrew(monthCode[0], monthCode[1], day));
-	}
-	if (isChineseDangi(calendar)) {
-		return epochDaysToIsoDate(
-			monthDayToEpochDaysChineseDangi(calendar, monthCode[0], monthCode[1], day),
-		);
 	}
 	return epochDaysToIsoDate(monthDayToEpochDaysIslamicTabular(calendar, monthCode[0], day));
 }

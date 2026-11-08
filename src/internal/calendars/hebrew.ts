@@ -120,6 +120,5 @@ export function monthDayToEpochDays(monthNumber: number, isLeapMonth: boolean, d
 		return calendarIntegersToEpochDays(5732, monthNumber, day);
 	}
 	// M05L doesn't appear here, so ordinal month equals to the number in a month code
-	const epochDays1 = calendarIntegersToEpochDays(5733, monthNumber, day);
-	return epochDays1 <= 1095 ? epochDays1 : calendarIntegersToEpochDays(5732, monthNumber, day);
+	return calendarIntegersToEpochDays(monthNumber * 30 + day < 147 ? 5733 : 5732, monthNumber, day);
 }

@@ -6,7 +6,10 @@ import {
 	type CalendarDateRecord,
 	type MonthCode,
 } from "../calendars.ts";
+import { overflowReject, type Overflow } from "../enum.ts";
+import { invalidDateTime } from "../errorMessages.ts";
 import { clamp, isWithin, modFloor, sign } from "../math.ts";
+import { throwRangeError } from "../utils.ts";
 import {
 	extractYearMonthDayForEastAsianLunisolarCalendar,
 	type EastAsianYearMonthDay,
@@ -146,8 +149,7 @@ export function epochDaysToDate(
 		},
 		$dayOfWeek: isoDayOfWeek(epochDaysToIsoDate(epochDays)),
 		get $dayOfYear() {
-			const year = yearMonthDay(calendar, epochDays).$year;
-			return epochDays - getNewYear(calendar, year) + 1;
+			return epochDays - getNewYear(calendar, yearMonthDay(calendar, epochDays).$year) + 1;
 		},
 		$weekOfYear: { $week: undefined, $year: undefined },
 		$daysInWeek: 7,
@@ -266,12 +268,26 @@ function getReferenceYearFromTable(
 	][monthNum - 2]!;
 }
 
+/** part of `NonISOMonthDayToISOReferenceDate` */
 export function monthDayToEpochDays(
 	calendar: "chinese" | "dangi",
 	monthNumber: number,
 	isLeapMonth: boolean,
 	day: number,
+	overflow: Overflow,
 ): number {
+	if (
+		isLeapMonth &&
+		(monthNumber === 1 ||
+			monthNumber === 12 ||
+			(day === 30 && (monthNumber === 2 || isWithin(monthNumber, 8, 11))))
+	) {
+		if (overflow === overflowReject) {
+			throwRangeError(invalidDateTime);
+		}
+		isLeapMonth = false;
+	}
+
 	const ordinalMonth =
 		isLeapMonth || (day === 30 && (monthNumber === 6 || monthNumber === 8)) || monthNumber === 12
 			? monthNumber + 1
