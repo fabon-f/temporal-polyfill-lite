@@ -4,7 +4,9 @@ import { assertUnreachable } from "../assertion.ts";
 import { isoDayOfWeek, type CalendarDateRecord } from "../calendars.ts";
 
 type TestableCalendarId =
+	| "chinese"
 	| "coptic"
+	| "dangi"
 	| "ethioaa"
 	| "ethiopic"
 	| "hebrew"
@@ -42,6 +44,12 @@ function calendarIdToIcuCalendarKind(calendar: TestableCalendarId): CalendarKind
 	if (calendar === "islamic-umalqura") {
 		return CalendarKind.HijriUmmAlQura;
 	}
+	if (calendar === "chinese") {
+		return CalendarKind.Chinese;
+	}
+	if (calendar === "dangi") {
+		return CalendarKind.Dangi;
+	}
 	assertUnreachable(calendar);
 }
 
@@ -70,7 +78,7 @@ export function epochDaysToDateByIcu(
 		calendar === "persian"
 	) {
 		inLeapYear = icuDate.daysInYear === 366;
-	} else if (calendar === "hebrew") {
+	} else if (calendar === "chinese" || calendar === "dangi" || calendar === "hebrew") {
 		inLeapYear = icuDate.monthsInYear === 13;
 	} else if (
 		calendar === "islamic-civil" ||
@@ -82,8 +90,8 @@ export function epochDaysToDateByIcu(
 		assertUnreachable(calendar);
 	}
 	return {
-		$era: icuDate.era,
-		$eraYear: icuDate.eraYearOrRelatedIso,
+		$era: icuDate.era !== "" ? icuDate.era : undefined,
+		$eraYear: icuDate.era !== "" ? icuDate.eraYearOrRelatedIso : undefined,
 		$year: icuDate.extendedYear,
 		$month: icuDate.ordinalMonth,
 		$monthCode: icuDate.monthCode,
