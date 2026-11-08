@@ -1,18 +1,19 @@
-import { Date, Calendar, CalendarKind } from "icu";
+import { Date, Calendar, CalendarKind, DateOverflow } from "icu";
 import { epochDaysToIsoDate } from "../abstractOperations.ts";
 import { assertUnreachable } from "../assertion.ts";
 import { isoDayOfWeek, type CalendarDateRecord } from "../calendars.ts";
 
-type RuleBasedCalendarId =
+type TestableCalendarId =
 	| "coptic"
 	| "ethioaa"
 	| "ethiopic"
 	| "hebrew"
 	| "indian"
 	| "islamic-civil"
-	| "islamic-tbla";
+	| "islamic-tbla"
+	| "persian";
 
-function calendarIdToIcuCalendarKind(calendar: RuleBasedCalendarId): CalendarKind {
+function calendarIdToIcuCalendarKind(calendar: TestableCalendarId): CalendarKind {
 	if (calendar === "coptic") {
 		return CalendarKind.Coptic;
 	}
@@ -34,14 +35,22 @@ function calendarIdToIcuCalendarKind(calendar: RuleBasedCalendarId): CalendarKin
 	if (calendar === "islamic-tbla") {
 		return CalendarKind.HijriTabularTypeIiThursday;
 	}
+	if (calendar === "persian") {
+		return CalendarKind.Persian;
+	}
+	assertUnreachable(calendar);
 }
 
 function epochDaysToRataDie(epochDays: number) {
 	return BigInt(epochDays) + 719163n;
 }
 
+function rataDieToEpochDays(rataDie: bigint) {
+	return Number(rataDie - 719163n);
+}
+
 export function epochDaysToDateByIcu(
-	calendar: RuleBasedCalendarId,
+	calendar: TestableCalendarId,
 	epochDays: number,
 ): CalendarDateRecord {
 	const icuDate = Date.fromRataDie(
@@ -53,7 +62,8 @@ export function epochDaysToDateByIcu(
 		calendar === "coptic" ||
 		calendar === "ethioaa" ||
 		calendar === "ethiopic" ||
-		calendar === "indian"
+		calendar === "indian" ||
+		calendar === "persian"
 	) {
 		inLeapYear = icuDate.daysInYear === 366;
 	} else if (calendar === "hebrew") {
@@ -79,4 +89,18 @@ export function epochDaysToDateByIcu(
 		$monthsInYear: icuDate.monthsInYear,
 		$inLeapYear: inLeapYear,
 	};
+}
+
+export function calendarIntegersToEpochDaysByIcu(
+	calendar: TestableCalendarId,
+	year: number,
+	month: number,
+	day: number,
+) {
+	const date = Date.fromFieldsInCalendar(
+		{ extendedYear: year, ordinalMonth: month, day },
+		{ overflow: DateOverflow.Reject },
+		new Calendar(calendarIdToIcuCalendarKind(calendar)),
+	);
+	return rataDieToEpochDays(date.rataDie);
 }
