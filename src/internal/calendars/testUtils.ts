@@ -11,6 +11,7 @@ type TestableCalendarId =
 	| "indian"
 	| "islamic-civil"
 	| "islamic-tbla"
+	| "islamic-umalqura"
 	| "persian";
 
 function calendarIdToIcuCalendarKind(calendar: TestableCalendarId): CalendarKind {
@@ -37,6 +38,9 @@ function calendarIdToIcuCalendarKind(calendar: TestableCalendarId): CalendarKind
 	}
 	if (calendar === "persian") {
 		return CalendarKind.Persian;
+	}
+	if (calendar === "islamic-umalqura") {
+		return CalendarKind.HijriUmmAlQura;
 	}
 	assertUnreachable(calendar);
 }
@@ -68,7 +72,11 @@ export function epochDaysToDateByIcu(
 		inLeapYear = icuDate.daysInYear === 366;
 	} else if (calendar === "hebrew") {
 		inLeapYear = icuDate.monthsInYear === 13;
-	} else if (calendar === "islamic-civil" || calendar === "islamic-tbla") {
+	} else if (
+		calendar === "islamic-civil" ||
+		calendar === "islamic-tbla" ||
+		calendar === "islamic-umalqura"
+	) {
 		inLeapYear = icuDate.daysInYear === 355;
 	} else {
 		assertUnreachable(calendar);
