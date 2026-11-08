@@ -293,11 +293,10 @@ export function monthDayToEpochDays(
 			? monthNumber + 1
 			: monthNumber;
 	if (monthNumber === 11 && !isLeapMonth) {
-		const firstCandidate = calendarIntegersToEpochDays(calendar, day === 30 ? 1969 : 1972, 11, day);
-		if (firstCandidate <= 1095) {
-			return firstCandidate;
+		if (isWithin(day, 27, 29)) {
+			return calendarIntegersToEpochDays(calendar, 1971, 12, day);
 		}
-		return calendarIntegersToEpochDays(calendar, 1971, 12, day);
+		return calendarIntegersToEpochDays(calendar, day === 30 ? 1969 : 1972, 11, day);
 	}
 	return calendarIntegersToEpochDays(
 		calendar,
