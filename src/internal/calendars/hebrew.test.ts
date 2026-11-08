@@ -6,6 +6,7 @@ import {
 	epochDaysToDate,
 	isLeapYear,
 	monthCodeToOrdinal,
+	monthDayToEpochDays,
 } from "./hebrew.ts";
 import { epochDaysToDateByIcu } from "./testUtils.ts";
 
@@ -132,6 +133,39 @@ test("daysInMonth", () => {
 	expect(daysInMonth(6, 11)).toEqual(29);
 	expect(daysInMonth(6, 12)).toEqual(30);
 	expect(daysInMonth(6, 13)).toEqual(29);
+});
+
+test("monthDayToEpochDays", () => {
+	expect(monthDayToEpochDays(1, false, 1)).toEqual(982);
+	expect(monthDayToEpochDays(1, false, 30)).toEqual(1011);
+	expect(monthDayToEpochDays(2, false, 1)).toEqual(1012);
+	expect(monthDayToEpochDays(2, false, 29)).toEqual(1040);
+	expect(monthDayToEpochDays(2, false, 30)).toEqual(686);
+	expect(monthDayToEpochDays(3, false, 1)).toEqual(1041);
+	expect(monthDayToEpochDays(3, false, 29)).toEqual(1069);
+	expect(monthDayToEpochDays(3, false, 30)).toEqual(716);
+	expect(monthDayToEpochDays(4, false, 1)).toEqual(1070);
+	expect(monthDayToEpochDays(4, false, 26)).toEqual(1095);
+	expect(monthDayToEpochDays(4, false, 27)).toEqual(743);
+	expect(monthDayToEpochDays(4, false, 29)).toEqual(745);
+	expect(monthDayToEpochDays(5, false, 1)).toEqual(746);
+	expect(monthDayToEpochDays(5, false, 30)).toEqual(775);
+	expect(monthDayToEpochDays(5, true, 1)).toEqual(37);
+	expect(monthDayToEpochDays(5, true, 30)).toEqual(66);
+	expect(monthDayToEpochDays(6, false, 1)).toEqual(776);
+	expect(monthDayToEpochDays(6, false, 29)).toEqual(804);
+	expect(monthDayToEpochDays(7, false, 1)).toEqual(805);
+	expect(monthDayToEpochDays(7, false, 30)).toEqual(834);
+	expect(monthDayToEpochDays(8, false, 1)).toEqual(835);
+	expect(monthDayToEpochDays(8, false, 29)).toEqual(863);
+	expect(monthDayToEpochDays(9, false, 1)).toEqual(864);
+	expect(monthDayToEpochDays(9, false, 30)).toEqual(893);
+	expect(monthDayToEpochDays(10, false, 1)).toEqual(894);
+	expect(monthDayToEpochDays(10, false, 29)).toEqual(922);
+	expect(monthDayToEpochDays(11, false, 1)).toEqual(923);
+	expect(monthDayToEpochDays(11, false, 30)).toEqual(952);
+	expect(monthDayToEpochDays(12, false, 1)).toEqual(953);
+	expect(monthDayToEpochDays(12, false, 29)).toEqual(981);
 });
 
 test("epochDaysToDate should match to ICU4X", () => {
