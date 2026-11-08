@@ -38,6 +38,8 @@ test("monthDayToEpochDays", () => {
 	expect(monthDayToEpochDays(10, 29)).toEqual(1070);
 	expect(monthDayToEpochDays(10, 30)).toEqual(362);
 	expect(monthDayToEpochDays(11, 1)).toEqual(1071);
+	expect(monthDayToEpochDays(11, 25)).toEqual(1095);
+	expect(monthDayToEpochDays(11, 26)).toEqual(742);
 	expect(monthDayToEpochDays(11, 29)).toEqual(745);
 	expect(monthDayToEpochDays(11, 30)).toEqual(746);
 	expect(monthDayToEpochDays(12, 1)).toEqual(747);
