@@ -118,13 +118,5 @@ export function constrainDay(year: number, month: number, day: number) {
 }
 
 export function monthDayToEpochDays(month: number, day: number) {
-	if (month === 12 && day === 30) {
-		for (let y = 1350; ; y--) {
-			if (isLeapYear(y)) {
-				return calendarIntegersToEpochDays(y, month, day);
-			}
-		}
-	}
-	const epochDays = calendarIntegersToEpochDays(1351, month, day);
-	return epochDays <= 1095 ? epochDays : calendarIntegersToEpochDays(1350, month, day);
+	return calendarIntegersToEpochDays(month * 31 + day < 321 ? 1351 : 1350, month, day);
 }
