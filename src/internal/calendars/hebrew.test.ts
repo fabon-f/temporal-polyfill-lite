@@ -8,7 +8,7 @@ import {
 	monthCodeToOrdinal,
 	monthDayToEpochDays,
 } from "./hebrew.ts";
-import { epochDaysToDateByIcu } from "./testUtils.ts";
+import { calendarIntegersToEpochDaysByIcu, epochDaysToDateByIcu } from "./testUtils.ts";
 
 test("isLeapYear", () => {
 	for (const yearMod19 of [0, 3, 6, 8, 11, 14, 17]) {
@@ -178,10 +178,10 @@ test("epochDaysToDate should match to ICU4X", () => {
 describe("calendarIntegersToEpochDays should match ICU4X", () => {
 	test("valid year range", () => {
 		for (let year = -268058; year <= 279518; year++) {
-			const dateByIcu = epochDaysToDateByIcu("hebrew", calendarIntegersToEpochDays(year, 1, 1));
 			// use `assert` instead of `expect` for better performance
-			assert(
-				dateByIcu.$year === year && dateByIcu.$month === 1 && dateByIcu.$day === 1,
+			assert.equal(
+				calendarIntegersToEpochDays(year, 1, 1),
+				calendarIntegersToEpochDaysByIcu("hebrew", year, 1, 1),
 				`mismatch in year ${year}`,
 			);
 		}
@@ -191,25 +191,17 @@ describe("calendarIntegersToEpochDays should match ICU4X", () => {
 		// normal years (deficient, regular, complete)
 		for (const year of [5781, 5786, 5788]) {
 			for (let month = 1; month <= 12; month++) {
-				const dateByIcu = epochDaysToDateByIcu(
-					"hebrew",
-					calendarIntegersToEpochDays(year, month, 1),
+				expect(calendarIntegersToEpochDays(year, month, 1)).toEqual(
+					calendarIntegersToEpochDaysByIcu("hebrew", year, month, 1),
 				);
-				expect(dateByIcu.$year).toEqual(year);
-				expect(dateByIcu.$month).toEqual(month);
-				expect(dateByIcu.$day).toEqual(1);
 			}
 		}
 		// leap years (deficient, regular, complete)
 		for (const year of [5784, 5782, 5787]) {
 			for (let month = 1; month <= 13; month++) {
-				const dateByIcu = epochDaysToDateByIcu(
-					"hebrew",
-					calendarIntegersToEpochDays(year, month, 1),
+				expect(calendarIntegersToEpochDays(year, month, 1)).toEqual(
+					calendarIntegersToEpochDaysByIcu("hebrew", year, month, 1),
 				);
-				expect(dateByIcu.$year).toEqual(year);
-				expect(dateByIcu.$month).toEqual(month);
-				expect(dateByIcu.$day).toEqual(1);
 			}
 		}
 	});
