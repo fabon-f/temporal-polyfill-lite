@@ -228,30 +228,27 @@ function getReferenceYearFromTable(
 	isLeapMonth: boolean,
 	day: number,
 ): number {
-	if (monthNum === 12) {
-		return 1971;
-	}
-	if (
-		!isLeapMonth &&
-		(day < 30 ||
-			monthNum === 2 ||
-			monthNum === 5 ||
-			monthNum === 7 ||
-			monthNum === 9 ||
-			monthNum === 10)
-	) {
+	if (!isLeapMonth && day < 30) {
+		if (monthNum * 30 + day > 356) {
+			return 1971;
+		}
 		return 1972;
 	}
 	if (!isLeapMonth) {
-		const referenceYear =
-			monthNum === 1 || monthNum === 4
-				? 1970
-				: monthNum === 3
-					? calendar === "chinese"
-						? 1966
-						: 1968
-					: 1971;
-		return referenceYear;
+		return [
+			1970,
+			1972,
+			calendar === "chinese" ? 1966 : 1968,
+			1970,
+			1972,
+			1971,
+			1972,
+			1971,
+			1972,
+			1972,
+			1969,
+			1971,
+		][monthNum - 1]!;
 	}
 	// leap months
 	return [
@@ -288,20 +285,11 @@ export function monthDayToEpochDays(
 		isLeapMonth = false;
 	}
 
-	const ordinalMonth =
-		isLeapMonth || (day === 30 && (monthNumber === 6 || monthNumber === 8)) || monthNumber === 12
-			? monthNumber + 1
-			: monthNumber;
-	if (monthNumber === 11 && !isLeapMonth) {
-		if (isWithin(day, 27, 29)) {
-			return calendarIntegersToEpochDays(calendar, 1971, 12, day);
-		}
-		return calendarIntegersToEpochDays(calendar, day === 30 ? 1969 : 1972, 11, day);
-	}
+	const referenceYear = getReferenceYearFromTable(calendar, monthNumber, isLeapMonth, day);
 	return calendarIntegersToEpochDays(
 		calendar,
-		getReferenceYearFromTable(calendar, monthNumber, isLeapMonth, day),
-		ordinalMonth,
+		referenceYear,
+		isLeapMonth || referenceYear === 1971 ? monthNumber + 1 : monthNumber,
 		day,
 	);
 }
