@@ -577,24 +577,15 @@ export function constrainMonthCode(
 	monthCode: MonthCode,
 	overflow: Overflow,
 ): MonthCode {
-	if (isChineseDangi(calendar)) {
-		const constrainedMonthCode = constrainMonthCodeChineseDangi(
-			calendar,
-			arithmeticYear,
-			monthCode,
-		);
-		return monthCode !== constrainedMonthCode && overflow === overflowReject
-			? throwRangeError(invalidDateTime)
-			: constrainedMonthCode;
-	}
-	if (calendar === "hebrew") {
-		return monthCode[1] && !isLeapYearHebrew(arithmeticYear)
-			? overflow === overflowReject
-				? throwRangeError(invalidDateTime)
-				: [6, false]
+	const constrainedMonthCode: MonthCode = isChineseDangi(calendar)
+		? constrainMonthCodeChineseDangi(calendar, arithmeticYear, monthCode)
+		: calendar === "hebrew" && monthCode[1] && !isLeapYearHebrew(arithmeticYear)
+			? [6, false]
 			: monthCode;
+	if (monthCode !== constrainedMonthCode && overflow === overflowReject) {
+		throwRangeError(invalidDateTime);
 	}
-	return monthCode;
+	return constrainedMonthCode;
 }
 
 /** `MonthCodeToOrdinal` */

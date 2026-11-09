@@ -228,13 +228,13 @@ function getReferenceYearFromTable(
 	isLeapMonth: boolean,
 	day: number,
 ): number {
-	if (!isLeapMonth && day < 30) {
-		if (monthNum * 30 + day > 356) {
-			return 1971;
-		}
-		return 1972;
-	}
 	if (!isLeapMonth) {
+		if (day < 30) {
+			if (monthNum * 30 + day > 356) {
+				return 1971;
+			}
+			return 1972;
+		}
 		return [
 			1970,
 			1972,
@@ -275,9 +275,7 @@ export function monthDayToEpochDays(
 ): number {
 	if (
 		isLeapMonth &&
-		(monthNumber === 1 ||
-			monthNumber === 12 ||
-			(day === 30 && (monthNumber === 2 || isWithin(monthNumber, 8, 11))))
+		(monthNumber === 1 || monthNumber === 12 || (day === 30 && !isWithin(monthNumber, 3, 7)))
 	) {
 		if (overflow === overflowReject) {
 			throwRangeError(invalidDateTime);
