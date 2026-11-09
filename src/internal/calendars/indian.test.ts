@@ -1,7 +1,12 @@
 import { expect, test } from "vitest";
 import { isoDateToEpochDays } from "../abstractOperations.ts";
 import type { CalendarDateRecord } from "../calendars.ts";
-import { calendarIntegersToEpochDays, daysInMonth, epochDaysToDate } from "./indian.ts";
+import {
+	calendarIntegersToEpochDays,
+	daysInMonth,
+	epochDaysToDate,
+	monthDayToEpochDays,
+} from "./indian.ts";
 import { epochDaysToDateByIcu } from "./testUtils.ts";
 
 function epochDay(year: number, month: number, day: number) {
@@ -139,6 +144,36 @@ test("daysInMonth", () => {
 	expect(daysInMonth(1894, 10)).toEqual(30);
 	expect(daysInMonth(1894, 11)).toEqual(30);
 	expect(daysInMonth(1894, 12)).toEqual(30);
+});
+
+test("monthDayToEpochDays", () => {
+	expect(monthDayToEpochDays(1, 1)).toBe(epochDay(1972, 3, 21));
+	expect(monthDayToEpochDays(1, 30)).toBe(epochDay(1972, 4, 19));
+	expect(monthDayToEpochDays(1, 31)).toBe(epochDay(1972, 4, 20));
+	expect(monthDayToEpochDays(2, 1)).toBe(epochDay(1972, 4, 21));
+	expect(monthDayToEpochDays(2, 31)).toBe(epochDay(1972, 5, 21));
+	expect(monthDayToEpochDays(3, 1)).toBe(epochDay(1972, 5, 22));
+	expect(monthDayToEpochDays(3, 31)).toBe(epochDay(1972, 6, 21));
+	expect(monthDayToEpochDays(4, 1)).toBe(epochDay(1972, 6, 22));
+	expect(monthDayToEpochDays(4, 31)).toBe(epochDay(1972, 7, 22));
+	expect(monthDayToEpochDays(5, 1)).toBe(epochDay(1972, 7, 23));
+	expect(monthDayToEpochDays(5, 31)).toBe(epochDay(1972, 8, 22));
+	expect(monthDayToEpochDays(6, 1)).toBe(epochDay(1972, 8, 23));
+	expect(monthDayToEpochDays(6, 31)).toBe(epochDay(1972, 9, 22));
+	expect(monthDayToEpochDays(7, 1)).toBe(epochDay(1972, 9, 23));
+	expect(monthDayToEpochDays(7, 30)).toBe(epochDay(1972, 10, 22));
+	expect(monthDayToEpochDays(8, 1)).toBe(epochDay(1972, 10, 23));
+	expect(monthDayToEpochDays(8, 30)).toBe(epochDay(1972, 11, 21));
+	expect(monthDayToEpochDays(9, 1)).toBe(epochDay(1972, 11, 22));
+	expect(monthDayToEpochDays(9, 30)).toBe(epochDay(1972, 12, 21));
+	expect(monthDayToEpochDays(10, 1)).toBe(epochDay(1972, 12, 22));
+	expect(monthDayToEpochDays(10, 10)).toBe(epochDay(1972, 12, 31));
+	expect(monthDayToEpochDays(10, 11)).toBe(epochDay(1972, 1, 1));
+	expect(monthDayToEpochDays(10, 30)).toBe(epochDay(1972, 1, 20));
+	expect(monthDayToEpochDays(11, 1)).toBe(epochDay(1972, 1, 21));
+	expect(monthDayToEpochDays(11, 30)).toBe(epochDay(1972, 2, 19));
+	expect(monthDayToEpochDays(12, 1)).toBe(epochDay(1972, 2, 20));
+	expect(monthDayToEpochDays(12, 30)).toBe(epochDay(1972, 3, 20));
 });
 
 test("epochDaysToDate should match ICU4X", () => {
