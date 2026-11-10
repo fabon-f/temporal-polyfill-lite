@@ -28,7 +28,7 @@ function getFirstDayOfMonth(year: number, month: number): number {
 	// All existing implementation (original ICU4C, Apple's ICU4C, and ICU4X) falls back to "islamic-civil" calendar where year < 1300 or year > 1600,
 	// and this behavior is explicitly defined in the Intl era and month code proposal
 	if (isWithin(year * 12 + month, 15540, 19260)) {
-		return civilEpochDays + 14 - getYearMonthDay(civilEpochDays + 14).$day + 1;
+		return civilEpochDays + 6 - getYearMonthDay(civilEpochDays + 5).$day;
 	}
 	return civilEpochDays;
 }

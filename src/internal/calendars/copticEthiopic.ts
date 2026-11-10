@@ -4,7 +4,7 @@ import { divFloor, modFloor } from "../math.ts";
 
 function epoch(calendar: "coptic" | "ethioaa" | "ethiopic") {
 	// [0001, M01, 01] -> 1th day
-	return calendar === "coptic" ? -615924 : calendar === "ethioaa" ? -2725608 : -716733;
+	return calendar === "coptic" ? -615924 : calendar === "ethiopic" ? -716733 : -2725608;
 }
 
 function mathematicalInLeapYear(year: number) {

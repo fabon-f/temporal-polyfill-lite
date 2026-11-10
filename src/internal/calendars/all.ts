@@ -725,7 +725,7 @@ function constrainDayForMonthCode(
 			? constrainDay(calendar, 3, 6, day, overflow)
 			: constrainDay(calendar, 1, monthCode[0], day, overflow);
 	}
-	return constrainDay(calendar, isCopticOrEthiopic(calendar) ? 3 : 2, monthCode[0], day, overflow);
+	return constrainDay(calendar, +isCopticOrEthiopic(calendar) + 2, monthCode[0], day, overflow);
 }
 
 function constrainMonth(
@@ -758,9 +758,8 @@ function balanceNonIsoYearMonth(
 	if (isChineseDangi(calendar)) {
 		return balanceYearMonthChineseDangi(calendar, arithmeticYear, ordinalMonth);
 	}
-	const monthsInYear = isCopticOrEthiopic(calendar) ? 13 : 12;
 	return {
-		$year: arithmeticYear + divFloor(ordinalMonth - 1, monthsInYear),
-		$month: modFloor(ordinalMonth - 1, monthsInYear) + 1,
+		$year: arithmeticYear + divFloor(ordinalMonth - 1, +isCopticOrEthiopic(calendar) + 12),
+		$month: modFloor(ordinalMonth - 1, +isCopticOrEthiopic(calendar) + 12) + 1,
 	};
 }

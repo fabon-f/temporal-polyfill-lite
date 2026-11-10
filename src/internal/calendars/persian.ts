@@ -101,7 +101,7 @@ export function epochDaysToDate(epochDays: number): CalendarDateRecord {
 			return daysInMonth(date.$year, date.$month);
 		},
 		get $daysInYear() {
-			return isLeapYear(getDate(epochDays).$year) ? 366 : 365;
+			return +isLeapYear(getDate(epochDays).$year) + 365;
 		},
 		$monthsInYear: 12,
 		get $inLeapYear() {
@@ -118,5 +118,5 @@ export function constrainDay(year: number, month: number, day: number) {
 }
 
 export function monthDayToEpochDays(month: number, day: number) {
-	return calendarIntegersToEpochDays(month * 31 + day < 321 ? 1351 : 1350, month, day);
+	return calendarIntegersToEpochDays(+(month * 31 + day < 321) + 1350, month, day);
 }

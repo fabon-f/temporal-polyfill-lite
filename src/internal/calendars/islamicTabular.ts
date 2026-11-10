@@ -3,7 +3,7 @@ import { createMonthCode, isoDayOfWeek, type CalendarDateRecord } from "../calen
 import { divFloor, modFloor } from "../math.ts";
 
 function epoch(calendar: "islamic-civil" | "islamic-tbla") {
-	return -492149 + +(calendar === "islamic-civil");
+	return +(calendar === "islamic-civil") - 492149;
 }
 
 function isLeapYear(arithmeticYear: number) {
@@ -11,7 +11,7 @@ function isLeapYear(arithmeticYear: number) {
 }
 
 export function daysInMonth(year: number, month: number) {
-	return month === 12 ? (isLeapYear(year) ? 30 : 29) : 29 + (month % 2);
+	return month === 12 && isLeapYear(year) ? 30 : 29 + (month % 2);
 }
 
 export function calendarIntegersToEpochDays(
@@ -23,11 +23,10 @@ export function calendarIntegersToEpochDays(
 	return (
 		epoch(calendar) +
 		(arithmeticYear - 1) * 354 +
-		divFloor((arithmeticYear + 3) * 11, 30) -
-		1 +
+		divFloor((arithmeticYear + 3) * 11, 30) +
 		Math.ceil((ordinalMonth - 1) * 29.5) +
 		day -
-		1
+		2
 	);
 }
 
@@ -35,7 +34,7 @@ export function epochDaysToDate(
 	calendar: "islamic-civil" | "islamic-tbla",
 	epochDays: number,
 ): CalendarDateRecord {
-	const year = divFloor((epochDays - epoch(calendar) - 5315) * 30, 10631) + 16;
+	const year = divFloor((epochDays - epoch(calendar)) * 30 + 15, 10631) + 1;
 	let month = 12;
 	for (; calendarIntegersToEpochDays(calendar, year, month, 1) > epochDays; month--) {}
 	return {
@@ -66,7 +65,7 @@ export function monthDayToEpochDays(
 	}
 	return calendarIntegersToEpochDays(
 		calendar,
-		1391 + +(month * 30 + day <= 356 - +(calendar === "islamic-civil")),
+		+(month * 30 + day <= -(calendar === "islamic-civil") + 356) + 1391,
 		month,
 		day,
 	);
