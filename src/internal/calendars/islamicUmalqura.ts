@@ -27,7 +27,7 @@ function getFirstDayOfMonth(year: number, month: number): number {
 	);
 	// All existing implementation (original ICU4C, Apple's ICU4C, and ICU4X) falls back to "islamic-civil" calendar where year < 1300 or year > 1600,
 	// and this behavior is explicitly defined in the Intl era and month code proposal
-	if (isWithin(year * 12 + month, 15540, 19260)) {
+	if (isWithin(year, 1300, 1600)) {
 		return civilEpochDays + 6 - getYearMonthDay(civilEpochDays + 5).$day;
 	}
 	return civilEpochDays;
@@ -46,9 +46,8 @@ export function calendarIntegersToEpochDays(
 }
 
 export function epochDaysToDate(epochDays: number): CalendarDateRecord {
-	const civilDate = epochDaysToDateIslamicTabular("islamic-civil", epochDays);
-	if (epochDays < -33600 || epochDays > 76200) {
-		return civilDate;
+	if (!isWithin(epochDays, -32000, 75000)) {
+		return epochDaysToDateIslamicTabular("islamic-civil", epochDays);
 	}
 	return {
 		$era: "ah",
@@ -100,12 +99,9 @@ export function constrainDay(year: number, month: number, day: number) {
 }
 
 export function monthDayToEpochDays(month: number, day: number): number {
-	for (let year = 1392; ; year--) {
+	for (let year = +(month * 30 + day < 356) + 1391; ; year--) {
 		if (constrainDay(year, month, day) === day) {
-			const epoch = calendarIntegersToEpochDays(year, month, day);
-			if (epoch <= 1095) {
-				return epoch;
-			}
+			return calendarIntegersToEpochDays(year, month, day);
 		}
 	}
 }

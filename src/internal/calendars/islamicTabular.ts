@@ -65,7 +65,7 @@ export function monthDayToEpochDays(
 	}
 	return calendarIntegersToEpochDays(
 		calendar,
-		+(month * 30 + day <= -(calendar === "islamic-civil") + 356) + 1391,
+		+(month * 30 + day < -(calendar === "islamic-civil") + 357) + 1391,
 		month,
 		day,
 	);

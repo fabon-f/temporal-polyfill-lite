@@ -34,10 +34,9 @@ export function calendarIntegersToEpochDays(
 }
 
 export function epochDaysToDate(epochDays: number): CalendarDateRecord {
-	const isoDate = epochDaysToIsoDate(epochDays);
+	const isoDateYear = epochDaysToIsoDate(epochDays).$year;
 	const arithmeticYear =
-		firstDayOfYear(isoDate.$year - 78) <= epochDays ? isoDate.$year - 78 : isoDate.$year - 79;
-	const mathematicalInLeapYearForYear = mathematicalInLeapYear(arithmeticYear);
+		firstDayOfYear(isoDateYear - 78) <= epochDays ? isoDateYear - 78 : isoDateYear - 79;
 	let month = 12;
 	for (; calendarIntegersToEpochDays(arithmeticYear, month, 1) > epochDays; month--) {}
 	return {
@@ -47,14 +46,14 @@ export function epochDaysToDate(epochDays: number): CalendarDateRecord {
 		$month: month,
 		$monthCode: createMonthCode(month),
 		$day: epochDays - calendarIntegersToEpochDays(arithmeticYear, month, 1) + 1,
-		$dayOfWeek: isoDayOfWeek(isoDate),
+		$dayOfWeek: isoDayOfWeek(epochDaysToIsoDate(epochDays)),
 		$dayOfYear: epochDays - firstDayOfYear(arithmeticYear) + 1,
 		$weekOfYear: { $week: undefined, $year: undefined },
 		$daysInWeek: 7,
 		$daysInMonth: daysInMonth(arithmeticYear, month),
-		$daysInYear: 365 + mathematicalInLeapYearForYear,
+		$daysInYear: 365 + mathematicalInLeapYear(arithmeticYear),
 		$monthsInYear: 12,
-		$inLeapYear: !!mathematicalInLeapYearForYear,
+		$inLeapYear: !!mathematicalInLeapYear(arithmeticYear),
 	};
 }
 
