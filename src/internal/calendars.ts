@@ -176,7 +176,10 @@ export function createMonthCode(monthNumber: number, isLeapMonth = false): strin
 	return `M${toZeroPaddedDecimalString(monthNumber, 2)}${isLeapMonth ? "L" : ""}`;
 }
 
-const fieldValues = {
+const fieldValues: Record<
+	CalendarFieldKey,
+	[conversion: (value: unknown) => any, defaultValue?: any]
+> = {
 	[calendarFieldKeys.$era]: [toString],
 	[calendarFieldKeys.$eraYear]: [toIntegerWithTruncation],
 	[calendarFieldKeys.$year]: [toIntegerWithTruncation],
@@ -191,7 +194,12 @@ const fieldValues = {
 	[calendarFieldKeys.$nanosecond]: [toIntegerWithTruncation, 0],
 	[calendarFieldKeys.$offset]: [toOffsetString],
 	[calendarFieldKeys.$timeZone]: [toTemporalTimeZoneIdentifier],
-} as Record<CalendarFieldKey, [conversion: (value: any) => any, defaultValue?: any]>;
+} satisfies {
+	[K in CalendarFieldKey]: [
+		conversion: (value: any) => NonNullable<CalendarFieldsRecord[K]>,
+		defaultValue?: NonNullable<CalendarFieldsRecord[K]>,
+	];
+};
 
 /** `PrepareCalendarFields` */
 export function prepareCalendarFields(

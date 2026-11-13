@@ -62,8 +62,8 @@ export type AvailableTimeZoneIdentifier =
 	| AvailableNamedTimeZoneIdentifier
 	| OffsetTimeZoneIdentifier;
 
-const intlCache = createNullPrototypeObject() as Record<string, Intl.DateTimeFormat>;
-const timeZoneCache = createNullPrototypeObject() as Record<string, LruCacheMap<number, number>>;
+const intlCache: Record<string, Intl.DateTimeFormat> = createNullPrototypeObject();
+const timeZoneCache: Record<string, LruCacheMap<number, number>> = createNullPrototypeObject();
 
 function clampEpochSecond(epochSecond: number): number {
 	// avoid CE / BCE confusion while retrieving offset info, clamp to 1653 BC (no offset transition in pre-modern years)
