@@ -144,7 +144,7 @@ export interface CalendarFieldsRecord {
 	eraYear?: number | undefined;
 	year?: number | undefined;
 	month?: number | undefined;
-	monthCode?: string | undefined;
+	monthCode?: MonthCode | undefined;
 	day?: number | undefined;
 	hour?: number | undefined;
 	minute?: number | undefined;
@@ -184,7 +184,7 @@ const fieldValues: Record<
 	[calendarFieldKeys.$eraYear]: [toIntegerWithTruncation],
 	[calendarFieldKeys.$year]: [toIntegerWithTruncation],
 	[calendarFieldKeys.$month]: [toPositiveIntegerWithTruncation],
-	[calendarFieldKeys.$monthCode]: [(arg: unknown) => createMonthCode(...parseMonthCode(arg))],
+	[calendarFieldKeys.$monthCode]: [(arg: unknown) => parseMonthCode(arg)],
 	[calendarFieldKeys.$day]: [toPositiveIntegerWithTruncation],
 	[calendarFieldKeys.$hour]: [toIntegerWithTruncation, 0],
 	[calendarFieldKeys.$minute]: [toIntegerWithTruncation, 0],
@@ -550,19 +550,16 @@ export function isoResolveFields(
 	fields: CalendarFieldsRecord,
 	type: typeof DATE | typeof YEAR_MONTH | typeof MONTH_DAY,
 ) {
+	const monthCode = fields[calendarFieldKeys.$monthCode];
 	if (type !== MONTH_DAY && fields[calendarFieldKeys.$year] === undefined) {
 		throwTypeError(missingField(calendarFieldKeys.$year));
 	}
 	if (type !== YEAR_MONTH && fields[calendarFieldKeys.$day] === undefined) {
 		throwTypeError(missingField(calendarFieldKeys.$day));
 	}
-	if (
-		fields[calendarFieldKeys.$monthCode] === undefined &&
-		fields[calendarFieldKeys.$month] === undefined
-	) {
+	if (monthCode === undefined && fields[calendarFieldKeys.$month] === undefined) {
 		throwTypeError(missingField("month, monthCode"));
 	}
-	const monthCode = mapUnlessUndefined(fields[calendarFieldKeys.$monthCode], parseMonthCode);
 	if (monthCode) {
 		if (
 			monthCode[0] > 12 ||
@@ -614,37 +611,32 @@ export function nonIsoResolveFields(
 	}
 	if (calendarSupportsEraForNonIsoCalendars(calendar) && eraYear !== undefined) {
 		assertNotUndefined(era);
-		const arithmeticYear = calendarDateArithmeticYearForEraYear(
+		fields[calendarFieldKeys.$year] = calendarDateArithmeticYearForEraYear(
 			calendar,
 			canonicalizeEraInCalendar(calendar, era),
 			eraYear,
 		);
-		if (year !== undefined && year !== arithmeticYear) {
+		if (year !== undefined && year !== fields[calendarFieldKeys.$year]) {
 			throwRangeError(yearMismatch);
 		}
-		fields[calendarFieldKeys.$year] = arithmeticYear;
 	}
 	fields[calendarFieldKeys.$era] = fields[calendarFieldKeys.$eraYear] = undefined;
 	if (isIsoLikeCalendar(calendar)) {
 		isoResolveFields(fields, type);
 	} else if (monthCode) {
-		const parsedMonthCode = parseMonthCode(monthCode);
-		if (!isValidMonthCodeForCalendar(calendar, parsedMonthCode)) {
-			throwRangeError(invalidMonthCode(monthCode));
-		}
 		const year = fields[calendarFieldKeys.$year];
+		if (!isValidMonthCodeForCalendar(calendar, monthCode)) {
+			throwRangeError(invalidMonthCode(createMonthCode(...monthCode)));
+		}
 		if (year !== undefined) {
-			const constrainedMonthCode = constrainMonthCode(
+			fields[calendarFieldKeys.$month] = monthCodeToOrdinal(
 				calendar,
 				year,
-				parsedMonthCode,
-				overflowConstrain,
+				constrainMonthCode(calendar, year, monthCode, overflowConstrain),
 			);
-			const actualMonth = monthCodeToOrdinal(calendar, year, constrainedMonthCode);
-			if (month !== undefined && month !== actualMonth) {
+			if (month !== undefined && month !== fields[calendarFieldKeys.$month]) {
 				throwRangeError(monthMismatch);
 			}
-			fields[calendarFieldKeys.$month] = actualMonth;
 		}
 	}
 }

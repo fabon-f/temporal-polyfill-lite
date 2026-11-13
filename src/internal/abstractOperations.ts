@@ -33,6 +33,7 @@ import {
 	calendarIsoToDate,
 	canonicalizeCalendar,
 	getTemporalCalendarIdentifierWithIsoDefault,
+	parseMonthCode,
 	prepareCalendarFields,
 	type CalendarFieldsRecord,
 	type SupportedCalendars,
@@ -731,7 +732,7 @@ export function isoDateToFields(
 	const date = calendarIsoToDate(calendar, isoDate);
 	return createNullPrototypeObject({
 		[calendarFieldKeys.$year]: type === MONTH_DAY ? undefined : date.$year,
-		[calendarFieldKeys.$monthCode]: date.$monthCode,
+		[calendarFieldKeys.$monthCode]: parseMonthCode(date.$monthCode),
 		[calendarFieldKeys.$day]: type === YEAR_MONTH ? undefined : date.$day,
 	});
 }

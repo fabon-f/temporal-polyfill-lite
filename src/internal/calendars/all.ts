@@ -362,7 +362,7 @@ export function calendarDateToIso(
 ): IsoDateRecord {
 	const year = fields[calendarFieldKeys.$year];
 	const month = fields[calendarFieldKeys.$month];
-	const monthCode = mapUnlessUndefined(fields[calendarFieldKeys.$monthCode], parseMonthCode);
+	const monthCode = fields[calendarFieldKeys.$monthCode];
 	const day = fields[calendarFieldKeys.$day];
 	assertNotUndefined(year);
 	assertNotUndefined(month);
@@ -491,7 +491,7 @@ export function calendarMonthDayToIsoReferenceDate(
 	}
 	const year = fields[calendarFieldKeys.$year];
 	let month = fields[calendarFieldKeys.$month];
-	let monthCode = mapUnlessUndefined(fields[calendarFieldKeys.$monthCode], parseMonthCode);
+	let monthCode = fields[calendarFieldKeys.$monthCode];
 	let day = fields[calendarFieldKeys.$day];
 	assertNotUndefined(day);
 	if (year !== undefined) {
