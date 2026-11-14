@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Preserve the names of class expressions for Temporal and Intl classes during the build process, instead of setting the names manually ([#53](https://github.com/fabon-f/temporal-polyfill-lite/pull/53)).
+	- This is not a breaking change for most users, but it may affect a small number of users who minify the polyfill and depend on the `name` property of Temporal classes or `Intl.DurationFormat`.
+
 ## 1.0.1 (2026-11-09)
 
 ### Changed
