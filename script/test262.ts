@@ -54,9 +54,7 @@ await mkdir("dist", {});
 await writeFile(
 	"dist/bundle.js",
 	await bundle(values.mode, {
-		assertion: false,
-		minify: true,
-		beautify: true,
+		minify: false,
 		overwriteGlobal: true,
 	}),
 );
