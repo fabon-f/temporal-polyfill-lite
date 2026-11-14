@@ -1,26 +1,24 @@
-import { copyFile, mkdir, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, rm, writeFile } from "node:fs/promises";
 import strip from "@rollup/plugin-strip";
 import terser from "@rollup/plugin-terser";
 import { format } from "oxfmt";
 import { rolldown, type RolldownPluginOption } from "rolldown";
 import unpluginIsolatedDecl from "unplugin-isolated-decl/rolldown";
 
-function createTerserPlugin(beautify: boolean) {
-	// @ts-expect-error https://github.com/rollup/plugins/issues/1860
-	return terser({
-		compress: {
-			ecma: 2015,
-			unsafe_arrows: true,
-			hoist_funs: true,
+// @ts-expect-error https://github.com/rollup/plugins/issues/1860
+const terserPlugin = terser({
+	compress: {
+		ecma: 2015,
+		unsafe_arrows: true,
+		hoist_funs: true,
+	},
+	mangle: {
+		keep_fnames: true,
+		properties: {
+			regex: /^(_|\$)/,
 		},
-		mangle: {
-			keep_fnames: beautify,
-			properties: {
-				regex: /^(_|\$)/,
-			},
-		},
-	});
-}
+	},
+});
 
 // @ts-expect-error
 const stripPlugin = strip({
@@ -49,53 +47,64 @@ const oxfmtPlugin = {
 } satisfies RolldownPluginOption;
 
 interface Options {
-	minify: boolean;
 	assertion: boolean;
-	beautify?: boolean;
 }
 
-function plugins({ minify, assertion, beautify }: Options) {
+function plugins({ assertion }: Options) {
 	const inputPlugins = [];
 	const outputPlugins = [];
 	if (!assertion) {
 		inputPlugins.push(wrappedStripPlugin);
 	}
-	if (minify) {
-		const terser = createTerserPlugin(!!beautify);
-		inputPlugins.push(terser);
-		outputPlugins.push(terser);
-		if (beautify) {
-			outputPlugins.push(oxfmtPlugin);
-		}
-	}
+	inputPlugins.push(terserPlugin);
+	outputPlugins.push(terserPlugin);
+	outputPlugins.push(oxfmtPlugin);
 	return {
 		input: inputPlugins,
 		output: outputPlugins,
 	};
 }
 
+async function createTemporaryFile(path: string, content: string) {
+	await writeFile(path, content);
+	return {
+		async [Symbol.asyncDispose]() {
+			await rm(path, { force: true });
+		},
+	};
+}
+
 export async function bundle(
 	mode: "basic" | "full",
-	options: Options & { overwriteGlobal?: boolean },
+	options: { overwriteGlobal?: boolean; minify: boolean },
 ) {
-	const { input, output } = plugins(options);
+	await build();
+
+	const moduleEntry =
+		mode === "basic" ? "temporal-polyfill-lite" : "temporal-polyfill-lite/calendars-full";
+	const code = options.overwriteGlobal
+		? `
+import { install } from "${moduleEntry}/shim";
+install(true);
+`
+		: `
+import "${moduleEntry}/global"
+`;
+	const path = "tmp.js";
+	await using _file = await createTemporaryFile(path, code);
+
 	await using bundle = await rolldown({
-		input: options.overwriteGlobal ? "src/overwriteGlobal.ts" : "src/global.ts",
-		plugins: input,
-		resolve: {
-			conditionNames: mode === "full" ? ["nonIsoCalendars"] : [],
-		},
+		input: path,
 	});
 	const result = await bundle.generate({
 		format: "iife",
-		plugins: output,
-		minify: options.minify && !options.beautify,
+		minify: options.minify,
 	});
 	return result.output[0].code;
 }
 
 export async function build() {
-	const { input, output } = plugins({ assertion: false, minify: true, beautify: true });
+	const { input, output } = plugins({ assertion: false });
 	const declarationPluginOptions = { include: ["src/shim.ts", "src/global.ts"] };
 	await using bundle1 = await rolldown({
 		input: ["src/index.ts", "src/global.ts", "src/shim.ts"],
