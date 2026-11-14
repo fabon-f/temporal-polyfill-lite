@@ -34,7 +34,7 @@ import {
 } from "./internal/enum.ts";
 import { forbiddenValueOf, notObject } from "./internal/errorMessages.ts";
 import { isObject } from "./internal/object.ts";
-import { defineStringTag, renameFunction } from "./internal/property.ts";
+import { defineStringTag } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
 import { getInternalSlotOrThrow, throwTypeError } from "./internal/utils.ts";
 import {
@@ -239,4 +239,3 @@ export class PlainMonthDay {
 }
 
 defineStringTag(PlainMonthDay.prototype, "Temporal.PlainMonthDay");
-renameFunction(PlainMonthDay, "PlainMonthDay");

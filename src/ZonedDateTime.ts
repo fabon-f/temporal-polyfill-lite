@@ -126,7 +126,7 @@ import {
 	undefinedArgument,
 } from "./internal/errorMessages.ts";
 import { createNullPrototypeObject, isObject } from "./internal/object.ts";
-import { defineStringTag, renameFunction } from "./internal/property.ts";
+import { defineStringTag } from "./internal/property.ts";
 import { timeDurationToSubsecondsNumber, zeroTimeDuration } from "./internal/timeDuration.ts";
 import {
 	disambiguatePossibleEpochNanoseconds,
@@ -1093,4 +1093,3 @@ export class ZonedDateTime {
 }
 
 defineStringTag(ZonedDateTime.prototype, "Temporal.ZonedDateTime");
-renameFunction(ZonedDateTime, "ZonedDateTime");

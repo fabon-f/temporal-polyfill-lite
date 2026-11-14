@@ -69,7 +69,7 @@ import {
 	outOfBoundsDate,
 } from "./internal/errorMessages.ts";
 import { isObject } from "./internal/object.ts";
-import { defineStringTag, renameFunction } from "./internal/property.ts";
+import { defineStringTag } from "./internal/property.ts";
 import type { TimeDuration } from "./internal/timeDuration.ts";
 import {
 	formatDateTimeUtcOffsetRounded,
@@ -396,4 +396,3 @@ export class Instant {
 }
 
 defineStringTag(Instant.prototype, "Temporal.Instant");
-renameFunction(Instant, "Instant");

@@ -53,7 +53,7 @@ import {
 } from "./internal/errorMessages.ts";
 import { clamp, compare, divFloor, isWithin, modFloor, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
-import { defineStringTag, renameFunction } from "./internal/property.ts";
+import { defineStringTag } from "./internal/property.ts";
 import {
 	timeDurationDaysAndRemainderNanoseconds,
 	type TimeDuration,
@@ -556,4 +556,3 @@ export class PlainTime {
 }
 
 defineStringTag(PlainTime.prototype, "Temporal.PlainTime");
-renameFunction(PlainTime, "PlainTime");
