@@ -62,7 +62,7 @@ import {
 } from "./internal/errorMessages.ts";
 import { clamp, divTrunc, sign, type NumberSign } from "./internal/math.ts";
 import { createNullPrototypeObject, isObject } from "./internal/object.ts";
-import { defineStringTag, renameFunction } from "./internal/property.ts";
+import { defineStringTag } from "./internal/property.ts";
 import {
 	absTimeDuration,
 	addDaysToTimeDuration,
@@ -1326,4 +1326,3 @@ export class Duration {
 }
 
 defineStringTag(Duration.prototype, "Temporal.Duration");
-renameFunction(Duration, "Duration");

@@ -58,7 +58,7 @@ import {
 import { calendarMismatch, forbiddenValueOf, invalidDateTime } from "./internal/errorMessages.ts";
 import { clamp, compare, isWithin, type NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
-import { defineStringTag, renameFunction } from "./internal/property.ts";
+import { defineStringTag } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
 import { zeroTimeDuration } from "./internal/timeDuration.ts";
 import {
@@ -527,4 +527,3 @@ export class PlainDate {
 }
 
 defineStringTag(PlainDate.prototype, "Temporal.PlainDate");
-renameFunction(PlainDate, "PlainDate");

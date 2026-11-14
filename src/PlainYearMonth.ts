@@ -58,7 +58,7 @@ import {
 } from "./internal/errorMessages.ts";
 import { divFloor, isWithin, modFloor } from "./internal/math.ts";
 import { createNullPrototypeObject, isObject } from "./internal/object.ts";
-import { defineStringTag, renameFunction } from "./internal/property.ts";
+import { defineStringTag } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
 import { signTimeDuration, zeroTimeDuration } from "./internal/timeDuration.ts";
 import { Unit } from "./internal/unit.ts";
@@ -460,4 +460,3 @@ export class PlainYearMonth {
 }
 
 defineStringTag(PlainYearMonth.prototype, "Temporal.PlainYearMonth");
-renameFunction(PlainYearMonth, "PlainYearMonth");

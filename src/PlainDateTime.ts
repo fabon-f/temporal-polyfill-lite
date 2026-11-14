@@ -81,7 +81,7 @@ import {
 } from "./internal/errorMessages.ts";
 import type { NumberSign } from "./internal/math.ts";
 import { isObject } from "./internal/object.ts";
-import { defineStringTag, renameFunction } from "./internal/property.ts";
+import { defineStringTag } from "./internal/property.ts";
 import { toZeroPaddedDecimalString } from "./internal/string.ts";
 import { zeroTimeDuration } from "./internal/timeDuration.ts";
 import { getEpochNanosecondsFor, toTemporalTimeZoneIdentifier } from "./internal/timeZones.ts";
@@ -742,4 +742,3 @@ export class PlainDateTime {
 }
 
 defineStringTag(PlainDateTime.prototype, "Temporal.PlainDateTime");
-renameFunction(PlainDateTime, "PlainDateTime");

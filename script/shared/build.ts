@@ -4,15 +4,18 @@ import terser from "@rollup/plugin-terser";
 import { format } from "oxfmt";
 import { rolldown, type RolldownPluginOption } from "rolldown";
 import unpluginIsolatedDecl from "unplugin-isolated-decl/rolldown";
+import { keepTemporalClassNames } from "./keepTemporalClassNamesPlugin.ts";
 
 // @ts-expect-error https://github.com/rollup/plugins/issues/1860
 const terserPlugin = terser({
 	compress: {
 		ecma: 2015,
+		keep_classnames: true,
 		unsafe_arrows: true,
 		hoist_funs: true,
 	},
 	mangle: {
+		keep_classnames: true,
 		keep_fnames: true,
 		properties: {
 			regex: /^(_|\$)/,
@@ -57,6 +60,7 @@ function plugins({ assertion }: Options) {
 		inputPlugins.push(wrappedStripPlugin);
 	}
 	inputPlugins.push(terserPlugin);
+	outputPlugins.push(keepTemporalClassNames());
 	outputPlugins.push(terserPlugin);
 	outputPlugins.push(oxfmtPlugin);
 	return {
@@ -109,6 +113,9 @@ export async function build() {
 	await using bundle1 = await rolldown({
 		input: ["src/index.ts", "src/global.ts", "src/shim.ts"],
 		plugins: [...input, unpluginIsolatedDecl(declarationPluginOptions)],
+		experimental: {
+			nativeMagicString: true,
+		},
 	});
 	await bundle1.write({
 		dir: "dist",
@@ -120,6 +127,9 @@ export async function build() {
 		plugins: [...input, unpluginIsolatedDecl(declarationPluginOptions)],
 		resolve: {
 			conditionNames: ["nonIsoCalendars"],
+		},
+		experimental: {
+			nativeMagicString: true,
 		},
 	});
 	await bundle2.write({

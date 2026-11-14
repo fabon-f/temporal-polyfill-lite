@@ -1,6 +1,6 @@
 import { toTemporalDuration, type DurationSlot } from "./Duration.ts";
 import { createNullPrototypeObject } from "./internal/object.ts";
-import { defineStringTag, renameFunction } from "./internal/property.ts";
+import { defineStringTag } from "./internal/property.ts";
 import { pluralUnitKeys, type PluralUnitKey } from "./internal/unit.ts";
 import { getInternalSlotOrThrow } from "./internal/utils.ts";
 
@@ -53,4 +53,3 @@ export class DurationFormat {
 }
 
 defineStringTag(DurationFormat.prototype, "Intl.DurationFormat");
-renameFunction(DurationFormat, "DurationFormat");
