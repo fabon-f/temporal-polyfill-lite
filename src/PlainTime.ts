@@ -211,7 +211,7 @@ export function regulateTime(
 }
 
 /** `IsValidTime` */
-export function isValidTime(
+function isValidTime(
 	hour: number,
 	minute: number,
 	second: number,

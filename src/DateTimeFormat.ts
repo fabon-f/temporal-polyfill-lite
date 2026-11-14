@@ -471,7 +471,7 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 	return [dateTimeFormat.$rawDtf, x];
 }
 
-export class DateTimeFormatImpl {
+class DateTimeFormatImpl {
 	constructor(locales: unknown, options: unknown) {
 		slots.set(this, createDateTimeFormat(locales, options, DATETIME, undefined));
 	}

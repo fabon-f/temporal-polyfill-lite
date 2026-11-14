@@ -289,7 +289,7 @@ export function toTemporalDuration(item: unknown): DurationSlot {
 }
 
 /** `DurationSign` */
-export function durationSign(duration: DurationSlot): NumberSign {
+function durationSign(duration: DurationSlot): NumberSign {
 	return sign(duration.find((v) => v) || 0);
 }
 

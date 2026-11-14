@@ -35,13 +35,6 @@ export function createTimeDurationFromUnit(value: number, nanosecondsPerUnit: nu
 	);
 }
 
-export function addNanosecondsToTimeDuration(
-	duration: TimeDuration,
-	nanoseconds: number,
-): TimeDuration {
-	return normalize(duration[0], duration[1] + nanoseconds);
-}
-
 export function addDaysToTimeDuration(duration: TimeDuration, days: number): TimeDuration {
 	return normalize(duration[0] + days, duration[1]);
 }

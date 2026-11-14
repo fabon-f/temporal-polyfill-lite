@@ -246,7 +246,7 @@ export function normalizeIanaTimeZoneId(id: string): string {
 	});
 }
 
-export function rejectNonIanaTimeZoneId(id: string) {
+function rejectNonIanaTimeZoneId(id: string) {
 	if (/^(?![cemw]et|[emh]st|prc|ro[ck]|uct|utc|gmt)...$|systemv|^u.*w$|^c.*-/i.test(id)) {
 		throwRangeError(invalidTimeZone(id));
 	}
@@ -478,11 +478,11 @@ function getNamedTimeZoneEpochNanoseconds(
 }
 
 /** `IsOffsetTimeZoneIdentifier` */
-export function isOffsetTimeZoneIdentifier(
+function isOffsetTimeZoneIdentifier(
 	identifier: AvailableTimeZoneIdentifier,
 ): identifier is OffsetTimeZoneIdentifier;
-export function isOffsetTimeZoneIdentifier(identifier: string): boolean;
-export function isOffsetTimeZoneIdentifier(identifier: string): boolean {
+function isOffsetTimeZoneIdentifier(identifier: string): boolean;
+function isOffsetTimeZoneIdentifier(identifier: string): boolean {
 	assert(isTimeZoneIdentifier(identifier));
 	return /^[+-]/.test(identifier);
 }

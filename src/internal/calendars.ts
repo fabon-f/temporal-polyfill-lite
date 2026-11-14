@@ -121,7 +121,7 @@ export const calendarFieldKeys = {
 	$offset: "offset",
 	$timeZone: "timeZone",
 } as const;
-export const calendarFieldKeyList = [
+const calendarFieldKeyList = [
 	calendarFieldKeys.$era,
 	calendarFieldKeys.$eraYear,
 	calendarFieldKeys.$year,
@@ -546,7 +546,7 @@ function calendarFieldKeysToIgnore(
 	return ignoredKeys;
 }
 
-export function isoResolveFields(
+function isoResolveFields(
 	fields: CalendarFieldsRecord,
 	type: typeof DATE | typeof YEAR_MONTH | typeof MONTH_DAY,
 ) {
@@ -574,7 +574,7 @@ export function isoResolveFields(
 }
 
 /** `NonISOResolveFields` */
-export function nonIsoResolveFields(
+function nonIsoResolveFields(
 	calendar: SupportedNonIsoCalendars,
 	fields: CalendarFieldsRecord,
 	type: typeof DATE | typeof YEAR_MONTH | typeof MONTH_DAY = DATE,
@@ -654,7 +654,7 @@ function calendarResolveFields(
 	}
 }
 
-export function createEmptyCalendarFieldsRecord(): CalendarFieldsRecord {
+function createEmptyCalendarFieldsRecord(): CalendarFieldsRecord {
 	return createNullPrototypeObject() as CalendarFieldsRecord;
 }
 
