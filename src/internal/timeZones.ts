@@ -106,7 +106,7 @@ function getNamedTimeZoneOffsetNanosecondsForEpochSecond(
 }
 
 function getFormatterForTimeZone(timeZone: string): Intl.DateTimeFormat {
-	return (intlCache[timeZone] ||= new OriginalDateTimeFormat("en-u-hc-h23", {
+	return (intlCache[timeZone] ||= OriginalDateTimeFormat("en-u-hc-h23", {
 		timeZone,
 		year: "numeric",
 		month: "numeric",

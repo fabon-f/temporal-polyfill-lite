@@ -267,7 +267,7 @@ export function createDateTimeFormat(
 	}
 
 	const coercedOriginalOptions: Intl.DateTimeFormatOptions = createNullPrototypeObject();
-	let rawDtf = new OriginalDateTimeFormat(
+	let rawDtf = OriginalDateTimeFormat(
 		locales as any,
 		new Proxy(
 			{},
@@ -309,7 +309,7 @@ export function createDateTimeFormat(
 		!hasAnyOptions(coercedOriginalOptions, [...dateKeys, ...timeKeys, "timeZoneName"])
 	) {
 		coercedOriginalOptions["timeZoneName"] = "short";
-		rawDtf = new OriginalDateTimeFormat(rawDtf.resolvedOptions().locale, coercedOriginalOptions);
+		rawDtf = OriginalDateTimeFormat(rawDtf.resolvedOptions().locale, coercedOriginalOptions);
 	}
 	return createNullPrototypeObject({
 		$rawDtf: rawDtf,
@@ -376,7 +376,7 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 	const plainMonthDaySlot = getInternalSlotForPlainMonthDay(x);
 	if (isPlainTime(x)) {
 		return [
-			(dateTimeFormat.$rawDtfForPlainTime ||= new OriginalDateTimeFormat(
+			(dateTimeFormat.$rawDtfForPlainTime ||= OriginalDateTimeFormat(
 				dateTimeFormat.$locale,
 				amendOptionsForPlainTime(dateTimeFormat.$originalOptions),
 			)),
@@ -398,7 +398,7 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 			throwRangeError(calendarMismatch);
 		}
 		return [
-			(dateTimeFormat.$rawDtfForPlainDate ||= new OriginalDateTimeFormat(
+			(dateTimeFormat.$rawDtfForPlainDate ||= OriginalDateTimeFormat(
 				dateTimeFormat.$locale,
 				amendOptionsForPlainDate(dateTimeFormat.$originalOptions),
 			)),
@@ -417,7 +417,7 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 			throwRangeError(calendarMismatch);
 		}
 		return [
-			(dateTimeFormat.$rawDtfForPlainDateTime ||= new OriginalDateTimeFormat(
+			(dateTimeFormat.$rawDtfForPlainDateTime ||= OriginalDateTimeFormat(
 				dateTimeFormat.$locale,
 				amendOptionsForPlainDateTime(dateTimeFormat.$originalOptions),
 			)),
@@ -429,7 +429,7 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 			throwRangeError(calendarMismatch);
 		}
 		return [
-			(dateTimeFormat.$rawDtfForPlainYearMonth ||= new OriginalDateTimeFormat(
+			(dateTimeFormat.$rawDtfForPlainYearMonth ||= OriginalDateTimeFormat(
 				dateTimeFormat.$locale,
 				amendOptionsForPlainYearMonth(dateTimeFormat.$originalOptions),
 			)),
@@ -445,7 +445,7 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 			throwRangeError(calendarMismatch);
 		}
 		return [
-			(dateTimeFormat.$rawDtfForPlainMonthDay ||= new OriginalDateTimeFormat(
+			(dateTimeFormat.$rawDtfForPlainMonthDay ||= OriginalDateTimeFormat(
 				dateTimeFormat.$locale,
 				amendOptionsForPlainMonthDay(dateTimeFormat.$originalOptions),
 			)),
@@ -458,7 +458,7 @@ function handleDateTimeValue(dateTimeFormat: DateTimeFormatSlot, x: unknown): [R
 	}
 	if (isInstant(x)) {
 		return [
-			(dateTimeFormat.$rawDtfForInstant ||= new OriginalDateTimeFormat(
+			(dateTimeFormat.$rawDtfForInstant ||= OriginalDateTimeFormat(
 				dateTimeFormat.$locale,
 				amendOptionsForInstant(dateTimeFormat.$originalOptions),
 			)),

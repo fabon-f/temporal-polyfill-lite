@@ -19,7 +19,7 @@ export interface EastAsianYearMonthDay {
 const calendarFormatterCache: Record<string, Intl.DateTimeFormat> = createNullPrototypeObject();
 
 function formatToParts(calendar: string, epochDays: number): Intl.DateTimeFormatPart[] {
-	return (calendarFormatterCache[calendar] ||= new OriginalDateTimeFormat("en", {
+	return (calendarFormatterCache[calendar] ||= OriginalDateTimeFormat("en", {
 		year: "numeric",
 		month: "numeric",
 		day: "numeric",

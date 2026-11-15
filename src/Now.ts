@@ -38,7 +38,7 @@ export function systemTimeZoneIdentifier(): string {
 		return cachedSystemTimeZoneId;
 	}
 	timeZoneIdAccessTimestamp = /*#__PURE__*/ Date.now();
-	return (cachedSystemTimeZoneId = new OriginalDateTimeFormat().resolvedOptions().timeZone);
+	return (cachedSystemTimeZoneId = OriginalDateTimeFormat().resolvedOptions().timeZone);
 }
 
 export function setSystemTimeZoneIdCacheTtl(ttl: number) {
