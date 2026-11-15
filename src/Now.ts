@@ -38,7 +38,9 @@ export function systemTimeZoneIdentifier(): string {
 		return cachedSystemTimeZoneId;
 	}
 	timeZoneIdAccessTimestamp = /*#__PURE__*/ Date.now();
-	return (cachedSystemTimeZoneId = OriginalDateTimeFormat().resolvedOptions().timeZone);
+	// `resolvedOptions().timeZone` can be `undefined` in some engines
+	// cf. https://github.com/fabon-f/temporal-polyfill-lite/issues/54
+	return (cachedSystemTimeZoneId = OriginalDateTimeFormat().resolvedOptions().timeZone || "UTC");
 }
 
 export function setSystemTimeZoneIdCacheTtl(ttl: number) {

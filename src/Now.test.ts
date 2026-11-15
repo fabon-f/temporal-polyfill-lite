@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { OriginalDateTimeFormat } from "./DateTimeFormat.ts";
 import { setSystemTimeZoneIdCacheTtl, systemTimeZoneIdentifier } from "./Now.ts";
 
 function modifyTimeZone(timeZoneId: string) {
@@ -14,6 +15,19 @@ function modifyTimeZone(timeZoneId: string) {
 		},
 	};
 }
+
+test("systemTimeZoneIdentifier and undefined time zone", () => {
+	const originalResolvedOptions = OriginalDateTimeFormat.prototype.resolvedOptions;
+	using _ = vi
+		.spyOn(OriginalDateTimeFormat.prototype, "resolvedOptions")
+		.mockImplementation(function (this: Intl.DateTimeFormat) {
+			return {
+				...originalResolvedOptions.apply(this),
+				timeZone: undefined as unknown as string,
+			};
+		});
+	expect(systemTimeZoneIdentifier()).toEqual("UTC");
+});
 
 describe("setSystemTimeZoneIdCacheTtl", () => {
 	beforeEach(() => {
