@@ -1,6 +1,5 @@
-import { describe } from "node:test";
 import tzdata from "tzdata" with { type: "json" };
-import { assert, expect, test } from "vitest";
+import { assert, describe, expect, test } from "vitest";
 import { millisecondsPerDay, nanosecondsPerMilliseconds } from "./constants.ts";
 import {
 	addNanosecondsToEpochSeconds,
