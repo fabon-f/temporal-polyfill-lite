@@ -1,6 +1,5 @@
 import { describe, expect, test } from "vitest";
-import type { MonthCode } from "../calendars.ts";
-import { millisecondsPerDay } from "../constants.ts";
+import { parseMonthCode, type MonthCode } from "../calendars.ts";
 import { overflowConstrain, overflowReject } from "../enum.ts";
 import {
 	calendarIntegersToEpochDays,
@@ -8,7 +7,11 @@ import {
 	epochDaysToDate,
 	monthDayToEpochDays,
 } from "./chineseDangi.ts";
-import { epochDaysToDateByIcu } from "./testUtils.ts";
+import {
+	epochDaysToDateByIcu,
+	extractChineseDateFromIntlDateTimeFormat,
+	extractDangiDateFromIntlDateTimeFormat,
+} from "./testUtils.ts";
 
 test("constrainMonthCode", () => {
 	const nonLeapMonthCodes: MonthCode[] = Array.from({ length: 12 }, (_, i) => [i + 1, false]);
@@ -204,40 +207,31 @@ describe("monthDayToEpochDays", () => {
 
 describe("epochDaysToDate should match to Intl.DateTimeFormat", () => {
 	test("chinese", () => {
-		const dtf = new Intl.DateTimeFormat("en-u-ca-chinese", { dateStyle: "short", timeZone: "UTC" });
 		// discrepancies between ICU4C / Apple's ICU and the ground truth
 		for (const epochDays of [
 			-5811, -5427, 10608, 15569, 17842, 20855, 21947, 32047, 36595, 46605,
 		]) {
-			const day = epochDaysToDate("chinese", epochDays).$day;
-			const dayInFormat = Number(
-				dtf
-					.formatToParts(epochDays * millisecondsPerDay)
-					.find((p) => p.type === "day")!
-					.value.trim(),
+			const dateInfoFromFormat = extractChineseDateFromIntlDateTimeFormat(epochDays);
+			const date = epochDaysToDate("chinese", epochDays);
+			expect({ monthCode: parseMonthCode(date.$monthCode), day: date.$day }).toEqual(
+				dateInfoFromFormat,
 			);
-			expect(day).toEqual(dayInFormat);
 		}
 	});
 	test("dangi", () => {
-		const dtf = new Intl.DateTimeFormat("en-u-ca-dangi", { dateStyle: "short", timeZone: "UTC" });
 		// discrepancy between ICU4C and the ground truth
 		const epochDays = 17223;
 
-		const day = epochDaysToDate("dangi", epochDays).$day;
-		const dayInFormat = Number(
-			dtf
-				.formatToParts(epochDays * millisecondsPerDay)
-				.find((p) => p.type === "day")!
-				.value.trim(),
+		const dateInfoFromFormat = extractDangiDateFromIntlDateTimeFormat(epochDays);
+		const date = epochDaysToDate("dangi", epochDays);
+		expect({ monthCode: parseMonthCode(date.$monthCode), day: date.$day }).toEqual(
+			dateInfoFromFormat,
 		);
-		expect(day).toEqual(dayInFormat);
 	});
 });
 
 describe("calendarIntegersToEpochDays should match to Intl.DateTimeFormat", () => {
 	test("chinese", () => {
-		const dtf = new Intl.DateTimeFormat("en-u-ca-chinese", { dateStyle: "short", timeZone: "UTC" });
 		// discrepancies between ICU4C / Apple's ICU and the ground truth
 		for (const [year, month] of [
 			[1954, 1],
@@ -251,27 +245,18 @@ describe("calendarIntegersToEpochDays should match to Intl.DateTimeFormat", () =
 			[2070, 2],
 			[2097, 7],
 		] as const) {
-			const dayInFormat = Number(
-				dtf
-					.formatToParts(
-						calendarIntegersToEpochDays("chinese", year, month, 1) * millisecondsPerDay,
-					)
-					.find((p) => p.type === "day")!
-					.value.trim(),
+			const dateInfoFromFormat = extractChineseDateFromIntlDateTimeFormat(
+				calendarIntegersToEpochDays("chinese", year, month, 1),
 			);
-			expect(dayInFormat).toEqual(1);
+			expect(dateInfoFromFormat.day).toEqual(1);
 		}
 	});
 	test("dangi", () => {
-		const dtf = new Intl.DateTimeFormat("en-u-ca-dangi", { dateStyle: "short", timeZone: "UTC" });
 		// discrepancy between ICU4C and the ground truth
-		const dayInFormat = Number(
-			dtf
-				.formatToParts(calendarIntegersToEpochDays("dangi", 2017, 2, 1) * millisecondsPerDay)
-				.find((p) => p.type === "day")!
-				.value.trim(),
+		const dateInfoFromFormat = extractDangiDateFromIntlDateTimeFormat(
+			calendarIntegersToEpochDays("dangi", 2017, 2, 1),
 		);
-		expect(dayInFormat).toEqual(1);
+		expect(dateInfoFromFormat.day).toEqual(1);
 	});
 });
 
