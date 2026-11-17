@@ -307,6 +307,7 @@ function calendarDateForPlainYearMonth(plainYearMonth: unknown): CalendarDateRec
 	return calendarIsoToDate(slot.$calendar, slot.$isoDate);
 }
 
+// oxlint-disable typescript/no-useless-default-assignment
 export class PlainYearMonth {
 	constructor(
 		isoYear: unknown,
@@ -458,5 +459,6 @@ export class PlainYearMonth {
 		);
 	}
 }
+// oxlint-enable typescript/no-useless-default-assignment
 
 defineStringTag(PlainYearMonth.prototype, "Temporal.PlainYearMonth");

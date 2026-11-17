@@ -876,7 +876,7 @@ export function totalRelativeDuration(
 }
 
 /** `TemporalDurationToString` */
-function temporalDurationToString(duration: DurationSlot, precision?: number | undefined): string {
+function temporalDurationToString(duration: DurationSlot, precision?: number): string {
 	const sign = durationSign(duration);
 	duration = applySignToDurationSlot(duration, sign);
 	const secondsDuration = timeDurationFromComponents(
@@ -987,6 +987,7 @@ function balanceTimeDuration(
 	] as [days: number, ...TimeDurationTuple];
 }
 
+// oxlint-disable typescript/no-useless-default-assignment
 export class Duration {
 	constructor(
 		years: unknown = 0,
@@ -1324,5 +1325,6 @@ export class Duration {
 		throwTypeError(forbiddenValueOf);
 	}
 }
+// oxlint-enable typescript/no-useless-default-assignment
 
 defineStringTag(Duration.prototype, "Temporal.Duration");

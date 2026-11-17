@@ -479,6 +479,7 @@ function calendarDateForPlainDateTime(plainDateTime: unknown): CalendarDateRecor
 	return calendarIsoToDate(slot.$calendar, slot.$isoDateTime.$isoDate);
 }
 
+// oxlint-disable typescript/no-useless-default-assignment
 export class PlainDateTime {
 	constructor(
 		isoYear: unknown,
@@ -740,5 +741,6 @@ export class PlainDateTime {
 		return createTemporalTime(getInternalSlotOrThrowForPlainDateTime(this).$isoDateTime.$time);
 	}
 }
+// oxlint-enable typescript/no-useless-default-assignment
 
 defineStringTag(PlainDateTime.prototype, "Temporal.PlainDateTime");

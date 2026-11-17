@@ -28,6 +28,7 @@ export function durationRecordToDurationLikeObject(slot: DurationSlot) {
 	return record;
 }
 
+// oxlint-disable typescript/no-useless-default-assignment
 export class DurationFormat {
 	static supportedLocalesOf(locales: unknown, options: unknown = undefined) {
 		return OriginalDurationFormat.supportedLocalesOf(locales as any, options as any);
@@ -51,5 +52,6 @@ export class DurationFormat {
 		return getInternalSlotOrThrowForDurationFormat(this).$rawDurationFormatter.resolvedOptions();
 	}
 }
+// oxlint-enable typescript/no-useless-default-assignment
 
 defineStringTag(DurationFormat.prototype, "Intl.DurationFormat");

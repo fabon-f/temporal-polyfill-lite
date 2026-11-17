@@ -435,6 +435,7 @@ export function isPlainTime(item: unknown): item is PlainTime {
 	return slots.has(item);
 }
 
+// oxlint-disable typescript/no-useless-default-assignment
 export class PlainTime {
 	constructor(
 		hour: unknown = 0,
@@ -554,5 +555,6 @@ export class PlainTime {
 		throwTypeError(forbiddenValueOf);
 	}
 }
+// oxlint-enable typescript/no-useless-default-assignment
 
 defineStringTag(PlainTime.prototype, "Temporal.PlainTime");
