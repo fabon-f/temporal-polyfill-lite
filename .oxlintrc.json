@@ -1,8 +1,11 @@
 {
 	"$schema": "./node_modules/oxlint/configuration_schema.json",
 	"ignorePatterns": [
-		"test262",
+		"tests",
 		"src/types/*"
 	],
-	"plugins": ["vitest"]
+	"plugins": ["typescript", "vitest"],
+	"options": {
+		"typeAware": true
+	}
 }
