@@ -142,6 +142,7 @@ export function isPlainMonthDay(item: unknown): item is PlainMonthDay {
 	return !!getInternalSlotForPlainMonthDay(item);
 }
 
+// oxlint-disable typescript/no-useless-default-assignment
 export class PlainMonthDay {
 	constructor(
 		isoMonth: unknown,
@@ -237,5 +238,6 @@ export class PlainMonthDay {
 		);
 	}
 }
+// oxlint-enable typescript/no-useless-default-assignment
 
 defineStringTag(PlainMonthDay.prototype, "Temporal.PlainMonthDay");

@@ -7,5 +7,16 @@
 	"plugins": ["typescript", "vitest"],
 	"options": {
 		"typeAware": true
-	}
+	},
+	"rules": {
+		"typescript/unbound-method": "off"
+	},
+	"overrides": [
+		{
+			"files": ["src/internal/errorMessages.ts"],
+			"rules": {
+				"typescript/restrict-template-expressions": "off"
+			}
+		}
+	]
 }

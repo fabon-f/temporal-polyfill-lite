@@ -342,7 +342,7 @@ export function getTemporalUnitValuedOption(
 export function getTemporalUnitValuedOption(
 	options: object,
 	key: string,
-	defaultValue?: typeof REQUIRED | "auto" | undefined,
+	defaultValue?: typeof REQUIRED | "auto",
 ) {
 	const allowedStrings = [...singularUnitKeys, ...pluralUnitKeys, "auto"];
 	return mapUnlessUndefined(getOption(options, key, allowedStrings, defaultValue), (s) =>

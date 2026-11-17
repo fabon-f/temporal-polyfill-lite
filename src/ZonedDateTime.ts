@@ -672,6 +672,7 @@ export function isZonedDateTime(item: unknown): item is ZonedDateTime {
 	return !!getInternalSlotForZonedDateTime(item);
 }
 
+// oxlint-disable typescript/no-useless-default-assignment
 export class ZonedDateTime {
 	constructor(epochNanoseconds: unknown, timeZone: unknown, calendar: unknown = "iso8601") {
 		const epoch = validateEpochNanoseconds(
@@ -1091,5 +1092,6 @@ export class ZonedDateTime {
 		return createTemporalDateTime(getIsoDateTimeForZonedDateTimeSlot(slot), slot.$calendar);
 	}
 }
+// oxlint-enable typescript/no-useless-default-assignment
 
 defineStringTag(ZonedDateTime.prototype, "Temporal.ZonedDateTime");

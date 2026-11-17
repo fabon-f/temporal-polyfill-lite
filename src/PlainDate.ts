@@ -319,6 +319,7 @@ function calendarDateForPlainDate(plainDate: unknown): CalendarDateRecord {
 	return calendarIsoToDate(slot.$calendar, slot.$isoDate);
 }
 
+// oxlint-disable typescript/no-useless-default-assignment
 export class PlainDate {
 	constructor(isoYear: unknown, isoMonth: unknown, isoDay: unknown, calendar: unknown = "iso8601") {
 		const y = toIntegerWithTruncation(isoYear);
@@ -525,5 +526,6 @@ export class PlainDate {
 		throwTypeError(forbiddenValueOf);
 	}
 }
+// oxlint-enable typescript/no-useless-default-assignment
 
 defineStringTag(PlainDate.prototype, "Temporal.PlainDate");

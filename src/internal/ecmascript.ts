@@ -37,6 +37,7 @@ export function toPrimitive(input: unknown): unknown {
 
 /** `ToString` */
 export function toString(value: unknown): string {
+	// oxlint-disable-next-line typescript/restrict-template-expressions
 	return `${value}`;
 }
 

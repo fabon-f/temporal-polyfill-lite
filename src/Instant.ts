@@ -194,7 +194,7 @@ export function roundTemporalInstant(
 /** `TemporalInstantToString` */
 function temporalInstantToString(
 	epoch: EpochNanoseconds,
-	timeZone?: AvailableTimeZoneIdentifier | undefined,
+	timeZone?: AvailableTimeZoneIdentifier,
 	precision?: number | typeof MINUTE,
 ): string {
 	const offsetNanoseconds = getOffsetNanosecondsFor(
@@ -284,6 +284,7 @@ export function clampEpochNanoseconds(epoch: EpochNanoseconds) {
 			: epoch;
 }
 
+// oxlint-disable typescript/no-useless-default-assignment
 export class Instant {
 	constructor(epochNanoseconds: unknown) {
 		createTemporalInstant(
@@ -394,5 +395,6 @@ export class Instant {
 		);
 	}
 }
+// oxlint-enable typescript/no-useless-default-assignment
 
 defineStringTag(Instant.prototype, "Temporal.Instant");

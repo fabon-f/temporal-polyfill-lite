@@ -69,6 +69,7 @@ function systemDateTime(
 	);
 }
 
+// oxlint-disable typescript/no-useless-default-assignment
 export const Now = {
 	timeZoneId() {
 		return systemTimeZoneIdentifier();
@@ -93,6 +94,7 @@ export const Now = {
 		return createTemporalTime(systemDateTime(temporalTimeZoneLike).$time);
 	},
 };
+// oxlint-enable typescript/no-useless-default-assignment
 
 defineStringTag(Now, "Temporal.Now");
 makePropertiesNonEnumerable(Now);
