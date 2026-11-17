@@ -120,3 +120,37 @@ export function calendarIntegersToEpochDaysByIcu(
 	);
 	return rataDieToEpochDays(date.rataDie);
 }
+
+interface YearMonthInfo {
+	year: number;
+	month: number;
+	daysInMonth: number;
+	/** epoch days */
+	start: number;
+	/** epoch days */
+	end: number;
+}
+
+export function* yearMonthGeneratorByIcu(
+	calendar: TestableCalendarId,
+	minYear: number,
+	maxYear: number,
+): Generator<YearMonthInfo> {
+	for (let year = minYear; year <= maxYear; year++) {
+		const monthsInYear = epochDaysToDateByIcu(
+			calendar,
+			calendarIntegersToEpochDaysByIcu(calendar, year, 1, 1),
+		).$monthsInYear;
+		for (let month = 1; month <= monthsInYear; month++) {
+			const startEpochDays = calendarIntegersToEpochDaysByIcu(calendar, year, month, 1);
+			const date = epochDaysToDateByIcu(calendar, startEpochDays);
+			yield {
+				year,
+				month,
+				daysInMonth: date.$daysInMonth,
+				start: startEpochDays,
+				end: startEpochDays + date.$daysInMonth - 1,
+			};
+		}
+	}
+}

@@ -8,7 +8,11 @@ import {
 	monthDayFromDayOfYear,
 	monthDayToEpochDays,
 } from "./persian.ts";
-import { calendarIntegersToEpochDaysByIcu, epochDaysToDateByIcu } from "./testUtils.ts";
+import {
+	calendarIntegersToEpochDaysByIcu,
+	epochDaysToDateByIcu,
+	yearMonthGeneratorByIcu,
+} from "./testUtils.ts";
 
 test("dayOfYearFromMonthDay", () => {
 	expect(dayOfYearFromMonthDay(1, 1)).toEqual(1);
@@ -148,32 +152,19 @@ test.for([-1e8 - 1, 1e8])("roundtrip in extreme epoch days: %i", (epochDays) => 
 });
 
 test("calendarIntegersToEpochDays should match to ICU4X in the well-defined range", () => {
-	for (let year = 1206; year <= 1498; year++) {
-		for (let month = 1; month <= 12; month++) {
-			const startEpochDays = calendarIntegersToEpochDays(year, month, 1);
-			expect(startEpochDays).toEqual(calendarIntegersToEpochDaysByIcu("persian", year, month, 1));
-			const daysInMonth = epochDaysToDateByIcu("persian", startEpochDays).$daysInMonth;
-			expect(calendarIntegersToEpochDays(year, month, daysInMonth)).toEqual(
-				calendarIntegersToEpochDaysByIcu("persian", year, month, daysInMonth),
-			);
-		}
+	for (const { year, month, daysInMonth } of yearMonthGeneratorByIcu("persian", 1206, 1498)) {
+		expect(calendarIntegersToEpochDays(year, month, 1)).toEqual(
+			calendarIntegersToEpochDaysByIcu("persian", year, month, 1),
+		);
+		expect(calendarIntegersToEpochDays(year, month, daysInMonth)).toEqual(
+			calendarIntegersToEpochDaysByIcu("persian", year, month, daysInMonth),
+		);
 	}
 });
 
 test("epochDaysToDate should match to ICU4X in the well-defined range", () => {
-	for (let year = 1206; year <= 1498; year++) {
-		for (let month = 1; month <= 12; month++) {
-			const startEpochDays = calendarIntegersToEpochDaysByIcu("persian", year, month, 1);
-			const expected = epochDaysToDateByIcu("persian", startEpochDays);
-			expect(epochDaysToDate(startEpochDays)).toEqual(expected);
-
-			const endEpochDays = calendarIntegersToEpochDaysByIcu(
-				"persian",
-				year,
-				month,
-				expected.$daysInMonth,
-			);
-			expect(epochDaysToDate(endEpochDays)).toEqual(epochDaysToDateByIcu("persian", endEpochDays));
-		}
+	for (const { start, end } of yearMonthGeneratorByIcu("persian", 1206, 1498)) {
+		expect(epochDaysToDate(start)).toEqual(epochDaysToDateByIcu("persian", start));
+		expect(epochDaysToDate(end)).toEqual(epochDaysToDateByIcu("persian", end));
 	}
 });
