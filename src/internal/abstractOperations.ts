@@ -333,7 +333,7 @@ export function toSecondsStringPrecisionRecord(
 export function getTemporalUnitValuedOption(
 	options: object,
 	key: string,
-	defaultValue: typeof REQUIRED,
+	defaultValue: typeof REQUIRED | "auto",
 ): Unit | "auto";
 export function getTemporalUnitValuedOption(
 	options: object,
@@ -342,7 +342,7 @@ export function getTemporalUnitValuedOption(
 export function getTemporalUnitValuedOption(
 	options: object,
 	key: string,
-	defaultValue?: typeof REQUIRED | undefined,
+	defaultValue?: typeof REQUIRED | "auto" | undefined,
 ) {
 	const allowedStrings = [...singularUnitKeys, ...pluralUnitKeys, "auto"];
 	return mapUnlessUndefined(getOption(options, key, allowedStrings, defaultValue), (s) =>
@@ -664,12 +664,12 @@ export function parseTemporalTimeZoneString(timeZoneString: string): TimeZoneIde
 		temporalMonthDayStringRegExp,
 		temporalYearMonthStringRegExp,
 	]).$timeZone;
-	const timeZoneId =
-		timeZone.$timeZoneAnnotation || (timeZone.$z && "UTC") || timeZone.$offsetString;
-	if (!timeZoneId) {
-		throwRangeError(invalidTimeZone(timeZoneString));
-	}
-	return parseTimeZoneIdentifier(timeZoneId);
+	return parseTimeZoneIdentifier(
+		timeZone.$timeZoneAnnotation ||
+			(timeZone.$z && "UTC") ||
+			timeZone.$offsetString ||
+			throwRangeError(invalidTimeZone(timeZoneString)),
+	);
 }
 
 /** `ParseTemporalDurationString` */
@@ -761,7 +761,7 @@ export function getDifferenceSettings<
 	fallbackSmallestUnit: Unit,
 	smallestLargestDefaultUnit: Unit,
 ): DifferenceSettings<UnitType<UnitGroup>> {
-	let largestUnit = getTemporalUnitValuedOption(options, "largestUnit") ?? "auto";
+	let largestUnit = getTemporalUnitValuedOption(options, "largestUnit", "auto");
 	const roundingIncrement = getRoundingIncrementOption(options);
 	const roundingMode = getRoundingModeOption(options, roundingModeTrunc);
 	const smallestUnit = getTemporalUnitValuedOption(options, "smallestUnit") ?? fallbackSmallestUnit;

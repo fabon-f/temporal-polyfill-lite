@@ -146,24 +146,26 @@ export function parseIsoDateTime(
 		) {
 			continue;
 		}
-		const matchedGroups = result.groups!;
+		const matchedGroups = result.groups;
+		assertNotUndefined(matchedGroups);
+		const fractionalSecond = (matchedGroups["g"] || "").padEnd(9, "0");
 
 		let calendar: string | undefined;
-		if (matchedGroups["k"]) {
-			let calendarWasCritical = false;
-			for (const [, criticalFlag, key, value] of matchedGroups["k"].matchAll(annotationRegExp)) {
-				if (key === "u-ca") {
-					if (!calendar) {
-						calendar = value;
-						// `calendarWasCritical` is always `false` here
-						calendarWasCritical = !!criticalFlag;
-					} else if (criticalFlag || calendarWasCritical) {
-						throwRangeError(parseError(isoString));
-					}
-				} else if (criticalFlag) {
-					// unknown annotation with critical flag
+		let calendarWasCritical = false;
+		for (const [, criticalFlag, key, value] of (matchedGroups["k"] || "").matchAll(
+			annotationRegExp,
+		)) {
+			if (key === "u-ca") {
+				if (!calendar) {
+					calendar = value;
+					// `calendarWasCritical` is always `false` here
+					calendarWasCritical = !!criticalFlag;
+				} else if (criticalFlag || calendarWasCritical) {
 					throwRangeError(parseError(isoString));
 				}
+			} else if (criticalFlag) {
+				// unknown annotation with critical flag
+				throwRangeError(parseError(isoString));
 			}
 		}
 
@@ -173,7 +175,6 @@ export function parseIsoDateTime(
 			}
 		}
 
-		const fractionalSecond = (matchedGroups["g"] || "").padEnd(9, "0");
 		return {
 			$year: mapUnlessUndefined(matchedGroups["a"] || matchedGroups["l"], toNumber),
 			$month: toNumber(matchedGroups["b"] || matchedGroups["m"] || 1),
