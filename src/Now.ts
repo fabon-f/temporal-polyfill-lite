@@ -16,8 +16,13 @@ import {
 } from "./ZonedDateTime.ts";
 
 let ttlMilliseconds = 0;
-let cachedSystemTimeZoneId: string | undefined;
-let timeZoneIdAccessTimestamp = -1 / 0;
+
+let systemTimeZoneCache:
+	| {
+			$timeZone: string;
+			$accessTimestamp: number;
+	  }
+	| undefined;
 
 /** `SystemTimeZoneIdentifier` */
 export function systemTimeZoneIdentifier(): string {
@@ -31,23 +36,25 @@ export function systemTimeZoneIdentifier(): string {
 	// but it won't be a problem since system time zone don't change in such special runtimes.
 	if (
 		ttlMilliseconds &&
-		timeZoneIdAccessTimestamp + ttlMilliseconds > /*#__PURE__*/ Date.now() &&
-		cachedSystemTimeZoneId
+		systemTimeZoneCache &&
+		systemTimeZoneCache.$accessTimestamp + ttlMilliseconds > /*#__PURE__*/ Date.now()
 	) {
 		// cache is not expired yet
-		return cachedSystemTimeZoneId;
+		return systemTimeZoneCache.$timeZone;
 	}
-	timeZoneIdAccessTimestamp = /*#__PURE__*/ Date.now();
-	// `resolvedOptions().timeZone` can be `undefined` in some engines
-	// cf. https://github.com/fabon-f/temporal-polyfill-lite/issues/54
-	return (cachedSystemTimeZoneId = OriginalDateTimeFormat().resolvedOptions().timeZone || "UTC");
+	systemTimeZoneCache = {
+		// `resolvedOptions().timeZone` can be `undefined` in some engines
+		// cf. https://github.com/fabon-f/temporal-polyfill-lite/issues/54
+		$timeZone: OriginalDateTimeFormat().resolvedOptions().timeZone || "UTC",
+		$accessTimestamp: /*#__PURE__*/ Date.now(),
+	};
+	return systemTimeZoneCache.$timeZone;
 }
 
 export function setSystemTimeZoneIdCacheTtl(ttl: number) {
 	ttlMilliseconds = ttl;
 	if (!ttl) {
-		cachedSystemTimeZoneId = undefined;
-		timeZoneIdAccessTimestamp = -1 / 0;
+		systemTimeZoneCache = undefined;
 	}
 }
 
