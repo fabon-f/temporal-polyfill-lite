@@ -7,7 +7,7 @@ const isBun = process.versions["bun"] !== undefined;
 const isNode = !isBun;
 
 function parseSemver(version: string): [major: number, minor: number, patch: number] {
-	const match = version.match(/(\d+)\.(\d+)\.(\d+)/);
+	const match = version.match(/(\d+)\.(\d+)\.(\d+)/u);
 	if (!match) {
 		throw new Error(`invalid version: ${version}`);
 	}

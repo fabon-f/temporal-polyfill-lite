@@ -17,6 +17,12 @@
 			"rules": {
 				"typescript/restrict-template-expressions": "off"
 			}
+		},
+		{
+			"files": ["src/**/*.test.ts", "script/**/*.{js,ts}"],
+			"rules": {
+				"require-unicode-regexp": "error"
+			}
 		}
 	]
 }

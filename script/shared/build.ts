@@ -18,7 +18,7 @@ const terserPlugin = terser({
 		keep_classnames: true,
 		keep_fnames: true,
 		properties: {
-			regex: /^(_|\$)/,
+			regex: /^(_|\$)/u,
 		},
 	},
 });
