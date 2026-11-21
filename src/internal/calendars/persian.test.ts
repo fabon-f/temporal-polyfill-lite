@@ -8,11 +8,7 @@ import {
 	monthDayFromDayOfYear,
 	monthDayToEpochDays,
 } from "./persian.ts";
-import {
-	calendarIntegersToEpochDaysByIcu,
-	epochDaysToDateByIcu,
-	yearMonthGeneratorByIcu,
-} from "./testUtils.ts";
+import { epochDaysToDateByIcu, yearMonthGeneratorByIcu } from "./testUtils.ts";
 
 test("dayOfYearFromMonthDay", () => {
 	expect(dayOfYearFromMonthDay(1, 1)).toEqual(1);
@@ -152,13 +148,13 @@ test.for([-1e8 - 1, 1e8])("roundtrip in extreme epoch days: %i", (epochDays) => 
 });
 
 test("calendarIntegersToEpochDays should match to ICU4X in the well-defined range", () => {
-	for (const { year, month, daysInMonth } of yearMonthGeneratorByIcu("persian", 1206, 1498)) {
-		expect(calendarIntegersToEpochDays(year, month, 1)).toEqual(
-			calendarIntegersToEpochDaysByIcu("persian", year, month, 1),
-		);
-		expect(calendarIntegersToEpochDays(year, month, daysInMonth)).toEqual(
-			calendarIntegersToEpochDaysByIcu("persian", year, month, daysInMonth),
-		);
+	for (const { year, month, daysInMonth, start, end } of yearMonthGeneratorByIcu(
+		"persian",
+		1206,
+		1498,
+	)) {
+		expect(calendarIntegersToEpochDays(year, month, 1)).toEqual(start);
+		expect(calendarIntegersToEpochDays(year, month, daysInMonth)).toEqual(end);
 	}
 });
 

@@ -8,7 +8,11 @@ import {
 	monthCodeToOrdinal,
 	monthDayToEpochDays,
 } from "./hebrew.ts";
-import { calendarIntegersToEpochDaysByIcu, epochDaysToDateByIcu } from "./testUtils.ts";
+import {
+	calendarIntegersToEpochDaysByIcu,
+	epochDaysToDateByIcu,
+	yearMonthGeneratorByIcu,
+} from "./testUtils.ts";
 
 test("isLeapYear", () => {
 	for (const yearMod19 of [0, 3, 6, 8, 11, 14, 17]) {
@@ -188,21 +192,14 @@ describe("calendarIntegersToEpochDays should match ICU4X", () => {
 	});
 
 	test("each month for all possible year patterns", () => {
-		// normal years (deficient, regular, complete)
-		for (const year of [5781, 5786, 5788]) {
-			for (let month = 1; month <= 12; month++) {
-				expect(calendarIntegersToEpochDays(year, month, 1)).toEqual(
-					calendarIntegersToEpochDaysByIcu("hebrew", year, month, 1),
-				);
-			}
-		}
-		// leap years (deficient, regular, complete)
-		for (const year of [5784, 5782, 5787]) {
-			for (let month = 1; month <= 13; month++) {
-				expect(calendarIntegersToEpochDays(year, month, 1)).toEqual(
-					calendarIntegersToEpochDaysByIcu("hebrew", year, month, 1),
-				);
-			}
+		// year range 5706 - 5711 includes all possible patterns of Hebrew year
+		for (const { year, month, daysInMonth, start, end } of yearMonthGeneratorByIcu(
+			"hebrew",
+			5706,
+			5711,
+		)) {
+			expect(calendarIntegersToEpochDays(year, month, 1)).toEqual(start);
+			expect(calendarIntegersToEpochDays(year, month, daysInMonth)).toEqual(end);
 		}
 	});
 });

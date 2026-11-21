@@ -4,11 +4,7 @@ import {
 	epochDaysToDate,
 	monthDayToEpochDays,
 } from "./islamicUmalqura.ts";
-import {
-	calendarIntegersToEpochDaysByIcu,
-	epochDaysToDateByIcu,
-	yearMonthGeneratorByIcu,
-} from "./testUtils.ts";
+import { epochDaysToDateByIcu, yearMonthGeneratorByIcu } from "./testUtils.ts";
 
 test("monthDayToEpochDays", () => {
 	expect(monthDayToEpochDays(1, 1)).toEqual(776);
@@ -52,17 +48,13 @@ test("monthDayToEpochDays", () => {
 });
 
 test("calendarIntegersToEpochDays should match to ICU4X in the well-defined range", () => {
-	for (const { year, month, daysInMonth } of yearMonthGeneratorByIcu(
+	for (const { year, month, daysInMonth, start, end } of yearMonthGeneratorByIcu(
 		"islamic-umalqura",
 		1300,
 		1600,
 	)) {
-		expect(calendarIntegersToEpochDays(year, month, 1)).toEqual(
-			calendarIntegersToEpochDaysByIcu("islamic-umalqura", year, month, 1),
-		);
-		expect(calendarIntegersToEpochDays(year, month, daysInMonth)).toEqual(
-			calendarIntegersToEpochDaysByIcu("islamic-umalqura", year, month, daysInMonth),
-		);
+		expect(calendarIntegersToEpochDays(year, month, 1)).toEqual(start);
+		expect(calendarIntegersToEpochDays(year, month, daysInMonth)).toEqual(end);
 	}
 });
 
