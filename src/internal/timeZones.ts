@@ -367,7 +367,7 @@ export function disambiguatePossibleEpochNanoseconds(
 	const epoch =
 		candidates[
 			disambiguation === disambiguationCompatible
-				? +!possibleEpochNs[0]
+				? +!possibleEpochNs.length
 				: +(disambiguation === disambiguationLater)
 		];
 	assertNotUndefined(epoch);
@@ -404,10 +404,10 @@ export function getStartOfDay(
 	isoDate: IsoDateRecord,
 ): EpochNanoseconds {
 	const isoDateTime = combineIsoDateAndTimeRecord(isoDate, midnightTimeRecord());
-	const possibleEarlierEpochNs = getPossibleEpochNanoseconds(timeZone, isoDateTime)[0];
-	if (possibleEarlierEpochNs) {
+	const possibleEpochNanoseconds = getPossibleEpochNanoseconds(timeZone, isoDateTime);
+	if (possibleEpochNanoseconds.length) {
 		// backward transition or no transition
-		return possibleEarlierEpochNs;
+		return possibleEpochNanoseconds[0]!;
 	}
 	assert(!isOffsetTimeZoneIdentifier(timeZone));
 	// cf. https://github.com/tc39/proposal-temporal/issues/2910

@@ -458,7 +458,7 @@ export function isoCalendarDateToIso(
 }
 
 export function isoCalendarIsoToDate(isoDate: IsoDateRecord): CalendarDateRecord {
-	return {
+	return createNullPrototypeObject({
 		$year: isoDate.$year,
 		$month: isoDate.$month,
 		$monthCode: createMonthCode(isoDate.$month),
@@ -471,7 +471,7 @@ export function isoCalendarIsoToDate(isoDate: IsoDateRecord): CalendarDateRecord
 		$daysInYear: mathematicalDaysInYear(isoDate.$year),
 		$monthsInYear: 12,
 		$inLeapYear: !!mathematicalInLeapYear(isoDate.$year),
-	};
+	});
 }
 
 /** `year` is supposed to be converted to Gregorian year in advance */
