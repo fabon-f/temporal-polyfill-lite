@@ -160,29 +160,23 @@ export function createMonthCode(monthNumber: number, isLeapMonth = false): strin
 	return `M${toZeroPaddedDecimalString(monthNumber, 2)}${isLeapMonth ? "L" : ""}`;
 }
 
-const fieldValues: Record<
-	CalendarFieldKey,
-	[conversion: (value: unknown) => any, defaultValue?: any]
-> = {
-	[calendarFieldKeys.$era]: [toString],
-	[calendarFieldKeys.$eraYear]: [toIntegerWithTruncation],
-	[calendarFieldKeys.$year]: [toIntegerWithTruncation],
-	[calendarFieldKeys.$month]: [toPositiveIntegerWithTruncation],
-	[calendarFieldKeys.$monthCode]: [(arg: unknown) => parseMonthCode(arg)],
-	[calendarFieldKeys.$day]: [toPositiveIntegerWithTruncation],
-	[calendarFieldKeys.$hour]: [toIntegerWithTruncation, 0],
-	[calendarFieldKeys.$minute]: [toIntegerWithTruncation, 0],
-	[calendarFieldKeys.$second]: [toIntegerWithTruncation, 0],
-	[calendarFieldKeys.$millisecond]: [toIntegerWithTruncation, 0],
-	[calendarFieldKeys.$microsecond]: [toIntegerWithTruncation, 0],
-	[calendarFieldKeys.$nanosecond]: [toIntegerWithTruncation, 0],
-	[calendarFieldKeys.$offset]: [toOffsetString],
-	[calendarFieldKeys.$timeZone]: [toTemporalTimeZoneIdentifier],
+const fieldConverters: Record<CalendarFieldKey, (value: unknown) => any> = {
+	[calendarFieldKeys.$era]: toString,
+	[calendarFieldKeys.$eraYear]: toIntegerWithTruncation,
+	[calendarFieldKeys.$year]: toIntegerWithTruncation,
+	[calendarFieldKeys.$month]: toPositiveIntegerWithTruncation,
+	[calendarFieldKeys.$monthCode]: (arg: unknown) => parseMonthCode(arg),
+	[calendarFieldKeys.$day]: toPositiveIntegerWithTruncation,
+	[calendarFieldKeys.$hour]: toIntegerWithTruncation,
+	[calendarFieldKeys.$minute]: toIntegerWithTruncation,
+	[calendarFieldKeys.$second]: toIntegerWithTruncation,
+	[calendarFieldKeys.$millisecond]: toIntegerWithTruncation,
+	[calendarFieldKeys.$microsecond]: toIntegerWithTruncation,
+	[calendarFieldKeys.$nanosecond]: toIntegerWithTruncation,
+	[calendarFieldKeys.$offset]: toOffsetString,
+	[calendarFieldKeys.$timeZone]: toTemporalTimeZoneIdentifier,
 } satisfies {
-	[K in CalendarFieldKey]: [
-		conversion: (value: any) => NonNullable<CalendarFieldsRecord[K]>,
-		defaultValue?: NonNullable<CalendarFieldsRecord[K]>,
-	];
+	[K in CalendarFieldKey]: (value: any) => NonNullable<CalendarFieldsRecord[K]>;
 };
 
 /** `PrepareCalendarFields` */
@@ -199,12 +193,22 @@ export function prepareCalendarFields(
 		const value = (fields as Record<string, unknown>)[property];
 		if (value !== undefined) {
 			hasAnyField = true;
-			result[property] = fieldValues[property][0](value);
+			result[property] = fieldConverters[property](value);
 		} else if (requiredFieldNames) {
 			if (requiredFieldNames.includes(property)) {
 				throwTypeError(missingField(property));
 			}
-			result[property] = fieldValues[property][1];
+			if (/ec|u/.test(property)) {
+				assert(
+					property === "hour" ||
+						property === "minute" ||
+						property === "second" ||
+						property === "millisecond" ||
+						property === "microsecond" ||
+						property === "nanosecond",
+				);
+				result[property] = 0;
+			}
 		}
 	}
 	if (!requiredFieldNames && !hasAnyField) {
