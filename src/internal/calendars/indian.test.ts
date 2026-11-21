@@ -7,7 +7,7 @@ import {
 	epochDaysToDate,
 	monthDayToEpochDays,
 } from "./indian.ts";
-import { epochDaysToDateByIcu } from "./testUtils.ts";
+import { epochDaysToDateByIcu, yearMonthGeneratorByIcu } from "./testUtils.ts";
 
 function epochDay(year: number, month: number, day: number) {
 	return isoDateToEpochDays(year, month - 1, day);
@@ -180,6 +180,20 @@ test("epochDaysToDate should match ICU4X", () => {
 	for (let epochDays = 0; epochDays < 1500; epochDays++) {
 		expect(epochDaysToDate(epochDays)).toEqual(epochDaysToDateByIcu("indian", epochDays));
 	}
-	expect(epochDaysToDate(-25488)).toEqual(epochDaysToDateByIcu("indian", -25488));
-	expect(epochDaysToDate(-25487)).toEqual(epochDaysToDateByIcu("indian", -25487));
+
+	for (const { start, end } of yearMonthGeneratorByIcu("indian", 1800, 2200)) {
+		expect(epochDaysToDate(start)).toEqual(epochDaysToDateByIcu("indian", start));
+		expect(epochDaysToDate(end)).toEqual(epochDaysToDateByIcu("indian", end));
+	}
+});
+
+test("calendarIntegersToEpochDays should match ICU4X", () => {
+	for (const { year, month, daysInMonth, start, end } of yearMonthGeneratorByIcu(
+		"indian",
+		1800,
+		2200,
+	)) {
+		expect(calendarIntegersToEpochDays(year, month, 1)).toEqual(start);
+		expect(calendarIntegersToEpochDays(year, month, daysInMonth)).toEqual(end);
+	}
 });
