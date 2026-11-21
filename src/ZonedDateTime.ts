@@ -125,7 +125,7 @@ import {
 	timeZoneMismatch,
 	undefinedArgument,
 } from "./internal/errorMessages.ts";
-import { createNullPrototypeObject, isObject } from "./internal/object.ts";
+import { isObject } from "./internal/object.ts";
 import { defineStringTag } from "./internal/property.ts";
 import { timeDurationToSubsecondsNumber, zeroTimeDuration } from "./internal/timeDuration.ts";
 import {
@@ -819,12 +819,11 @@ export class ZonedDateTime {
 		validatePartialTemporalObject(temporalZonedDateTimeLike);
 		const offsetNanoseconds = getOffsetNanosecondsForZonedDateTimeSlot(slot);
 		const isoDateTime = getIsoDateTimeForZonedDateTimeSlot(slot);
-		const fields = calendarMergeFields(
+		const fields = isoDateTimeToFields(slot.$calendar, isoDateTime);
+		fields[calendarFieldKeys.$offset] = formatUtcOffsetNanoseconds(offsetNanoseconds);
+		calendarMergeFields(
 			slot.$calendar,
-			createNullPrototypeObject({
-				...isoDateTimeToFields(slot.$calendar, isoDateTime),
-				[calendarFieldKeys.$offset]: formatUtcOffsetNanoseconds(offsetNanoseconds),
-			}),
+			fields,
 			prepareCalendarFields(slot.$calendar, temporalZonedDateTimeLike as object, [
 				calendarFieldKeys.$year,
 				calendarFieldKeys.$month,

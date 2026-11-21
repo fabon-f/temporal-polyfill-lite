@@ -121,22 +121,6 @@ export const calendarFieldKeys = {
 	$offset: "offset",
 	$timeZone: "timeZone",
 } as const;
-const calendarFieldKeyList = [
-	calendarFieldKeys.$era,
-	calendarFieldKeys.$eraYear,
-	calendarFieldKeys.$year,
-	calendarFieldKeys.$month,
-	calendarFieldKeys.$monthCode,
-	calendarFieldKeys.$day,
-	calendarFieldKeys.$hour,
-	calendarFieldKeys.$minute,
-	calendarFieldKeys.$second,
-	calendarFieldKeys.$millisecond,
-	calendarFieldKeys.$microsecond,
-	calendarFieldKeys.$nanosecond,
-	calendarFieldKeys.$offset,
-	calendarFieldKeys.$timeZone,
-];
 export type CalendarFieldKey = (typeof calendarFieldKeys)[keyof typeof calendarFieldKeys];
 
 export interface CalendarFieldsRecord {
@@ -209,7 +193,7 @@ export function prepareCalendarFields(
 	requiredFieldNames?: string[],
 ): CalendarFieldsRecord {
 	fieldNames = [...fieldNames, ...calendarExtraFields(calendar, fieldNames)].sort();
-	const result = createEmptyCalendarFieldsRecord();
+	const result = createNullPrototypeObject() as CalendarFieldsRecord;
 	let hasAnyField = false;
 	for (const property of fieldNames) {
 		const value = (fields as Record<string, unknown>)[property];
@@ -229,25 +213,37 @@ export function prepareCalendarFields(
 	return result;
 }
 
-/** `CalendarMergeFields` */
+/** `CalendarMergeFields`, but modify `fields` instead of returning a new record */
 export function calendarMergeFields(
 	calendar: SupportedCalendars,
 	fields: CalendarFieldsRecord,
 	additionalFields: CalendarFieldsRecord,
 ): CalendarFieldsRecord {
-	const overriddenKeys = calendarFieldKeysToIgnore(calendar, additionalFields);
-	const merged = createEmptyCalendarFieldsRecord();
-	for (const k of calendarFieldKeyList) {
-		if (fields[k] !== undefined && !overriddenKeys.includes(k)) {
-			// @ts-expect-error
-			merged[k] = fields[k];
-		}
+	for (const keyToIgnore of calendarFieldKeysToIgnore(calendar, additionalFields)) {
+		fields[keyToIgnore] = undefined;
+	}
+	for (const k of [
+		calendarFieldKeys.$era,
+		calendarFieldKeys.$eraYear,
+		calendarFieldKeys.$year,
+		calendarFieldKeys.$month,
+		calendarFieldKeys.$monthCode,
+		calendarFieldKeys.$day,
+		calendarFieldKeys.$hour,
+		calendarFieldKeys.$minute,
+		calendarFieldKeys.$second,
+		calendarFieldKeys.$millisecond,
+		calendarFieldKeys.$microsecond,
+		calendarFieldKeys.$nanosecond,
+		calendarFieldKeys.$offset,
+		calendarFieldKeys.$timeZone,
+	]) {
 		if (additionalFields[k] !== undefined) {
 			// @ts-expect-error
-			merged[k] = additionalFields[k];
+			fields[k] = additionalFields[k];
 		}
 	}
-	return merged;
+	return fields;
 }
 
 export function isoCalendarDateAdd(
@@ -652,10 +648,6 @@ function calendarResolveFields(
 	} else {
 		nonIsoResolveFields(calendar, fields, type);
 	}
-}
-
-function createEmptyCalendarFieldsRecord(): CalendarFieldsRecord {
-	return createNullPrototypeObject() as CalendarFieldsRecord;
 }
 
 export {
