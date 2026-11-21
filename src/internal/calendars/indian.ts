@@ -28,8 +28,8 @@ export function calendarIntegersToEpochDays(
 		1 +
 		(ordinalMonth - 1) * 30 +
 		day +
-		clamp(ordinalMonth - 1, 0, 6) +
-		(ordinalMonth === 1 || mathematicalInLeapYear(arithmeticYear) ? 0 : -1)
+		clamp(ordinalMonth - 1, 0, 6) -
+		+(ordinalMonth > 1 && !mathematicalInLeapYear(arithmeticYear))
 	);
 }
 
@@ -58,5 +58,5 @@ export function epochDaysToDate(epochDays: number): CalendarDateRecord {
 }
 
 export function monthDayToEpochDays(month: number, day: number) {
-	return calendarIntegersToEpochDays(month * 30 + day <= 310 ? 1894 : 1893, month, day);
+	return calendarIntegersToEpochDays(+(month * 30 + day <= 310) + 1893, month, day);
 }

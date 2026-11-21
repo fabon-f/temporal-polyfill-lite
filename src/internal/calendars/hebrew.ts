@@ -72,9 +72,9 @@ export function balanceYearMonth(year: number, month: number) {
 
 export function epochDaysToDate(epochDays: number): CalendarDateRecord {
 	const isoDate = epochDaysToIsoDate(epochDays);
-	let arithmeticYear = divFloor(epochDays + 2092590, 365.2468222) + 2;
+	let arithmeticYear = divFloor(epochDays + 2092590, 365.247) + 2;
 	for (; calendarIntegersToEpochDays(arithmeticYear, 1, 1) > epochDays; arithmeticYear--) {}
-	let month = isLeapYear(arithmeticYear) ? 13 : 12;
+	let month = +isLeapYear(arithmeticYear) + 12;
 	for (; calendarIntegersToEpochDays(arithmeticYear, month, 1) > epochDays; month--) {}
 	return {
 		$era: "am",
@@ -93,7 +93,7 @@ export function epochDaysToDate(epochDays: number): CalendarDateRecord {
 		$daysInYear:
 			calendarIntegersToEpochDays(arithmeticYear + 1, 1, 1) -
 			calendarIntegersToEpochDays(arithmeticYear, 1, 1),
-		$monthsInYear: isLeapYear(arithmeticYear) ? 13 : 12,
+		$monthsInYear: +isLeapYear(arithmeticYear) + 12,
 		$inLeapYear: isLeapYear(arithmeticYear),
 	};
 }

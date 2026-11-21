@@ -33,8 +33,7 @@ export function epochDaysToDate(
 	const month = divFloor(dayOfYear - 1, 30) + 1;
 	return {
 		$era: calendar === "coptic" || (calendar === "ethiopic" && arithmeticYear > 0) ? "am" : "aa",
-		$eraYear:
-			calendar === "ethiopic" && arithmeticYear <= 0 ? arithmeticYear + 5500 : arithmeticYear,
+		$eraYear: +(calendar === "ethiopic" && arithmeticYear < 1) * 5500 + arithmeticYear,
 		$year: arithmeticYear,
 		$month: month,
 		$monthCode: createMonthCode(month),
