@@ -528,7 +528,7 @@ export function isDateUnit(unit: Unit): unit is Unit.Date {
 
 /** `MaximumTemporalDurationRoundingIncrement` */
 export function maximumTemporalDurationRoundingIncrement(unit: Unit.Time): number {
-	return [24, 60, 60][getIndexFromUnit(unit) - 4] || 1000;
+	return [24, 60, 60, 1000, 1000, 1000][getIndexFromUnit(unit) - 4]!;
 }
 
 /** `IsPartialTemporalObject` + throwing */
