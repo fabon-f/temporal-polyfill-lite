@@ -1,1 +1,3 @@
 minimumReleaseAge: 720
+overrides:
+  vite: beta
