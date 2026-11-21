@@ -6,7 +6,7 @@ import {
 	epochDaysToDate,
 	monthDayToEpochDays,
 } from "./islamicTabular.ts";
-import { epochDaysToDateByIcu } from "./testUtils.ts";
+import { epochDaysToDateByIcu, yearMonthGeneratorByIcu } from "./testUtils.ts";
 
 function ymd(date: CalendarDateRecord) {
 	return [date.$year, date.$month, date.$day];
@@ -303,6 +303,20 @@ test.for(["islamic-civil", "islamic-tbla"] as const)(
 			expect(epochDaysToDate(calendar, epochDays)).toEqual(
 				epochDaysToDateByIcu(calendar, epochDays),
 			);
+		}
+	},
+);
+
+test.for(["islamic-civil", "islamic-tbla"] as const)(
+	"calendarIntegersToEpochDays should match ICU4X: %s",
+	(calendar) => {
+		for (const { year, month, daysInMonth, start, end } of yearMonthGeneratorByIcu(
+			calendar,
+			-30,
+			30,
+		)) {
+			expect(calendarIntegersToEpochDays(calendar, year, month, 1)).toEqual(start);
+			expect(calendarIntegersToEpochDays(calendar, year, month, daysInMonth)).toEqual(end);
 		}
 	},
 );
