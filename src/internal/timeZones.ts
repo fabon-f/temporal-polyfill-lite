@@ -50,7 +50,7 @@ import { ambiguousTime, invalidTimeZone } from "./errorMessages.ts";
 import { clamp, divFloor, isWithin, modFloor } from "./math.ts";
 import { NativeTemporal } from "./nativeTemporal.ts";
 import { createNullPrototypeObject } from "./object.ts";
-import { asciiCapitalize, asciiLowerCase, asciiUpperCase } from "./string.ts";
+import { asciiLowerCase, asciiUpperCase } from "./string.ts";
 import { utcEpochMilliseconds } from "./time.ts";
 import { throwRangeError } from "./utils.ts";
 
@@ -235,13 +235,10 @@ export function normalizeIanaTimeZoneId(id: string): string {
 			return asciiUpperCase(part);
 		}
 		return part.replace(/baja|mc|comod|[a-z]+/g, (word) => {
-			if (/^(su|gb|nz|in|chat)$/.test(word)) {
-				return asciiUpperCase(word);
-			}
 			if (/^(of|au|es)$/.test(word)) {
 				return word;
 			}
-			return asciiCapitalize(word).replace(/du(?=r)|n(?=or)|i(?=slan)/, asciiUpperCase);
+			return word.replace(/^(su|gb|nz|in|chat)$|^.|du(?=r)|n(?=or)|i(?=slan)/g, asciiUpperCase);
 		});
 	});
 }
