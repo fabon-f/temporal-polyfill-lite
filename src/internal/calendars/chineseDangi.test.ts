@@ -13,17 +13,42 @@ import {
 	extractDangiDateFromIntlDateTimeFormat,
 } from "./testUtils.ts";
 
-test("constrainMonthCode", () => {
-	const nonLeapMonthCodes: MonthCode[] = Array.from({ length: 12 }, (_, i) => [i + 1, false]);
-	for (const monthCode of nonLeapMonthCodes) {
-		expect(constrainMonthCode("chinese", 2025, monthCode)).toBe(monthCode);
-		expect(constrainMonthCode("dangi", 2025, monthCode)).toBe(monthCode);
-	}
-	const monthCode: MonthCode = [6, true];
-	expect(constrainMonthCode("chinese", 2025, monthCode)).toBe(monthCode);
-	expect(constrainMonthCode("dangi", 2025, monthCode)).toBe(monthCode);
-	expect(constrainMonthCode("chinese", 2025, [1, true])).toEqual([1, false]);
-	expect(constrainMonthCode("dangi", 2025, [1, true])).toEqual([1, false]);
+describe("constrainMonthCode", () => {
+	test("non-leap months", () => {
+		const nonLeapMonthCodes: MonthCode[] = Array.from({ length: 12 }, (_, i) => [i + 1, false]);
+		for (const monthCode of nonLeapMonthCodes) {
+			expect(constrainMonthCode("chinese", 2025, monthCode)).toBe(monthCode);
+			expect(constrainMonthCode("dangi", 2025, monthCode)).toBe(monthCode);
+		}
+	});
+
+	test("leap months available", () => {
+		for (const [monthNumber, year] of [
+			[2, 1947],
+			[3, 1966],
+			[4, 1963],
+			[5, 1971],
+			[6, 1960],
+			[7, 1968],
+			[8, 1957],
+			[9, 2014],
+			[10, 1984],
+			[11, 2033],
+		] as [number, number][]) {
+			const leapMonthCode: MonthCode = [monthNumber, true];
+			expect(constrainMonthCode("chinese", year, leapMonthCode)).toBe(leapMonthCode);
+			expect(constrainMonthCode("dangi", year, leapMonthCode)).toBe(leapMonthCode);
+		}
+	});
+
+	test("leap months not available", () => {
+		const nonLeapMonthCodes: MonthCode[] = Array.from({ length: 12 }, (_, i) => [i + 1, true]);
+		for (const monthCode of nonLeapMonthCodes) {
+			// 2024 is not a leap year
+			expect(constrainMonthCode("chinese", 2024, monthCode)).toEqual([monthCode[0], false]);
+			expect(constrainMonthCode("dangi", 2024, monthCode)).toEqual([monthCode[0], false]);
+		}
+	});
 });
 
 describe("monthDayToEpochDays", () => {
