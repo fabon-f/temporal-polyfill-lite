@@ -17,7 +17,6 @@ import {
 	getTemporalShowCalendarNameOption,
 	getUtcEpochNanoseconds,
 	isoDateRecordToEpochDays,
-	isoDateToEpochDays,
 	isoDateToFields,
 	validatePartialTemporalObject,
 } from "./internal/abstractOperations.ts";
@@ -198,9 +197,7 @@ export function isValidIsoDate(year: number, month: number, day: number): boolea
 
 /** `AddDaysToISODate` */
 export function addDaysToIsoDate(isoDate: IsoDateRecord, days: number): IsoDateRecord {
-	return epochDaysToIsoDate(
-		isoDateToEpochDays(isoDate.$year, isoDate.$month - 1, isoDate.$day + days),
-	);
+	return epochDaysToIsoDate(isoDateRecordToEpochDays(isoDate) + days);
 }
 
 /** `PadISOYear` */

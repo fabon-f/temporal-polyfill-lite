@@ -173,7 +173,7 @@ export function mathematicalInLeapYear(year: number): number {
 
 /** `CheckISODaysRange` */
 export function checkIsoDaysRange(isoDate: IsoDateRecord) {
-	if (Math.abs(isoDateToEpochDays(isoDate.$year, isoDate.$month - 1, isoDate.$day)) > 1e8) {
+	if (Math.abs(isoDateRecordToEpochDays(isoDate)) > 1e8) {
 		throwRangeError(outOfBoundsDate);
 	}
 }

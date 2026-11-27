@@ -277,9 +277,7 @@ export function isoCalendarDateUntil(
 		return zeroDateDuration();
 	}
 	if (largestUnit === Unit.Week || largestUnit === Unit.Day) {
-		const days =
-			isoDateToEpochDays(two.$year, two.$month - 1, two.$day) -
-			isoDateToEpochDays(one.$year, one.$month - 1, one.$day);
+		const days = isoDateRecordToEpochDays(two) - isoDateRecordToEpochDays(one);
 		return largestUnit === Unit.Week
 			? createDateDurationRecord(0, 0, divTrunc(days, 7) + 0, (days % 7) + 0)
 			: createDateDurationRecord(0, 0, 0, days);
