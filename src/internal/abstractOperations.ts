@@ -118,7 +118,6 @@ import { divFloor, divTrunc, isWithin, modFloor, type NumberSign } from "./math.
 import { createNullPrototypeObject, isObject } from "./object.ts";
 import {
 	roundExpand,
-	roundHalfCeil,
 	roundHalfEven,
 	roundHalfExpand,
 	roundHalfFloor,
@@ -583,7 +582,7 @@ const roundingFunctions: Record<RoundingMode, (num: number) => number> = {
 	[roundingModeFloor]: Math.floor,
 	[roundingModeExpand]: roundExpand,
 	[roundingModeTrunc]: Math.trunc,
-	[roundingModeHalfCeil]: roundHalfCeil,
+	[roundingModeHalfCeil]: Math.round,
 	[roundingModeHalfFloor]: roundHalfFloor,
 	[roundingModeHalfExpand]: roundHalfExpand,
 	[roundingModeHalfTrunc]: roundHalfTrunc,
@@ -591,15 +590,11 @@ const roundingFunctions: Record<RoundingMode, (num: number) => number> = {
 };
 
 const roundingFunctionsAsIfPositive: Record<RoundingMode, (num: number) => number> = {
-	[roundingModeCeil]: Math.ceil,
-	[roundingModeFloor]: Math.floor,
+	...roundingFunctions,
 	[roundingModeExpand]: Math.ceil,
 	[roundingModeTrunc]: Math.floor,
-	[roundingModeHalfCeil]: roundHalfCeil,
-	[roundingModeHalfFloor]: roundHalfFloor,
-	[roundingModeHalfExpand]: roundHalfCeil,
+	[roundingModeHalfExpand]: Math.round,
 	[roundingModeHalfTrunc]: roundHalfFloor,
-	[roundingModeHalfEven]: roundHalfEven,
 };
 
 /** `RoundNumberToIncrement` */

@@ -1203,7 +1203,7 @@ export class Duration {
 			throwRangeError(missingField("relativeTo"));
 		}
 		assert(!isCalendarUnit(smallestUnit));
-		const internalDuration = toInternalDurationRecordWith24HourDays(durationSlot);
+		const internalDurationTime = toInternalDurationRecordWith24HourDays(durationSlot).$time;
 		return createTemporalDuration(
 			temporalDurationFromInternal(
 				smallestUnit === Unit.Day
@@ -1213,7 +1213,7 @@ export class Duration {
 								0,
 								0,
 								timeDurationDaysAndRemainderNanoseconds(
-									roundTimeDurationByDays(internalDuration.$time, roundingIncrement, roundingMode),
+									roundTimeDurationByDays(internalDurationTime, roundingIncrement, roundingMode),
 								)[0],
 							),
 							zeroTimeDuration,
@@ -1221,7 +1221,7 @@ export class Duration {
 					: combineDateAndTimeDuration(
 							zeroDateDuration(),
 							roundTimeDuration(
-								internalDuration.$time,
+								internalDurationTime,
 								roundingIncrement,
 								smallestUnit,
 								roundingMode,

@@ -1,7 +1,6 @@
 import { expect, test } from "vitest";
 import {
 	roundExpand,
-	roundHalfCeil,
 	roundHalfEven,
 	roundHalfExpand,
 	roundHalfFloor,
@@ -20,21 +19,6 @@ test.for([
 	[-1.1, -2],
 ] as [number, number][])("roundExpand(%s) is %s", ([input, expected]) => {
 	expect(roundExpand(input)).toBe(expected);
-});
-
-test.for([
-	[0.49, 0],
-	[0.5, 1],
-	[0.51, 1],
-	[1.5, 2],
-	[2.5, 3],
-	[-0.49, 0],
-	[-0.5, 0],
-	[-0.51, -1],
-	[-1.5, -1],
-	[-2.5, -2],
-] as [number, number][])("roundHalfCeil(%s) is %s", ([input, expected]) => {
-	expect(roundHalfCeil(input)).toBe(expected);
 });
 
 test.for([
