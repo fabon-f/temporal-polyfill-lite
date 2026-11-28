@@ -279,7 +279,7 @@ export function isoCalendarDateUntil(
 	if (largestUnit === Unit.Week || largestUnit === Unit.Day) {
 		const days = isoDateRecordToEpochDays(two) - isoDateRecordToEpochDays(one);
 		return largestUnit === Unit.Week
-			? createDateDurationRecord(0, 0, divTrunc(days, 7) + 0, (days % 7) + 0)
+			? createDateDurationRecord(0, 0, divTrunc(days, 7), days % 7)
 			: createDateDurationRecord(0, 0, 0, days);
 	}
 	const months =
@@ -301,7 +301,7 @@ export function isoCalendarDateUntil(
 			),
 		);
 	if (largestUnit === Unit.Year) {
-		return createDateDurationRecord(divTrunc(months, 12), (months % 12) + 0, 0, days);
+		return createDateDurationRecord(divTrunc(months, 12), months % 12, 0, days);
 	}
 	return createDateDurationRecord(0, months, 0, days);
 }

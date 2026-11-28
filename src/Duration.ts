@@ -371,7 +371,7 @@ function toTemporalPartialDurationRecord(temporalDurationLike: unknown): Partial
 /** part of `CreateTemporalDuration` */
 export function createTemporalDurationSlot(units: DurationTuple): DurationSlot {
 	validateDuration(...units);
-	return units as DurationSlot;
+	return units.map((v) => v + 0) as DurationSlot;
 }
 
 /** part of `CreateTemporalDuration` */
@@ -945,7 +945,7 @@ function getInternalSlotOrThrowForDuration(duration: unknown): DurationSlot {
 }
 
 export function applySignToDurationSlot(duration: DurationSlot, sign: NumberSign): DurationSlot {
-	return createTemporalDurationSlot(duration.map((v) => v * sign + 0) as DurationTuple);
+	return createTemporalDurationSlot(duration.map((v) => v * sign) as DurationTuple);
 }
 
 function timeDurationWithinLimits(d: TimeDuration): boolean {
